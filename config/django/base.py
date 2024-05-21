@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 
 from config.env import APPS_DIR, BASE_DIR, env
 
@@ -11,21 +10,22 @@ SECRET_KEY = "django-insecure-eb7x*euse3jj879p3vtb_^gbolpga@rl$18pqnn93@t0n*@!$a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", default=True)  # type: ignore
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS: list[str] = ["*"]
 
 # Application definition
-
-LOCAL_APPS = [
+LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
+    "core.common.apps.CommonConfig",
+    "core.users.apps.UsersConfig",
 ]
 
-THIRD_PARTY_APPS = [
+THIRD_PARTY_APPS: list[str] = [
     "rest_framework",
     "django_filters",
     "django_extensions",
 ]
 
-INSTALLED_APPS = [
+INSTALLED_APPS: list[str] = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     *LOCAL_APPS,
 ]
 
-MIDDLEWARE = [
+MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -50,8 +50,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "config.urls"
-
-print(os.path.join(APPS_DIR, "templates"))
 
 TEMPLATES = [
     {
@@ -99,7 +97,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# AUTH_USER_MODEL = "users.BaseUser"
+AUTH_USER_MODEL = "users.Member"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
