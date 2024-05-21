@@ -18,6 +18,8 @@
         },
         "isort.args": ["--profile", "black"],
         "cSpell.words": [
+            "Ababa",
+            "Addis",
             "corsheaders",
             "isort",
             "nostatic",
