@@ -1,8 +1,8 @@
 # Clean up migration files
 .PHONY: clean-migrations
 clean-migrations:
-	@find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-	@find . -path "*/migrations/*.pyc" -delete
+	@find core -path "*/migrations/*.py" -not -name "__init__.py" -delete
+	@find core -path "*/migrations/*.pyc" -delete
 
 # Collect static files
 .PHONY: collectstatic
