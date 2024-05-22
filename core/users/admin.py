@@ -1,5 +1,5 @@
 from django.contrib import admin
-from polymorphic.admin import PolymorphicChildModelAdmin
+from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
 
 from .models import BaseUser, Guest, Member
 
@@ -36,3 +36,16 @@ class MemberAdmin(BaseUserChildAdmin):
         "date_joined",
     ]
     show_in_index = True
+
+
+@admin.register(BaseUser)
+class BaseUserParentAdmin(PolymorphicParentModelAdmin):
+    base_model = BaseUser
+    list_display: list[str] = [
+        "id",
+        "polymorphic_ctype_id",
+        "created",
+        "modified",
+    ]
+    child_models: tuple[type[Guest], type[Member]] = (Guest, Member)
+    list_filter: tuple[type[PolymorphicChildModelFilter]] = (PolymorphicChildModelFilter,)
