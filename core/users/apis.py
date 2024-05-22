@@ -7,6 +7,8 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.common.utils import get_list, get_object
 from core.users.models import BaseUser, Guest, Member
 
+print("Not")
+
 
 class GustListSerializer(serializers.Serializer):
     id = serializers.CharField()
