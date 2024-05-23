@@ -70,25 +70,29 @@ class Guest(BaseUser):
 
     email = models.EmailField(
         _("Email Address"),
-        unique=True,
+        blank=True,
+        null=True,
         help_text=_("Enter the email address of the guest."),
     )
     phone_number = models.CharField(
         _("Phone Number"),
+        blank=True,
+        null=True,
         max_length=20,
-        unique=True,
         help_text=_("Enter the phone number of the guest."),
     )
 
     address = models.CharField(
         _("Address"),
         max_length=255,
+        blank=True,
         default="Addis Ababa, Ethiopia",
         help_text=_("Enter the address of the guest."),
     )
     postal_code = models.PositiveIntegerField(
         _("Postal Code"),
-        unique=True,
+        blank=True,
+        null=True,
         help_text=_("Enter the postal code of the guest."),
     )
 
