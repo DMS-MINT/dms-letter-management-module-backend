@@ -8,12 +8,12 @@ from core.users.models import BaseUser, Guest, Member
 
 
 class GustListSerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.UUIDField()
     name = serializers.CharField()
 
 
 class MemberListSerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.UUIDField()
     full_name = serializers.CharField()
     job_title = serializers.CharField()
 
@@ -41,7 +41,7 @@ class UserListApi(APIView):
 
 
 class GuestDetailSerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.UUIDField()
     name = serializers.CharField()
     email = serializers.CharField()
     phone_number = serializers.CharField()
@@ -50,7 +50,7 @@ class GuestDetailSerializer(serializers.Serializer):
 
 
 class MemberDetailSerializer(serializers.Serializer):
-    id = serializers.CharField()
+    id = serializers.UUIDField()
     username = serializers.CharField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
