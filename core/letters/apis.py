@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
+from core.participants.apis import ParticipantCreateApi
+
 from ..common.utils import get_list, get_object
 from .models import Incoming, Internal, Letter, Outgoing
 from .serializers import (
@@ -59,6 +61,7 @@ class LetterCreateApi(APIView):
         subject = serializers.CharField()
         content = serializers.CharField()
         status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
+        participants = serializers.ListField(child=ParticipantCreateApi.InputSerializer())
         letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
 
     def post(self, request) -> Response:
@@ -74,6 +77,9 @@ class LetterCreateApi(APIView):
 
             except ValueError as e:
                 return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+
+            except Exception as e:
+                return Response({"detail": str(e)}, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         else:
             return Response(input_serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
