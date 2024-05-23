@@ -1,31 +1,22 @@
 from rest_framework import serializers
+from rest_framework import status as http_status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from core.participants.apis import ParticipantListApi
-
 from ..common.utils import get_list, get_object
 from .models import Incoming, Internal, Letter, Outgoing
-
-
-class LetterListSerializer(serializers.HyperlinkedModelSerializer):
-    status = serializers.ChoiceField(choices=Letter.LetterStatus.choices, source="get_status_display")
-
-    class Meta:
-        model = Letter
-        fields: list[str] = [
-            "id",
-            "status",
-            "subject",
-            "created",
-            "modified",
-        ]
+from .serializers import (
+    LetterDetailSerializer,
+    LetterListSerializer,
+    OutgoingLetterDetailSerializer,
+)
+from .services import letter_create
 
 
 class LetterListApi(APIView):
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "user_type"
+        resource_type_field_name = "letter_type"
         model_serializer_mapping = {
             Internal: LetterListSerializer,
             Incoming: LetterListSerializer,
@@ -43,36 +34,9 @@ class LetterListApi(APIView):
         return Response(data=serializer.data)
 
 
-class LetterDetailSerializer(serializers.HyperlinkedModelSerializer):
-    status = serializers.ChoiceField(choices=Letter.LetterStatus.choices, source="get_status_display")
-    letter_participants = ParticipantListApi.OutputSerializer(many=True)
-
-    class Meta:
-        model = Letter
-        fields: list[str] = [
-            "id",
-            "status",
-            "subject",
-            "content",
-            "letter_participants",
-            "created",
-            "modified",
-        ]
-
-
-class OutgoingLetterDetailSerializer(LetterDetailSerializer):
-    class Meta(LetterDetailSerializer.Meta):
-        model = Outgoing
-        fields: list[str] = LetterDetailSerializer.Meta.fields + [
-            "delivery_person_name",
-            "delivery_person_phone",
-            "shipment_id",
-        ]
-
-
 class LetterDetailApi(APIView):
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "user_type"
+        resource_type_field_name = "letter_type"
         model_serializer_mapping = {
             Internal: LetterDetailSerializer,
             Incoming: LetterDetailSerializer,
@@ -85,8 +49,31 @@ class LetterDetailApi(APIView):
     def get(self, request, letter_id) -> Response:
         letter = get_object(Letter, id=letter_id)
 
-        if letter is None:
-            return Response({"detail": "Letter not found"}, status=404)
-
         serializer = self.OutputSerializer(letter, many=False)
+
         return Response(data=serializer.data)
+
+
+class LetterCreateApi(APIView):
+    class InputSerializer(serializers.Serializer):
+        subject = serializers.CharField()
+        content = serializers.CharField()
+        status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
+        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+
+    def post(self, request) -> Response:
+        input_serializer = self.InputSerializer(data=request.data)
+
+        if input_serializer.is_valid():
+            try:
+                letter_instance = letter_create(validated_data=input_serializer.validated_data)
+
+                output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+
+                return Response(data=output_serializer.data, status=http_status.HTTP_201_CREATED)
+
+            except ValueError as e:
+                return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+
+        else:
+            return Response(input_serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
