@@ -42,7 +42,7 @@ class DebugToolbarSetup:
     """
 
     @staticmethod
-    def do_settings(INSTALLED_APPS, MIDDLEWARE, middleware_position=4):
+    def do_settings(INSTALLED_APPS, MIDDLEWARE, middleware_position=None):
         _show_toolbar: bool = show_toolbar()
         logger.info(f"Django Debug Toolbar in use: {_show_toolbar}")
 
