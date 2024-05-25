@@ -52,4 +52,4 @@ class BaseUserParentAdmin(PolymorphicParentModelAdmin):
         "modified",
     ]
     child_models = (Guest, Member)
-    list_filter = (PolymorphicChildModelFilter, )
+    list_filter = (PolymorphicChildModelFilter,)

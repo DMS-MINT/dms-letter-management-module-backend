@@ -44,4 +44,4 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
     list_display: list[str] = ["subject", "content", "status", "created"]
     child_models = (Internal, Incoming, Outgoing)
-    list_filter = (PolymorphicChildModelFilter, )
+    list_filter = (PolymorphicChildModelFilter,)
