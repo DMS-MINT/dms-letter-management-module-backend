@@ -25,7 +25,9 @@
             "mypy",
             "namespacing",
             "nostatic",
+            "openapi",
             "psycopg",
+            "sessionid",
             "viewset",
             "whitenoise",
             "yapf"
