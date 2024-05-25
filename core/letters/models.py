@@ -6,7 +6,6 @@ from core.common.models import BaseModel
 
 
 class Letter(PolymorphicModel, BaseModel):
-
     class LetterStatus(models.IntegerChoices):
         ARCHIVED = 1, _("Archived")
         CANCELLED = 2, _("Cancelled")
@@ -49,14 +48,12 @@ class Letter(PolymorphicModel, BaseModel):
 
 
 class Internal(Letter):
-
     class Meta:
         verbose_name: str = "Internal Letter"
         verbose_name_plural: str = "Internal Letters"
 
 
 class Incoming(Letter):
-
     class Meta:
         verbose_name: str = "Incoming Letter"
         verbose_name_plural: str = "Incoming Letters"

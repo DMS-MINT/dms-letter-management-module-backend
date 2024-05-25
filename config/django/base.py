@@ -144,7 +144,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Letter Management Module API",
-    "DESCRIPTION":
-    "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",
+    "DESCRIPTION": "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",
     "VERSION": "1.0.0",
 }

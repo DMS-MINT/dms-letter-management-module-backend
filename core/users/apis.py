@@ -14,7 +14,6 @@ from .serializers import (
 
 
 class UserListApi(APIView):
-
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
@@ -37,7 +36,6 @@ class UserListApi(APIView):
 
 
 class UserDetailAPI(APIView):
-
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {

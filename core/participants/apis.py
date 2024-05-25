@@ -11,7 +11,6 @@ from .services import participant_create
 
 
 class ParticipantListApi(APIView):
-
     class OutputSerializer(serializers.HyperlinkedModelSerializer):
         role = serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display")
         user = UserListApi.OutputSerializer()
@@ -29,7 +28,6 @@ class ParticipantListApi(APIView):
 
 
 class ParticipantCreateApi(APIView):
-
     class InputSerializer(serializers.Serializer):
         user = UserCreateSerializer()
         role = serializers.ChoiceField(choices=Participant.Roles.choices)

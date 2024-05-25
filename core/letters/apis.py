@@ -17,7 +17,6 @@ from .services import letter_create
 
 
 class LetterListApi(APIView):
-
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
         model_serializer_mapping = {
@@ -38,7 +37,6 @@ class LetterListApi(APIView):
 
 
 class LetterDetailApi(APIView):
-
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
         model_serializer_mapping = {
@@ -59,7 +57,6 @@ class LetterDetailApi(APIView):
 
 
 class LetterCreateApi(APIView):
-
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField()
         content = serializers.CharField()
