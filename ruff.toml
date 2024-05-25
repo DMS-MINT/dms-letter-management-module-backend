@@ -1,0 +1,76 @@
+# General Settings
+line-length = 120
+indent-width = 4
+preview = true
+target-version = "py311"
+output-format = "grouped"
+respect-gitignore = true
+show-fixes = true
+show-source = true
+exclude = [ 
+     ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "migrations",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+# Linting Settings
+[lint]
+select = [
+    "COM",
+    "DJ",
+    "E",
+    "F", 
+    "I",
+    "LOG",
+    "N",
+    "PIE",
+    "Q",
+    "RET",
+    "T10",
+    "T20",
+    "W",
+]
+ignore = [
+    "DJ001", 
+    "E722"
+]
+fixable = ["ALL"]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Pydocstyle Settings
+[lint.pydocstyle]
+convention = "google"
+
+# Formatting Settings
+[format]
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
+
+[lint.isort]
+case-sensitive = true
