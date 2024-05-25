@@ -1,7 +1,6 @@
 # Ruff Configuration
 [tool.ruff]
 exclude = [
-    "migrations",
     ".bzr",
     ".direnv",
     ".eggs",
@@ -25,43 +24,44 @@ exclude = [
     "buck-out",
     "build",
     "dist",
+    "migrations",
     "node_modules",
     "site-packages",
     "venv",
-    ".venv",
 ]
 line-length = 120
 indent-width = 4
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "I"]
-ignore = ["E722"]
-fixable = ["ALL"]
-unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+fixable = ["ALL"]
+ignore = ["E722"]
+select = ["E4", "E7", "E9", "F", "I"]
+unfixable = []
 
 [tool.ruff.format]
-quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
 line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false
 
 [tool.ruff.lint.isort]
 case-sensitive = true
 
 # YAPF Configuration
 [tool.yapf]
-based_on_style = "pep8"
-indent_width = 4
-column_limit = 120
 align_closing_bracket_with_visual_indent = true
 arithmetic_precedence_indication = true
-blank_lines_around_top_level_definition = 2
+based_on_style = "pep8"
 blank_line_before_class_docstring = true
 blank_line_before_nested_class_or_def = true
+blank_lines_around_top_level_definition = 2
 coalesce_brackets = true
+column_limit = 120
 dedent_closing_brackets = true
+indent_width = 4
+space_between_ending_comma_and_closing_bracket = false
 spaces_before_comment = 2
 
 [tool.yapfignore]
