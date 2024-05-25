@@ -37,6 +37,7 @@ def show_toolbar(*args, **kwargs) -> bool:
 
 
 class DebugToolbarSetup:
+
     """
     We use a class, just for namespacing convenience.
     """

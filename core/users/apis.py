@@ -5,10 +5,16 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.common.utils import get_list, get_object
 from core.users.models import BaseUser, Guest, Member
 
-from .serializers import GuestDetailSerializer, GustListSerializer, MemberDetailSerializer, MemberListSerializer
+from .serializers import (
+    GuestDetailSerializer,
+    GustListSerializer,
+    MemberDetailSerializer,
+    MemberListSerializer,
+)
 
 
 class UserListApi(APIView):
+
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
@@ -31,6 +37,7 @@ class UserListApi(APIView):
 
 
 class UserDetailAPI(APIView):
+
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {

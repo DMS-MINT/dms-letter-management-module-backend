@@ -7,6 +7,7 @@ from core.users.models import BaseUser
 
 
 class Participant(BaseModel):
+
     class Roles(models.IntegerChoices):
         BCC = 1, _("Blind Carbon Copy Recipient")
         CC = 2, _("Carbon Copy Recipient")

@@ -18,7 +18,7 @@ def get_object(model_or_queryset, **kwargs):
 
 
 def create_serializer_class(name, fields):
-    return type(name, (serializers.Serializer,), fields)
+    return type(name, (serializers.Serializer, ), fields)
 
 
 def inline_serializer(*, fields, data=None, **kwargs):

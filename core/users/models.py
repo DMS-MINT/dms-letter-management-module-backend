@@ -11,6 +11,7 @@ class CustomUserManager(UserManager, PolymorphicManager):
 
 
 class BaseUser(PolymorphicModel, BaseModel):
+
     class Meta:
         verbose_name: str = "User"
         verbose_name_plural: str = "Users"

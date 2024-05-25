@@ -1,4 +1,3 @@
-from pkg_resources import require
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.response import Response
@@ -12,6 +11,7 @@ from .services import participant_create
 
 
 class ParticipantListApi(APIView):
+
     class OutputSerializer(serializers.HyperlinkedModelSerializer):
         role = serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display")
         user = UserListApi.OutputSerializer()
@@ -29,6 +29,7 @@ class ParticipantListApi(APIView):
 
 
 class ParticipantCreateApi(APIView):
+
     class InputSerializer(serializers.Serializer):
         user = UserCreateSerializer()
         role = serializers.ChoiceField(choices=Participant.Roles.choices)
@@ -40,7 +41,8 @@ class ParticipantCreateApi(APIView):
         if input_serializer.is_valid():
             try:
                 participant_instance = participant_create(
-                    validated_data=input_serializer.validated_data, letter_id=input_serializer.validated_data
+                    validated_data=input_serializer.validated_data,
+                    letter_id=input_serializer.validated_data,
                 )
 
                 output_serializer = ParticipantListApi.OutputSerializer(data=participant_instance, many=True)
