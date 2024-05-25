@@ -22,10 +22,13 @@
             "Addis",
             "corsheaders",
             "isort",
+            "mypy",
+            "namespacing",
             "nostatic",
             "psycopg",
             "viewset",
-            "whitenoise"
+            "whitenoise",
+            "yapf"
         ]
     }
 }
