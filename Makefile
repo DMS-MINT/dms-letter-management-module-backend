@@ -22,7 +22,7 @@ install-all-requirements:
 install-pre-commit:
 	@echo "Installing and configuring pre-commit hooks..."
 	@pre-commit uninstall
-	@poetry run pre-commit install
+	@pre-commit install
 
 # Install production dependencies
 .PHONY: install-production-requirements
