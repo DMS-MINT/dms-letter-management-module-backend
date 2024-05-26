@@ -1,14 +1,14 @@
 # General Settings
+[tool.ruff]
 line-length = 120
 indent-width = 4
 preview = true
-target-version = "py311"
+target-version = "py312"
 output-format = "grouped"
 respect-gitignore = true
 show-fixes = true
 show-source = true
 exclude = [ 
-     ".bzr",
     ".direnv",
     ".eggs",
     ".git",
@@ -37,40 +37,23 @@ exclude = [
     "venv",
 ]
 
-# Linting Settings
-[lint]
-select = [
-    "COM",
-    "DJ",
-    "E",
-    "F", 
-    "I",
-    "LOG",
-    "N",
-    "PIE",
-    "Q",
-    "RET",
-    "T10",
-    "T20",
-    "W",
-]
-ignore = [
-    "DJ001", 
-    "E722"
-]
+[tool.ruff.lint]
+select = ["COM", "DJ", "E", "F", "I", "LOG", "N", "PIE", "Q", "RET", "T10", "T20", "W", ]
+ignore = ["DJ001", "E722"]
 fixable = ["ALL"]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Pydocstyle Settings
-[lint.pydocstyle]
-convention = "google"
-
 # Formatting Settings
-[format]
+[tool.ruff.format]
 indent-style = "space"
 line-ending = "auto"
 quote-style = "double"
 skip-magic-trailing-comma = false
 
-[lint.isort]
+# Pydocstyle Settings
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# Isort Settings
+[tool.ruff.lint.isort]
 case-sensitive = true
