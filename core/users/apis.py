@@ -1,8 +1,11 @@
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from core.common.utils import get_list, get_object
+from core.common.utils import get_list
 from core.users.models import BaseUser, Guest, Member
 
 from .serializers import (
@@ -25,14 +28,27 @@ class UserListApi(APIView):
             return model_or_instance._meta.object_name.lower()
 
     def get(self, request) -> Response:
-        users = get_list(BaseUser)
+        try:
+            user = get_list(BaseUser)
+            serializer = self.OutputSerializer(user, many=True)
 
-        if users is None:
-            return Response({"detail": "users not found"}, status=404)
+            response_data = {
+                "action": [
+                    {
+                        "name": "User Details",
+                        "hrf": "",
+                        "method": "GET",
+                    },
+                ],
+                "data": serializer.data,
+            }
 
-        serializer = self.OutputSerializer(users, many=True)
+            return Response(data=response_data)
 
-        return Response(data=serializer.data)
+        except NotFound as e:
+            return Response({"message": str(e), "extra": {}}, status=404)
+        except Exception as e:
+            return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
 
 
 class UserDetailAPI(APIView):
@@ -46,12 +62,27 @@ class UserDetailAPI(APIView):
         def to_resource_type(self, model_or_instance):
             return model_or_instance._meta.object_name.lower()
 
-    def get(self, request, user_id) -> Response:
-        user_instance = get_object(BaseUser, id=user_id)
+    def get(self, request, user_id):
+        try:
+            # This will raise an Http404 exception if the user is not found
+            user_instance = get_object_or_404(BaseUser, id=user_id)
 
-        if user_instance is None:
-            return Response({"detail": "User not found"}, status=404)
+            serializer = self.OutputSerializer(user_instance)
 
-        serializer = self.OutputSerializer(user_instance, many=False)
+            response_data = {
+                "action": [
+                    {
+                        "name": "User Listing",
+                        "hrf": "",
+                        "method": "GET",
+                    },
+                ],
+                "data": serializer.data,
+            }
 
-        return Response(data=serializer.data)
+            return Response(data=response_data)
+
+        except Http404:
+            raise NotFound("User not found")
+        except Exception as e:
+            return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
