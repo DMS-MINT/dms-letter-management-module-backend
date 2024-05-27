@@ -1,38 +1,29 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
-from core.letters.models import Letter
-from core.users.models import BaseUser
-from core.users.services import guest_create
+from core.users.models import Guest, Member
 
 from .models import Participant
 
 
+# This function create participants for a given letter.
 @transaction.atomic
-def participant_create(*, validated_data, letter_id):
-    try:
-        letter = Letter.objects.get(id=letter_id)
-    except ObjectDoesNotExist:
-        raise ValueError(f"Letter with id {letter_id} does not exist")
+def participant_create(*, participants, letter):
+    letter_participants = []
+    for participant in participants:
+        user_data = participant.get("user")
+        role = participant.get("role")
+        message = participant.get("message", None)
 
-    participants = []
-    for data in validated_data:
-        user_data = data["user"]
-        role = data["role"]
-        message = data.get("message", "")
+        if user_data["user_type"] == "member":
+            try:
+                user = Member.objects.get(id=user_data["id"])
+            except Member.DoesNotExist as e:
+                raise ObjectDoesNotExist(f"Member with ID {user_data["id"]} does not exist. Error: {e}")
+        elif user_data["user_type"] == "guest":
+            user, _ = Guest.objects.get_or_create(name=user_data["name"])
 
-        try:
-            if user_data["user_type"] == "member":
-                user_id = user_data["id"]
-                user = BaseUser.objects.get(id=user_id)
-            elif user_data["user_type"] == "guest":
-                user = guest_create(validated_data=user_data)
-            else:
-                raise ValueError(f"Invalid user_type: {user_data['user_type']}")
+        participant_instance = Participant.objects.create(user=user, role=role, letter=letter, message=message)
+        letter_participants.append(participant_instance)
 
-            participant = Participant.objects.create(user=user, role=role, letter=letter, message=message)
-            participants.append(participant)
-        except Exception as e:
-            raise ValueError(f"Unable to create participant: {e}")
-
-    return participants
+    return letter_participants
