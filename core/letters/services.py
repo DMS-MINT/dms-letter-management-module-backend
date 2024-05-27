@@ -38,3 +38,24 @@ def letter_create(
     participant_create(participants=participants, letter=letter_instance)
 
     return letter_instance
+
+
+@transaction.atomic
+def letter_update(
+    letter_instance: Letter,
+    subject: Optional[str] = None,
+    content: Optional[str] = None,
+    participants: Optional[list[LetterParticipant]] = None,
+) -> Letter:
+    if subject is not None:
+        letter_instance.subject = subject
+    if content is not None:
+        letter_instance.content = content
+
+    letter_instance.save()
+
+    if participants is not None:
+        letter_instance.participants.all().delete()
+        participant_create(participants=participants, letter=letter_instance)
+
+    return letter_instance
