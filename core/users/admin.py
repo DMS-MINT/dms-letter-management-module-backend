@@ -48,8 +48,8 @@ class BaseUserParentAdmin(PolymorphicParentModelAdmin):
     list_display: list[str] = [
         "id",
         "polymorphic_ctype_id",
-        "created",
-        "modified",
+        "created_at",
+        "updated_at",
     ]
     child_models = (Guest, Member)
     list_filter = (PolymorphicChildModelFilter,)
