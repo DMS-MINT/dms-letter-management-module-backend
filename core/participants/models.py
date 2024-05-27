@@ -32,7 +32,7 @@ class Participant(BaseModel):
     letter = models.ForeignKey(
         Letter,
         on_delete=models.CASCADE,
-        related_name="letter_participants",
+        related_name="participants",
         help_text=_("Select the letter associated with this participant."),
     )
     is_reading = models.BooleanField(default=False, editable=False)
