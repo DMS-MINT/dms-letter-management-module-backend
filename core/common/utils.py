@@ -1,13 +1,14 @@
 from django.http import Http404
 from django.shortcuts import get_list_or_404, get_object_or_404
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 
 def get_list(model_or_queryset, **kwargs):
     try:
         return get_list_or_404(model_or_queryset)
     except Http404:
-        return None
+        raise NotFound("Users Not Found")
 
 
 def get_object(model_or_queryset, **kwargs):
