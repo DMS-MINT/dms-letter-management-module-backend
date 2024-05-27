@@ -1,41 +1,40 @@
-from django.core.exceptions import ValidationError
+from typing import Optional, Union
+
 from django.db import transaction
 
 from core.participants.services import participant_create
 
-from .models import Incoming, Internal, Outgoing
+from .models import Incoming, Internal, Letter, Outgoing
+
+type LetterParticipant = dict[str, Union[str, int, dict[str, str]]]
 
 
+# Create a letter instance based on the provided letter_type and keyword arguments.
+def create_letter_instance(letter_type: str, **kwargs) -> Letter:
+    letter_instance_class = {
+        "internal": Internal,
+        "incoming": Incoming,
+        "outgoing": Outgoing,
+    }.get(letter_type)
+
+    if letter_instance_class:
+        return letter_instance_class.objects.create(**kwargs)
+
+    raise ValueError("Invalid letter type")
+
+
+# This function orchestrates the creation of a letter and its participants in a transaction.
 @transaction.atomic
-def letter_create(*, validated_data):
-    letter_type = validated_data.get("letter_type")
-    participants_data = validated_data.get("participants")
+def letter_create(
+    *,
+    subject: Optional[str] = None,
+    content: Optional[str] = None,
+    status: int,
+    letter_type: str,
+    participants: list[LetterParticipant],
+) -> Letter:
+    letter_instance = create_letter_instance(letter_type, subject=subject, content=content, status=status)
 
-    try:
-        if letter_type == "internal":
-            instance = Internal.objects.create(
-                subject=validated_data.get("subject"),
-                content=validated_data.get("content"),
-                status=validated_data.get("status"),
-            )
-        elif letter_type == "incoming":
-            instance = Incoming.objects.create(
-                subject=validated_data.get("subject"),
-                content=validated_data.get("content"),
-                status=validated_data.get("status"),
-            )
-        elif letter_type == "outgoing":
-            instance = Outgoing.objects.create(
-                subject=validated_data.get("subject"),
-                content=validated_data.get("content"),
-                status=validated_data.get("status"),
-            )
-        else:
-            raise ValueError("Invalid letter_type provided")
+    participant_create(participants=participants, letter=letter_instance)
 
-        participant_create(validated_data=participants_data, letter_id=instance.id)
-
-    except ValidationError as e:
-        raise ValueError(f"Unable to create letter: {e}")
-
-    return instance
+    return letter_instance
