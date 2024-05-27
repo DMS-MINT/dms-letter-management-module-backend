@@ -1,12 +1,14 @@
 from rest_framework import serializers
 from rest_framework import status as http_status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from core.participants.apis import ParticipantCreateApi
+from core.common.utils import get_list, get_object, inline_serializer
+from core.participants.models import Participant
+from core.users.serializers import UserCreateSerializer
 
-from ..common.utils import get_list, get_object
 from .models import Incoming, Internal, Letter, Outgoing
 from .serializers import (
     LetterDetailSerializer,
@@ -58,31 +60,48 @@ class LetterDetailApi(APIView):
 
 class LetterCreateApi(APIView):
     class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField()
-        content = serializers.CharField()
+        subject = serializers.CharField(required=False)
+        content = serializers.CharField(required=False)
         status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
-        participants = serializers.ListField(child=ParticipantCreateApi.InputSerializer())
         letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+        participants = inline_serializer(
+            many=True,
+            fields={
+                "user": UserCreateSerializer(),
+                "role": serializers.ChoiceField(choices=Participant.Roles.choices),
+                "message": serializers.CharField(required=False, allow_null=True),
+            },
+        )
 
     def post(self, request) -> Response:
         input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
 
-        if input_serializer.is_valid():
-            try:
-                letter_instance = letter_create(validated_data=input_serializer.validated_data)
+        try:
+            letter_instance = letter_create(**input_serializer.validated_data)
 
-                output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
-                return Response(data=output_serializer.data, status=http_status.HTTP_201_CREATED)
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": "http://127.0.0.1:8000/api/letters/update/",
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": "http://127.0.0.1:8000/api/letters/delete/",
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
 
-            except ValueError as e:
-                return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+            return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
-            except Exception as e:
-                return Response(
-                    {"detail": str(e)},
-                    status=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
+        except ValueError as e:
+            raise ValidationError(e)
 
-        else:
-            return Response(input_serializer.errors, status=http_status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            raise ValidationError(e)
