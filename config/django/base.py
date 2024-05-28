@@ -24,6 +24,7 @@ LOCAL_APPS: list[str] = [
 THIRD_PARTY_APPS: list[str] = [
     "rest_framework",
     "django_filters",
+    "polymorphic",
     "corsheaders",
     "django_extensions",
     "drf_spectacular",
@@ -80,7 +81,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
-    }
+    },
 }
 
 # Password validation
@@ -124,6 +125,7 @@ STATIC_URL = "/static/"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "core.api.exception_handler.drf_exception_handler",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -144,6 +146,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Letter Management Module API",
-    "DESCRIPTION": "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",
+    "DESCRIPTION": "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",  # noqa: E501
     "VERSION": "1.0.0",
 }

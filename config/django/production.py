@@ -16,7 +16,7 @@ DATABASES = {
         "PASSWORD": env.str("DB_PASSWORD"),
         "HOST": env.str("DB_HOST"),
         "PORT": env.str("DB_PORT"),
-    }
+    },
 }
 
 CORS_ALLOW_ALL_ORIGINS = False

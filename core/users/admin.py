@@ -1,5 +1,9 @@
 from django.contrib import admin
-from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
+from polymorphic.admin import (
+    PolymorphicChildModelAdmin,
+    PolymorphicChildModelFilter,
+    PolymorphicParentModelAdmin,
+)
 
 from .models import BaseUser, Guest, Member
 
@@ -44,8 +48,8 @@ class BaseUserParentAdmin(PolymorphicParentModelAdmin):
     list_display: list[str] = [
         "id",
         "polymorphic_ctype_id",
-        "created",
-        "modified",
+        "created_at",
+        "updated_at",
     ]
-    child_models: tuple[type[Guest], type[Member]] = (Guest, Member)
-    list_filter: tuple[type[PolymorphicChildModelFilter]] = (PolymorphicChildModelFilter,)
+    child_models = (Guest, Member)
+    list_filter = (PolymorphicChildModelFilter,)

@@ -1,5 +1,9 @@
 from django.contrib import admin
-from polymorphic.admin import PolymorphicChildModelAdmin, PolymorphicChildModelFilter, PolymorphicParentModelAdmin
+from polymorphic.admin import (
+    PolymorphicChildModelAdmin,
+    PolymorphicChildModelFilter,
+    PolymorphicParentModelAdmin,
+)
 
 from core.participants.models import Participant
 
@@ -13,7 +17,7 @@ class ParticipantInline(admin.StackedInline):
 
 class LetterChildAdmin(PolymorphicChildModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created"]
+    list_display: list[str] = ["subject", "content", "status", "created_at"]
     inlines = [ParticipantInline]
 
 
@@ -38,6 +42,6 @@ class OutgoingAdmin(LetterChildAdmin):
 @admin.register(Letter)
 class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created"]
+    list_display: list[str] = ["subject", "content", "status", "created_at"]
     child_models = (Internal, Incoming, Outgoing)
     list_filter = (PolymorphicChildModelFilter,)

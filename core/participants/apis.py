@@ -1,4 +1,3 @@
-from pkg_resources import require
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.response import Response
@@ -40,7 +39,8 @@ class ParticipantCreateApi(APIView):
         if input_serializer.is_valid():
             try:
                 participant_instance = participant_create(
-                    validated_data=input_serializer.validated_data, letter_id=input_serializer.validated_data
+                    validated_data=input_serializer.validated_data,
+                    letter_id=input_serializer.validated_data,
                 )
 
                 output_serializer = ParticipantListApi.OutputSerializer(data=participant_instance, many=True)
