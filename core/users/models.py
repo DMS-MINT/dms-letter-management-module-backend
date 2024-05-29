@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser, PermissionsMixin, UserManager
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicManager, PolymorphicModel
@@ -16,7 +16,7 @@ class BaseUser(PolymorphicModel, BaseModel):
         verbose_name_plural: str = "Users"
 
 
-class Member(AbstractUser, BaseUser):
+class Member(AbstractUser, BaseUser, PermissionsMixin):
     job_title = models.CharField(
         _("job title"),
         max_length=254,
