@@ -6,11 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from core.common.utils import get_list, get_object, inline_serializer
+from core.common.utils import get_object, inline_serializer
 from core.participants.models import Participant
 from core.users.serializers import UserCreateSerializer
 
 from .models import Incoming, Internal, Letter, Outgoing
+from .selectors import letter_list
 from .serializers import (
     LetterDetailSerializer,
     LetterListSerializer,
@@ -20,6 +21,10 @@ from .services import letter_create, letter_update
 
 
 class LetterListApi(APIView):
+    class FilterSerializer(serializers.Serializer):
+        category = serializers.ChoiceField(choices=["inbox", "outbox", "draft"], required=True)
+        # status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
+
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
         model_serializer_mapping = {
@@ -32,7 +37,10 @@ class LetterListApi(APIView):
             return model_or_instance._meta.object_name.lower()
 
     def get(self, request) -> Response:
-        letters = get_list(Letter)
+        filter_serializer = self.FilterSerializer(data=request.query_params)
+        filter_serializer.is_valid(raise_exception=False)
+
+        letters = letter_list(filters=filter_serializer.validated_data)
 
         serializer = self.OutputSerializer(letters, many=True)
 
