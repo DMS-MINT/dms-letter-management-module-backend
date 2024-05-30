@@ -22,10 +22,15 @@
             "Addis",
             "corsheaders",
             "isort",
+            "mypy",
+            "namespacing",
             "nostatic",
+            "openapi",
             "psycopg",
+            "sessionid",
             "viewset",
-            "whitenoise"
+            "whitenoise",
+            "yapf"
         ]
     }
 }

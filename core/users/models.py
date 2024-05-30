@@ -1,4 +1,7 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+import uuid
+
+from django.contrib.auth.models import AbstractUser, PermissionsMixin
+from django.contrib.auth.models import BaseUserManager as BUM  # noqa: N817
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicManager, PolymorphicModel
@@ -6,8 +9,34 @@ from polymorphic.models import PolymorphicManager, PolymorphicModel
 from core.common.models import BaseModel
 
 
-class CustomUserManager(UserManager, PolymorphicManager):
-    pass
+class BaseUserManager(BUM, PolymorphicManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError("Users must have an email address")
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+
+        user.full_clean()
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_admin", True)
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError("Superuser must have is_superuser=True.")
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError("Superuser must have is_staff=True.")
+
+        return self.create_user(email, password, **extra_fields)
 
 
 class BaseUser(PolymorphicModel, BaseModel):
@@ -16,7 +45,7 @@ class BaseUser(PolymorphicModel, BaseModel):
         verbose_name_plural: str = "Users"
 
 
-class Member(AbstractUser, BaseUser):
+class Member(BaseUser, AbstractUser, PermissionsMixin):
     job_title = models.CharField(
         _("job title"),
         max_length=254,
@@ -38,15 +67,22 @@ class Member(AbstractUser, BaseUser):
     email = models.EmailField(
         _("email address"),
         blank=False,
-        max_length=254,
+        max_length=255,
         unique=True,
         help_text=_("Enter the email address of the employee."),
     )
 
-    objects = CustomUserManager()
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
-    USERNAME_FIELD = "username"
-    EMAIL_FIELD = "email"
+    jwt_key = models.UUIDField(default=uuid.uuid4)
+
+    objects = BaseUserManager()
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["first_name", "last_name", "username", "job_title", "department", "phone_number"]
 
     class Meta:
         verbose_name: str = "Member"
