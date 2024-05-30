@@ -37,6 +37,7 @@ class Participant(BaseModel):
     )
     is_reading = models.BooleanField(default=False, editable=False)
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
+    received_at = models.DateTimeField(blank=True, null=True, editable=False)
     message = models.TextField(
         _("Message"),
         blank=True,
@@ -50,6 +51,10 @@ class Participant(BaseModel):
         null=True,
         help_text=_("Upload a signature image for the participant."),
     )
+
+    @property
+    def is_read(self) -> bool:
+        return True if self.last_read_at else False
 
     class Meta:
         verbose_name: str = _("Participant")
