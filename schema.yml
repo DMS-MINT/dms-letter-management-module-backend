@@ -8,19 +8,18 @@ info:
 paths:
   /api/letters/:
     get:
-      operationId: letters_retrieve
+      operationId: api_letters_retrieve
       tags:
-      - letters
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           description: No response body
   /api/letters/{letter_id}/:
     get:
-      operationId: letters_retrieve_2
+      operationId: api_letters_retrieve_2
       parameters:
       - in: path
         name: letter_id
@@ -29,41 +28,63 @@ paths:
           format: uuid
         required: true
       tags:
-      - letters
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{letter_id}/delete/:
+    delete:
+      operationId: api_letters_delete_destroy
+      parameters:
+      - in: path
+        name: letter_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/letters/{letter_id}/update/:
+    put:
+      operationId: api_letters_update_update
+      parameters:
+      - in: path
+        name: letter_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
       - {}
       responses:
         '200':
           description: No response body
   /api/letters/create/:
     post:
-      operationId: letters_create_create
+      operationId: api_letters_create_create
       tags:
-      - letters
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
-      - {}
-      responses:
-        '200':
-          description: No response body
-  /api/participants/create/:
-    post:
-      operationId: participants_create_create
-      tags:
-      - participants
-      security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           description: No response body
   /api/schema/:
     get:
-      operationId: schema_retrieve
+      operationId: api_schema_retrieve
       description: |-
         OpenApi3 schema for this API. Format can be selected via content negotiation.
 
@@ -182,10 +203,9 @@ paths:
           - zh-hans
           - zh-hant
       tags:
-      - schema
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
@@ -209,19 +229,18 @@ paths:
           description: ''
   /api/users/:
     get:
-      operationId: users_retrieve
+      operationId: api_users_retrieve
       tags:
-      - users
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           description: No response body
   /api/users/{user_id}/:
     get:
-      operationId: users_retrieve_2
+      operationId: api_users_retrieve_2
       parameters:
       - in: path
         name: user_id
@@ -230,20 +249,16 @@ paths:
           format: uuid
         required: true
       tags:
-      - users
+      - api
       security:
-      - cookieAuth: []
-      - basicAuth: []
+      - jwtAuth: []
       - {}
       responses:
         '200':
           description: No response body
 components:
   securitySchemes:
-    basicAuth:
+    jwtAuth:
       type: http
-      scheme: basic
-    cookieAuth:
-      type: apiKey
-      in: cookie
-      name: sessionid
+      scheme: bearer
+      bearerFormat: JWT
