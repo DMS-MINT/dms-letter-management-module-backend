@@ -1,4 +1,6 @@
-from .models import Member
+from django.db.models import Q
+
+from .models import Guest, Member
 
 
 def user_get_login_data(*, user: Member):
@@ -13,3 +15,11 @@ def user_get_login_data(*, user: Member):
         "department": getattr(user, "department", ""),
         "phone_number": getattr(user, "phone_number", ""),
     }
+
+
+def user_get_suggestions():
+    members = Member.objects.filter(Q(is_admin=False) & Q(is_superuser=False))
+
+    guests = Guest.objects.all()
+
+    return list(members) + list(guests)
