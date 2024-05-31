@@ -53,7 +53,7 @@ class Participant(BaseModel):
     )
 
     @property
-    def is_read(self) -> bool:
+    def has_read(self) -> bool:
         return True if self.last_read_at else False
 
     class Meta:
