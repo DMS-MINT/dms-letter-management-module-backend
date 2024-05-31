@@ -11,8 +11,23 @@ class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     status = serializers.ChoiceField(choices=Letter.LetterStatus.choices, source="get_status_display")
     subject = serializers.CharField()
+    participants = inline_serializer(
+        many=True,
+        fields={
+            "user": UserListApi.OutputSerializer(),
+            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
+        },
+    )
+    has_read: serializers.SerializerMethodField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+
+        ret["has_read"] = True
+
+        return ret
 
 
 class LetterDetailSerializer(serializers.Serializer):
