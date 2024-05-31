@@ -29,16 +29,21 @@ class GuestAdmin(BaseUserChildAdmin):
 class MemberAdmin(BaseUserChildAdmin):
     base_model = Member
     list_display: list[str] = [
-        "username",
+        "email",
         "full_name",
         "job_title",
         "department",
         "is_staff",
     ]
     readonly_fields: list[str] = [
+        "is_active",
+        "is_staff",
+        "is_admin",
+        "is_superuser",
         "last_login",
         "date_joined",
     ]
+    exclude: list[str] = ["jwt_key"]
     show_in_index = True
 
 
