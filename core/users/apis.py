@@ -1,13 +1,12 @@
-from django.http import Http404
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from core.common.utils import get_list
 from core.users.models import BaseUser, Guest, Member
 
+from .selectors import user_get_suggestions
 from .serializers import (
     GuestDetailSerializer,
     GustListSerializer,
@@ -29,7 +28,7 @@ class UserListApi(APIView):
 
     def get(self, request) -> Response:
         try:
-            user = get_list(BaseUser)
+            user = user_get_suggestions()
             serializer = self.OutputSerializer(user, many=True)
 
             response_data = {
@@ -46,7 +45,7 @@ class UserListApi(APIView):
             return Response(data=response_data)
 
         except NotFound as e:
-            return Response({"message": str(e), "extra": {}}, status=404)
+            raise NotFound({"message": str(e), "extra": {}}, status=404)
         except Exception as e:
             return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
 
@@ -64,7 +63,6 @@ class UserDetailAPI(APIView):
 
     def get(self, request, user_id):
         try:
-            # This will raise an Http404 exception if the user is not found
             user_instance = get_object_or_404(BaseUser, id=user_id)
 
             serializer = self.OutputSerializer(user_instance)
@@ -82,7 +80,7 @@ class UserDetailAPI(APIView):
 
             return Response(data=response_data)
 
-        except Http404:
-            raise NotFound("User not found")
+        except NotFound as e:
+            raise NotFound(e)
         except Exception as e:
             return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
