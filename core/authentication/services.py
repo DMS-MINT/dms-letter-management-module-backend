@@ -3,7 +3,7 @@ import uuid
 from core.users.models import Member
 
 
-def auth_user_get_jwt_secret_key(user: Member) -> str:
+def auth_user_get_jwt_secret_key(user: None) -> str:
     return str(user.jwt_key)
 
 
