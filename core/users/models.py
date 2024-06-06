@@ -1,5 +1,3 @@
-import uuid
-
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.contrib.auth.models import BaseUserManager as BUM  # noqa: N817
 from django.db import models
@@ -76,8 +74,6 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     is_staff = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-
-    jwt_key = models.UUIDField(default=uuid.uuid4)
 
     objects = BaseUserManager()
 

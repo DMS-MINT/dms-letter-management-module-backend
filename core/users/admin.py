@@ -43,7 +43,6 @@ class MemberAdmin(BaseUserChildAdmin):
         "last_login",
         "date_joined",
     ]
-    exclude: list[str] = ["jwt_key"]
     show_in_index = True
 
 
