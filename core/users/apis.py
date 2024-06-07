@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
+from core.api.mixins import ApiAuthMixin
 from core.users.models import BaseUser, Guest, Member
 
 from .selectors import user_get_suggestions
@@ -14,8 +15,11 @@ from .serializers import (
     MemberListSerializer,
 )
 
+GET_USERS_HRF = "api/users/"
+GET_USER_HRF = "api/users/<uuid:user_id>/"
 
-class UserListApi(APIView):
+
+class UserListApi(ApiAuthMixin, APIView):
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
@@ -35,7 +39,7 @@ class UserListApi(APIView):
                 "action": [
                     {
                         "name": "User Details",
-                        "hrf": "",
+                        "hrf": GET_USER_HRF,
                         "method": "GET",
                     },
                 ],
@@ -50,7 +54,7 @@ class UserListApi(APIView):
             return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
 
 
-class UserDetailAPI(APIView):
+class UserDetailAPI(ApiAuthMixin, APIView):
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
@@ -71,7 +75,7 @@ class UserDetailAPI(APIView):
                 "action": [
                     {
                         "name": "User Listing",
-                        "hrf": "",
+                        "hrf": GET_USERS_HRF,
                         "method": "GET",
                     },
                 ],
