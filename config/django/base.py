@@ -80,20 +80,14 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "HOST": env.str("DB_HOST"),
+        "PORT": env.str("DB_PORT"),
     },
 }
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql_psycopg2",
-#         "NAME": env.str("DB_NAME"),
-#         "USER": env.str("DB_USER"),
-#         "PASSWORD": env.str("DB_PASSWORD"),
-#         "HOST": env.str("DB_HOST"),
-#         "PORT": env.str("DB_PORT"),
-#     },
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -138,7 +132,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.api.exception_handler.drf_exception_handler",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
-    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -148,6 +144,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 from config.settings.cors import *  # noqa
 from config.settings.files_and_storages import *  # noqa
+from config.settings.sessions import *  # noqa
 
 from config.settings.debug_toolbar.settings import *  # noqa
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa
