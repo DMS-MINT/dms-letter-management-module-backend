@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
+from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
 from core.participants.models import Participant
 from core.users.serializers import UserCreateSerializer
@@ -19,11 +20,16 @@ from .serializers import (
 )
 from .services import letter_create, letter_update
 
+GET_LETTERS_HRF = "api/letter/"
+GET_LETTER_HRF = "api/letters/<uuid:letter_id>/"
+CREATE_LETTER_HRF = "api/letters/create/"
+UPDATE_LETTER_HRF = "api/letters/<uuid:letter_id>/update/"
+DELETE_LETTER_HRF = "api/letters/<uuid:letter_id>/delete/"
 
-class LetterListApi(APIView):
+
+class LetterListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
         category = serializers.ChoiceField(choices=["inbox", "outbox", "draft"], required=True)
-        # status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
 
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
@@ -48,17 +54,17 @@ class LetterListApi(APIView):
             "action": [
                 {
                     "name": "Letter Details",
-                    "hrf": "",
+                    "hrf": GET_LETTER_HRF,
                     "method": "GET",
                 },
                 {
                     "name": "Update Letter",
-                    "hrf": "",
+                    "hrf": UPDATE_LETTER_HRF,
                     "method": "PUT",
                 },
                 {
                     "name": "Delete Letter",
-                    "hrf": "",
+                    "hrf": DELETE_LETTER_HRF,
                     "method": "DELETE",
                 },
             ],
@@ -68,7 +74,7 @@ class LetterListApi(APIView):
         return Response(data=response_data)
 
 
-class LetterDetailApi(APIView):
+class LetterDetailApi(ApiAuthMixin, APIView):
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
         model_serializer_mapping = {
@@ -89,17 +95,17 @@ class LetterDetailApi(APIView):
             "action": [
                 {
                     "name": "Letter Listing",
-                    "hrf": "",
+                    "hrf": "letters/",
                     "method": "GET",
                 },
                 {
                     "name": "Update Letter",
-                    "hrf": "",
+                    "hrf": UPDATE_LETTER_HRF,
                     "method": "PUT",
                 },
                 {
                     "name": "Delete Letter",
-                    "hrf": "",
+                    "hrf": DELETE_LETTER_HRF,
                     "method": "DELETE",
                 },
             ],
@@ -109,7 +115,7 @@ class LetterDetailApi(APIView):
         return Response(data=response_data)
 
 
-class LetterCreateApi(APIView):
+class LetterCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False)
         content = serializers.CharField(required=False)
@@ -137,12 +143,12 @@ class LetterCreateApi(APIView):
                 "action": [
                     {
                         "name": "Update Letter",
-                        "hrf": "",
+                        "hrf": UPDATE_LETTER_HRF,
                         "method": "PUT",
                     },
                     {
                         "name": "Delete Letter",
-                        "hrf": "",
+                        "hrf": DELETE_LETTER_HRF,
                         "method": "DELETE",
                     },
                 ],
@@ -158,7 +164,7 @@ class LetterCreateApi(APIView):
             raise ValidationError(e)
 
 
-class LetterUpdateApi(APIView):
+class LetterUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         content = serializers.CharField(required=False, allow_blank=True)
@@ -185,12 +191,12 @@ class LetterUpdateApi(APIView):
                 "action": [
                     {
                         "name": "Update Letter",
-                        "hrf": "",
+                        "hrf": UPDATE_LETTER_HRF,
                         "method": "PUT",
                     },
                     {
                         "name": "Delete Letter",
-                        "hrf": "",
+                        "hrf": DELETE_LETTER_HRF,
                         "method": "DELETE",
                     },
                 ],
@@ -206,7 +212,7 @@ class LetterUpdateApi(APIView):
             raise ValidationError(e)
 
 
-class DeleteLetterApi(APIView):
+class DeleteLetterApi(ApiAuthMixin, APIView):
     def delete(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
         letter_instance.delete()
