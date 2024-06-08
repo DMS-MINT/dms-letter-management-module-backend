@@ -135,7 +135,7 @@ class LetterCreateApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            letter_instance = letter_create(**input_serializer.validated_data)
+            letter_instance = letter_create(user=request.user, **input_serializer.validated_data)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
