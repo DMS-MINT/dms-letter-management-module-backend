@@ -46,7 +46,7 @@ class LetterListApi(ApiAuthMixin, APIView):
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=False)
 
-        letters = letter_list(filters=filter_serializer.validated_data)
+        letters = letter_list(user=request.user, filters=filter_serializer.validated_data)
 
         serializer = self.OutputSerializer(letters, many=True)
 
