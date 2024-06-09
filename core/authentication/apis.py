@@ -10,7 +10,7 @@ from core.users.selectors import user_get_login_data
 LOGOUT_HRF = "api/auth/logout/"
 
 
-class LoginApi(ApiAuthMixin, APIView):
+class LoginApi(APIView):
     """
     Following https://docs.djangoproject.com/en/5.0/topics/auth/default/#how-to-log-a-user-in
     """
@@ -48,7 +48,7 @@ class LoginApi(ApiAuthMixin, APIView):
         return Response(data=response_data)
 
 
-class LogoutApi(APIView):
+class LogoutApi(ApiAuthMixin, APIView):
     def get(self, request):
         logout(request)
 
