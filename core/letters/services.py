@@ -1,8 +1,11 @@
+from collections import OrderedDict
 from typing import Optional, Union
 
 from django.db import transaction
 
+from core.participants.models import Participant
 from core.participants.services import participant_create
+from core.users.models import Member
 
 from .models import Incoming, Internal, Letter, Outgoing
 
@@ -27,6 +30,7 @@ def create_letter_instance(letter_type: str, **kwargs) -> Letter:
 @transaction.atomic
 def letter_create(
     *,
+    user: Member,
     subject: Optional[str] = None,
     content: Optional[str] = None,
     status: int,
@@ -35,6 +39,20 @@ def letter_create(
 ) -> Letter:
     letter_instance = create_letter_instance(letter_type, subject=subject, content=content, status=status)
 
+    if status == Letter.LetterStatus.DRAFT:
+        role = Participant.Roles.DRAFTER
+    elif status == Letter.LetterStatus.PENDING_APPROVAL:
+        role = Participant.Roles.SENDER
+
+    author_participant = OrderedDict({
+        "user": OrderedDict({
+            "id": user.id,
+            "user_type": "member",
+        }),
+        "role": role,
+    })
+
+    participants.append(author_participant)
     participant_create(participants=participants, letter=letter_instance)
 
     return letter_instance

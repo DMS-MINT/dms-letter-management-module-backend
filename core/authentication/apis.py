@@ -1,59 +1,60 @@
-from django.conf import settings
-from rest_framework import status
+from django.contrib.auth import authenticate, login, logout
+from rest_framework import serializers
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework_jwt.views import ObtainJSONWebTokenView
 
 from core.api.mixins import ApiAuthMixin
-from core.authentication.services import auth_logout
 from core.users.selectors import user_get_login_data
 
-
-class UserJwtLoginApi(ObtainJSONWebTokenView):
-    def post(self, request, *args, **kwargs):
-        response = super().post(request, *args, **kwargs)
-
-        if response.status_code == status.HTTP_201_CREATED:
-            response.status_code = status.HTTP_200_OK
-
-        return response
+LOGOUT_HRF = "api/auth/logout/"
 
 
-class UserJwtLogoutApi(APIView):
+class LoginApi(APIView):
+    """
+    Following https://docs.djangoproject.com/en/5.0/topics/auth/default/#how-to-log-a-user-in
+    """
+
+    class InputSerializer(serializers.Serializer):
+        email = serializers.EmailField()
+        password = serializers.CharField()
+
     def post(self, request):
-        auth_logout(request.user)
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        response = Response()
+        user = authenticate(request, **serializer.validated_data)
 
-        if settings.JWT_AUTH["JWT_AUTH_COOKIE"] is not None:
-            response.delete_cookie(settings.JWT_AUTH["JWT_AUTH_COOKIE"])
+        if user is None:
+            raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
 
-        return response
+        login(request, user)
 
-
-class UserMeApi(APIView):
-    def get(self, request):
-        data = user_get_login_data(user=request.user)
+        data = user_get_login_data(user=user)
+        session_key = request.session.session_key
 
         response_data = {
             "action": [
                 {
                     "name": "Logout",
-                    "hrf": "",
+                    "hrf": LOGOUT_HRF,
                     "method": "POST",
-                },
-                {
-                    "name": "Update Profile",
-                    "hrf": "",
-                    "method": "PUT",
                 },
             ],
             "data": data,
+            "session": session_key,
         }
 
         return Response(data=response_data)
 
 
-class SecureAPIView(ApiAuthMixin, APIView):
+class LogoutApi(ApiAuthMixin, APIView):
     def get(self, request):
-        return Response({"message": "This is a secure endpoint."})
+        logout(request)
+
+        return Response()
+
+    def post(self, request):
+        logout(request)
+
+        return Response()

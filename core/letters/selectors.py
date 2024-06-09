@@ -1,10 +1,12 @@
+from core.users.models import Member
+
 from .filters import BaseLetterFilter
 from .models import Letter
 
 
-def letter_list(*, filters=None):
+def letter_list(*, user=Member, filters=None):
     filters = filters or {}
 
-    qs = Letter.objects.filter(participants__user_id="8e7365aa-f959-4514-be8b-cba84571a86c")
+    qs = Letter.objects.filter(participants__user_id=user.id)
 
     return BaseLetterFilter(filters, qs).qs

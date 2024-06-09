@@ -34,7 +34,7 @@ class MemberDetailSerializer(serializers.Serializer):
     department = serializers.CharField()
     email = serializers.EmailField()
     phone_number = serializers.CharField()
-    modified = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
 
 
 class MemberCreateSerializer(serializers.Serializer):
