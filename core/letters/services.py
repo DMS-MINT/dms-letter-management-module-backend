@@ -77,3 +77,54 @@ def letter_update(
         participant_create(participants=participants, letter=letter_instance)
 
     return letter_instance
+
+
+@transaction.atomic
+def letter_forward(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
+    status = letter_instance.status
+
+    if status == Letter.LetterStatus.PUBLISHED:
+        role = Participant.Roles.FORWARDED_RECIPIENT
+    elif status == Letter.LetterStatus.DRAFT:
+        role = Participant.Roles.DRAFT_REVIEWER
+    elif status == Letter.LetterStatus.PENDING_APPROVAL:
+        letter_instance.status = Letter.LetterStatus.PUBLISHED
+        role = Participant.Roles.WORKFLOW_MANAGER
+
+    letter_instance.save()
+
+    participant = [
+        {
+            "user": OrderedDict({
+                "id": user.id,
+                "user_type": "member",
+            }),
+            "role": role,
+        },
+    ]
+
+    participant_create(participants=participant, letter=letter_instance)
+
+    return letter_instance
+
+
+# @transaction.atomic
+# def letter_forward(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
+
+
+# participants = [
+#     {
+#         "user": OrderedDict({
+#             "id": to,
+#             "user_type": "member",
+#         }),
+#         "role": role,
+#         "message": message,
+#     },
+# ]
+
+# participant_create(participants=participants, letter=letter_instance)
+
+# letter_instance.save()
+
+# return letter_instance

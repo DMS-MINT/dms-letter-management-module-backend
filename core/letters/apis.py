@@ -18,7 +18,7 @@ from .serializers import (
     LetterListSerializer,
     OutgoingLetterDetailSerializer,
 )
-from .services import letter_create, letter_update
+from .services import letter_create, letter_forward, letter_update
 
 GET_LETTERS_HRF = "api/letter/"
 GET_LETTER_HRF = "api/letters/<uuid:letter_id>/"
@@ -217,3 +217,97 @@ class DeleteLetterApi(ApiAuthMixin, APIView):
         letter_instance = get_object_or_404(Letter, pk=letter_id)
         letter_instance.delete()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
+
+
+class LetterForwardApi(ApiAuthMixin, APIView):
+    class InputSerializer(serializers.Serializer):
+        to = serializers.CharField()
+        message = serializers.CharField()
+
+    def post(self, request, letter_id) -> Response:
+        letter_instance = get_object_or_404(Letter, pk=letter_id)
+        input_serializer = self.InputSerializer(data=request.data, partial=True)
+        input_serializer.is_valid(raise_exception=True)
+
+        try:
+            letter_instance = letter_forward(
+                user=request.user,
+                letter_instance=letter_instance,
+                **input_serializer.validated_data,
+            )
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": UPDATE_LETTER_HRF,
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": DELETE_LETTER_HRF,
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+# class LetterForwardApi(ApiAuthMixin, APIView):
+#     class OutputSerializer(serializers.Serializer):
+#         subject = serializers.CharField()
+#         content = serializers.CharField()
+
+#     class InputSerializer(serializers.Serializer):
+#         to = serializers.UUIDField()
+#         message = serializers.CharField()
+
+#     def post(self, request, letter_id):
+#         letter_instance = get_object_or_404(Letter, pk=letter_id)
+#         input_serializer = self.InputSerializer(data=request.data)
+#         input_serializer.is_valid(raise_exception=True)
+
+#         try:
+#             letter_instance = letter_forward(
+#                 letter_instance,
+#                 **input_serializer.validated_data,
+#             )
+
+#             output_serializer = LetterDetailApi.OutputSerializer(data=letter_instance)
+#             output_serializer.is_valid()
+
+#             response_data = {
+#                 "action": [
+#                     {
+#                         "name": "Update Letter",
+#                         "hrf": UPDATE_LETTER_HRF,
+#                         "method": "PUT",
+#                     },
+#                     {
+#                         "name": "Delete Letter",
+#                         "hrf": DELETE_LETTER_HRF,
+#                         "method": "DELETE",
+#                     },
+#                 ],
+#                 "data": output_serializer.data,
+#             }
+
+#             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+#         except ValueError as e:
+#             raise ValidationError(e)
+#         except Exception as e:
+#             raise ValidationError(e)
+
+
+class LetterApproveApi(ApiAuthMixin, APIView):
+    pass
