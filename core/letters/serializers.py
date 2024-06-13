@@ -1,21 +1,28 @@
 from rest_framework import serializers
 
 from core.common.utils import inline_serializer
-from core.participants.models import Participant
 from core.users.apis import UserListApi
 
-from .models import Letter
+
+class RoleSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    permissions = serializers.JSONField()
+
+
+class StateSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    permissions = serializers.JSONField()
 
 
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    status = serializers.ChoiceField(choices=Letter.LetterStatus.choices, source="get_status_display")
+    state = StateSerializer
     subject = serializers.CharField()
     participants = inline_serializer(
         many=True,
         fields={
             "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
+            "role": RoleSerializer,
         },
     )
     has_read: serializers.SerializerMethodField()
@@ -32,15 +39,14 @@ class LetterListSerializer(serializers.Serializer):
 
 class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    status = serializers.ChoiceField(choices=Letter.LetterStatus.choices, source="get_status_display")
+    state = StateSerializer
     subject = serializers.CharField()
     content = serializers.CharField()
     participants = inline_serializer(
         many=True,
         fields={
             "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
-            "message": serializers.CharField(),
+            "role": RoleSerializer,
         },
     )
     created_at = serializers.DateTimeField()
