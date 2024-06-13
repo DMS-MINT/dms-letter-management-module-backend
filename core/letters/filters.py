@@ -5,7 +5,7 @@ from django.db.models import Q
 
 from core.participants.models import Participant
 
-from .models import Letter
+from .models import Letter, State
 
 
 class LetterCategory(Enum):
@@ -38,19 +38,17 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_inbox(queryset):
         return queryset.filter(
             Q(
-                status__in=[
-                    Letter.LetterStatus.COMPLETED,
-                    Letter.LetterStatus.FORWARDED_PENDING_REVIEW,
-                    Letter.LetterStatus.FORWARDED_UNDER_REVIEW,
-                    Letter.LetterStatus.FORWARDED_REVIEWED,
-                    Letter.LetterStatus.PUBLISHED,
+                state__in=[
+                    State.objects.get(name="Published"),
+                    State.objects.get(name="closed"),
                 ],
             )
             & Q(
-                participants__role__in=[
-                    Participant.Roles.BCC,
-                    Participant.Roles.CC,
-                    Participant.Roles.RECIPIENT,
+                participants__role_name__in=[
+                    Participant.RoleNames.PRIMARY_RECIPIENT,
+                    Participant.RoleNames.CC,
+                    Participant.RoleNames.BCC,
+                    Participant.RoleNames.COLLABORATOR,
                 ],
             ),
         )
@@ -59,18 +57,16 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_outbox(queryset):
         return queryset.filter(
             Q(
-                status__in=[
-                    Letter.LetterStatus.COMPLETED,
-                    Letter.LetterStatus.FORWARDED_PENDING_REVIEW,
-                    Letter.LetterStatus.FORWARDED_UNDER_REVIEW,
-                    Letter.LetterStatus.FORWARDED_REVIEWED,
-                    Letter.LetterStatus.PENDING_APPROVAL,
-                    Letter.LetterStatus.PUBLISHED,
+                state__in=[
+                    State.objects.get(name="Submitted"),
+                    State.objects.get(name="Published"),
+                    State.objects.get(name="Closed"),
                 ],
             )
             & Q(
-                participants__role__in=[
-                    Participant.Roles.SENDER,
+                participants__role_name__in=[
+                    Participant.RoleNames.AUTHOR,
+                    Participant.RoleNames.COLLABORATOR,
                 ],
             ),
         )
@@ -79,19 +75,15 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_draft(queryset):
         return queryset.filter(
             Q(
-                status__in=[
-                    Letter.LetterStatus.CANCELLED,
-                    Letter.LetterStatus.DRAFT,
-                    Letter.LetterStatus.DRAFT_PENDING_REVIEW,
-                    Letter.LetterStatus.DRAFT_REVIEWED,
-                    Letter.LetterStatus.DRAFT_UNDER_REVIEW,
+                state__in=[
+                    State.objects.get(name="Draft"),
                 ],
             )
             & Q(
-                participants__role__in=[
-                    Participant.Roles.DRAFTER,
-                    Participant.Roles.DRAFT_REVIEWER,
-                    Participant.Roles.SENDER,
+                participants__role_name__in=[
+                    Participant.RoleNames.AUTHOR,
+                    Participant.RoleNames.EDITOR,
+                    Participant.RoleNames.COLLABORATOR,
                 ],
             ),
         )
