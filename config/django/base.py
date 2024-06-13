@@ -19,7 +19,9 @@ LOCAL_APPS: list[str] = [
     "core.common.apps.CommonConfig",
     "core.letters.apps.LettersConfig",
     "core.participants.apps.ParticipantsConfig",
+    "core.permissions.apps.PermissionsConfig",
     "core.users.apps.UsersConfig",
+    "core.workflows.apps.WorkflowsConfig",
 ]
 
 THIRD_PARTY_APPS: list[str] = [
@@ -78,14 +80,20 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql_psycopg2",
+#         "NAME": env.str("DB_NAME"),
+#         "USER": env.str("DB_USER"),
+#         "PASSWORD": env.str("DB_PASSWORD"),
+#         "HOST": env.str("DB_HOST"),
+#         "PORT": env.str("DB_PORT"),
+#     },
+# }
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     },
 }
 
