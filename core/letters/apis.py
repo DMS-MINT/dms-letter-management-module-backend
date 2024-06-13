@@ -8,7 +8,6 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
-from core.participants.models import Participant
 from core.users.serializers import UserCreateSerializer
 
 from .models import Incoming, Internal, Letter, Outgoing
@@ -18,7 +17,14 @@ from .serializers import (
     LetterListSerializer,
     OutgoingLetterDetailSerializer,
 )
-from .services import letter_create, letter_forward, letter_update
+from .services import (
+    forward_letter,
+    letter_create,
+    letter_update,
+    publish_letter,
+    retract_letter,
+    submit_letter_for_review,
+)
 
 GET_LETTERS_HRF = "api/letter/"
 GET_LETTER_HRF = "api/letters/<uuid:letter_id>/"
@@ -119,15 +125,10 @@ class LetterCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False)
         content = serializers.CharField(required=False)
-        status = serializers.ChoiceField(choices=Letter.LetterStatus.choices)
         letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
         participants = inline_serializer(
             many=True,
-            fields={
-                "user": UserCreateSerializer(),
-                "role": serializers.ChoiceField(choices=Participant.Roles.choices),
-                "message": serializers.CharField(required=False, allow_null=True),
-            },
+            fields={"user": UserCreateSerializer(), "role": serializers.CharField()},
         )
 
     def post(self, request) -> Response:
@@ -171,11 +172,7 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
         participants = inline_serializer(
             many=True,
             required=False,
-            fields={
-                "user": UserCreateSerializer(),
-                "role": serializers.ChoiceField(choices=Participant.Roles.choices),
-                "message": serializers.CharField(required=False, allow_null=True, allow_blank=True),
-            },
+            fields={"user": UserCreateSerializer(), "role": serializers.CharField()},
         )
 
     def put(self, request, letter_id) -> Response:
@@ -184,7 +181,11 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            letter_instance = letter_update(letter_instance, **input_serializer.validated_data)
+            letter_instance = letter_update(
+                user=request.user,
+                letter_instance=letter_instance,
+                **input_serializer.validated_data,
+            )
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
@@ -219,7 +220,7 @@ class DeleteLetterApi(ApiAuthMixin, APIView):
         return Response(status=http_status.HTTP_204_NO_CONTENT)
 
 
-class LetterForwardApi(ApiAuthMixin, APIView):
+class ShareLetterApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         to = serializers.CharField()
         message = serializers.CharField()
@@ -230,7 +231,7 @@ class LetterForwardApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            letter_instance = letter_forward(
+            letter_instance = submit_letter_for_review(
                 user=request.user,
                 letter_instance=letter_instance,
                 **input_serializer.validated_data,
@@ -262,52 +263,143 @@ class LetterForwardApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-# class LetterForwardApi(ApiAuthMixin, APIView):
-#     class OutputSerializer(serializers.Serializer):
-#         subject = serializers.CharField()
-#         content = serializers.CharField()
+class SubmitLetterApi(ApiAuthMixin, APIView):
+    def post(self, request, letter_id) -> Response:
+        letter_instance = get_object_or_404(Letter, pk=letter_id)
 
-#     class InputSerializer(serializers.Serializer):
-#         to = serializers.UUIDField()
-#         message = serializers.CharField()
+        try:
+            letter_instance = submit_letter_for_review(user=request.user, letter_instance=letter_instance)
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
-#     def post(self, request, letter_id):
-#         letter_instance = get_object_or_404(Letter, pk=letter_id)
-#         input_serializer = self.InputSerializer(data=request.data)
-#         input_serializer.is_valid(raise_exception=True)
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": UPDATE_LETTER_HRF,
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": DELETE_LETTER_HRF,
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
 
-#         try:
-#             letter_instance = letter_forward(
-#                 letter_instance,
-#                 **input_serializer.validated_data,
-#             )
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
 
-#             output_serializer = LetterDetailApi.OutputSerializer(data=letter_instance)
-#             output_serializer.is_valid()
+        except ValueError as e:
+            raise ValidationError(e)
 
-#             response_data = {
-#                 "action": [
-#                     {
-#                         "name": "Update Letter",
-#                         "hrf": UPDATE_LETTER_HRF,
-#                         "method": "PUT",
-#                     },
-#                     {
-#                         "name": "Delete Letter",
-#                         "hrf": DELETE_LETTER_HRF,
-#                         "method": "DELETE",
-#                     },
-#                 ],
-#                 "data": output_serializer.data,
-#             }
-
-#             return Response(data=response_data, status=http_status.HTTP_200_OK)
-
-#         except ValueError as e:
-#             raise ValidationError(e)
-#         except Exception as e:
-#             raise ValidationError(e)
+        except Exception as e:
+            raise ValidationError(e)
 
 
-class LetterApproveApi(ApiAuthMixin, APIView):
-    pass
+class RetractLetterApi(ApiAuthMixin, APIView):
+    def post(self, request, letter_id) -> Response:
+        letter_instance = get_object_or_404(Letter, pk=letter_id)
+
+        try:
+            letter_instance = retract_letter(user=request.user, letter_instance=letter_instance)
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": UPDATE_LETTER_HRF,
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": DELETE_LETTER_HRF,
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class PublishLetterApi(ApiAuthMixin, APIView):
+    def post(self, request, letter_id) -> Response:
+        letter_instance = get_object_or_404(Letter, pk=letter_id)
+
+        try:
+            letter_instance = publish_letter(user=request.user, letter_instance=letter_instance)
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": UPDATE_LETTER_HRF,
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": DELETE_LETTER_HRF,
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class ForwardLetterApi(ApiAuthMixin, APIView):
+    class InputSerializer(serializers.Serializer):
+        to = serializers.CharField()
+        message = serializers.CharField()
+
+    def post(self, request, letter_id) -> Response:
+        letter_instance = get_object_or_404(Letter, pk=letter_id)
+        input_serializer = self.InputSerializer(data=request.data, partial=True)
+        input_serializer.is_valid(raise_exception=True)
+
+        try:
+            letter_instance = forward_letter(
+                user=request.user,
+                letter_instance=letter_instance,
+                **input_serializer.validated_data,
+            )
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+
+            response_data = {
+                "action": [
+                    {
+                        "name": "Update Letter",
+                        "hrf": UPDATE_LETTER_HRF,
+                        "method": "PUT",
+                    },
+                    {
+                        "name": "Delete Letter",
+                        "hrf": DELETE_LETTER_HRF,
+                        "method": "DELETE",
+                    },
+                ],
+                "data": output_serializer.data,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
