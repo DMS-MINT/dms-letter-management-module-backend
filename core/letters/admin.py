@@ -7,7 +7,7 @@ from polymorphic.admin import (
 
 from core.participants.models import Participant
 
-from .models import Incoming, Internal, Letter, Outgoing
+from .models import Incoming, Internal, Letter, Outgoing, State
 
 
 class ParticipantInline(admin.StackedInline):
@@ -17,7 +17,7 @@ class ParticipantInline(admin.StackedInline):
 
 class LetterChildAdmin(PolymorphicChildModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created_at"]
+    list_display: list[str] = ["subject", "content", "state", "created_at"]
     inlines = [ParticipantInline]
 
 
@@ -42,6 +42,11 @@ class OutgoingAdmin(LetterChildAdmin):
 @admin.register(Letter)
 class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created_at"]
+    list_display: list[str] = ["subject", "content", "state", "created_at"]
     child_models = (Internal, Incoming, Outgoing)
     list_filter = (PolymorphicChildModelFilter,)
+
+
+@admin.register(State)
+class StateAdmin(admin.ModelAdmin):
+    list_display = ["name"]
