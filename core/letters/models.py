@@ -5,26 +5,23 @@ from polymorphic.models import PolymorphicModel
 from core.common.models import BaseModel
 
 
+class State(BaseModel):
+    name = models.CharField(max_length=255)
+    permissions = models.JSONField(default=dict)
+
+    def can_be(self, action):
+        return self.permissions.get(action, False)
+
+    def __str__(self):
+        return self.name
+
+
 class Letter(PolymorphicModel, BaseModel):
-    class LetterStatus(models.IntegerChoices):
-        ARCHIVED = 1, _("Archived")
-        CANCELLED = 2, _("Cancelled")
-        COMPLETED = 3, _("Completed")
-        DRAFT = 4, _("Draft")
-        DRAFT_PENDING_REVIEW = 5, _("Draft and Pending Review")
-        DRAFT_REVIEWED = 6, _("Draft and Reviewed")
-        DRAFT_UNDER_REVIEW = 7, _("Draft and Under Review")
-        FORWARDED_PENDING_REVIEW = 8, _("Forwarded and Pending Review")
-        FORWARDED_REVIEWED = 9, _("Forwarded and Reviewed")
-        FORWARDED_UNDER_REVIEW = 10, _("Forwarded and Under Review")
-        PENDING_APPROVAL = 11, _("Pending Approval")
-        PUBLISHED = 12, _("Published")
-
-    status = models.IntegerField(
-        default=LetterStatus.DRAFT,
-        choices=LetterStatus.choices,
+    state = models.ForeignKey(
+        State,
+        on_delete=models.CASCADE,
+        help_text=_("Select the state of the letter."),
     )
-
     subject = models.CharField(
         _("Subject"),
         blank=True,
