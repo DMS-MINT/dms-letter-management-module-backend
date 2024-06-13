@@ -172,8 +172,10 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class DeleteLetterApi(ApiAuthMixin, APIView):
+class LetterDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
+        check_permission(letter_instance=letter_instance, user=request.user, action="delete")
+
         letter_instance.delete()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
