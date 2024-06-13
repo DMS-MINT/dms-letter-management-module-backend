@@ -56,5 +56,5 @@ class UserCreateSerializer(PolymorphicSerializer):
         Guest: GuestCreateSerializer,
     }
 
-    def to_resource_type(self, model_or_instance):
-        return model_or_instance._meta.object_name.lower()
+    def to_resource_type(self, instance):
+        return instance._meta.object_name.lower()
