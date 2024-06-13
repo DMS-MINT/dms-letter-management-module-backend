@@ -2,12 +2,13 @@ from collections import OrderedDict
 from typing import Optional, Union
 
 from django.db import transaction
+from rest_framework.exceptions import PermissionDenied
 
-from core.participants.models import Participant
+from core.participants.models import Participant, Role
 from core.participants.services import participant_create
 from core.users.models import Member
 
-from .models import Incoming, Internal, Letter, Outgoing
+from .models import Incoming, Internal, Letter, Outgoing, State
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str]]]
 
@@ -26,6 +27,22 @@ def create_letter_instance(letter_type: str, **kwargs) -> Letter:
     raise ValueError("Invalid letter type")
 
 
+def check_permission(letter_instance, user, action):
+    try:
+        letter_participants = letter_instance.participants.filter(user=user)
+    except Participant.DoesNotExist:
+        raise PermissionDenied("You are not a participant in this letter.")
+
+    if not letter_instance.state.can_be(action):
+        raise PermissionDenied(f"The letter cannot be {action} in its current state.")
+
+    can_take_action = any(participant.role.can(action) for participant in letter_participants)
+    if not can_take_action:
+        raise PermissionDenied(f"You do not have permission to {action} this letter.")
+
+    return True
+
+
 # This function orchestrates the creation of a letter and its participants in a transaction.
 @transaction.atomic
 def letter_create(
@@ -33,26 +50,25 @@ def letter_create(
     user: Member,
     subject: Optional[str] = None,
     content: Optional[str] = None,
-    status: int,
     letter_type: str,
     participants: list[LetterParticipant],
 ) -> Letter:
-    letter_instance = create_letter_instance(letter_type, subject=subject, content=content, status=status)
+    letter_instance = create_letter_instance(
+        letter_type,
+        subject=subject,
+        content=content,
+        state=State.objects.get(name="Draft"),
+    )
 
-    if status == Letter.LetterStatus.DRAFT:
-        role = Participant.Roles.DRAFTER
-    elif status == Letter.LetterStatus.PENDING_APPROVAL:
-        role = Participant.Roles.SENDER
-
-    author_participant = OrderedDict({
+    editor_participant = OrderedDict({
         "user": OrderedDict({
             "id": user.id,
             "user_type": "member",
         }),
-        "role": role,
+        "role": Role.objects.get(name="Editor"),
     })
 
-    participants.append(author_participant)
+    participants.append(editor_participant)
     participant_create(participants=participants, letter=letter_instance)
 
     return letter_instance
@@ -60,13 +76,17 @@ def letter_create(
 
 @transaction.atomic
 def letter_update(
+    user: Member,
     letter_instance: Letter,
     subject: Optional[str] = None,
     content: Optional[str] = None,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
+    check_permission(letter_instance, user, "edit")
+
     if subject is not None:
         letter_instance.subject = subject
+
     if content is not None:
         letter_instance.content = content
 
@@ -80,51 +100,77 @@ def letter_update(
 
 
 @transaction.atomic
-def letter_forward(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
-    status = letter_instance.status
+def submit_letter_for_review(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
+    check_permission(letter_instance, user, "submit_for_review")
 
-    if status == Letter.LetterStatus.PUBLISHED:
-        role = Participant.Roles.FORWARDED_RECIPIENT
-    elif status == Letter.LetterStatus.DRAFT:
-        role = Participant.Roles.DRAFT_REVIEWER
-    elif status == Letter.LetterStatus.PENDING_APPROVAL:
-        letter_instance.status = Letter.LetterStatus.PUBLISHED
-        role = Participant.Roles.WORKFLOW_MANAGER
-
-    letter_instance.save()
-
-    participant = [
+    reviewer = [
         {
             "user": OrderedDict({
-                "id": user.id,
+                "id": to,
                 "user_type": "member",
             }),
-            "role": role,
+            "role": Role.objects.get(name="Reviewer"),
         },
     ]
 
-    participant_create(participants=participant, letter=letter_instance)
+    participant_create(participants=reviewer, letter=letter_instance)
 
     return letter_instance
 
 
-# @transaction.atomic
-# def letter_forward(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
+@transaction.atomic
+def submit_letter_for_publishing(user: Member, letter_instance: Letter) -> Letter:
+    check_permission(letter_instance, user, "submit_for_publishing")
+
+    letter_instance.state = State.objects.get("Submitted")
+
+    return letter_instance
 
 
-# participants = [
-#     {
-#         "user": OrderedDict({
-#             "id": to,
-#             "user_type": "member",
-#         }),
-#         "role": role,
-#         "message": message,
-#     },
-# ]
+@transaction.atomic
+def retract_letter(user: Member, letter_instance: Letter) -> Letter:
+    check_permission(letter_instance, user, "retract")
 
-# participant_create(participants=participants, letter=letter_instance)
+    letter_instance.state = State.objects.get("Retracted")
 
-# letter_instance.save()
+    return letter_instance
 
-# return letter_instance
+
+@transaction.atomic
+def publish_letter(user: Member, letter_instance: Letter, publisher: str) -> Letter:
+    check_permission(letter_instance, user, "submit_for_review")
+
+    letter_instance.state = State.objects.get("	Published")
+
+    administrator = [
+        {
+            "user": OrderedDict({
+                "id": publisher,
+                "user_type": "member",
+            }),
+            "role": Role.objects.get(name="Administrator"),
+        },
+    ]
+
+    participant_create(participants=administrator, letter=letter_instance)
+
+    return letter_instance
+
+
+@transaction.atomic
+def forward_letter(user: Member, letter_instance: Letter, to: str, message: str) -> Letter:
+    check_permission(letter_instance, user, "forward")
+
+    forward_recipient = [
+        {
+            "user": OrderedDict({
+                "id": to,
+                "user_type": "member",
+            }),
+            "role": Role.objects.get(name="Forward Recipient"),
+        },
+    ]
+
+    participant_create(participants=forward_recipient, letter=letter_instance)
+
+    return letter_instance
