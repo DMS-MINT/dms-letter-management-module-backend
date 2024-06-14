@@ -6,14 +6,9 @@ from core.users.apis import UserListApi
 from core.users.serializers import MemberListSerializer
 
 
-class StateSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    permissions = serializers.JSONField()
-
-
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    state = StateSerializer
+    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     participants = inline_serializer(
         many=True,
@@ -36,7 +31,7 @@ class LetterListSerializer(serializers.Serializer):
 
 class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    state = StateSerializer
+    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     content = serializers.CharField()
     participants = inline_serializer(
