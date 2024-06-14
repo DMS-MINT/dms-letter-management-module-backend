@@ -51,5 +51,8 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
 
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = ["name", "display_actions"]
     ordering = ["created_at"]
+
+    def display_actions(self, obj):
+        return ", ".join([actions.name for actions in obj.actions.all()])

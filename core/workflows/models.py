@@ -36,12 +36,14 @@ class WorkflowLog(models.Model):
         State,
         on_delete=models.CASCADE,
         verbose_name=_("Initial State"),
+        related_name=("initial_states"),
         help_text=_("The state of the resource before the action was performed."),
     )
     final_state = models.ForeignKey(
         State,
         on_delete=models.CASCADE,
         verbose_name=_("Final State"),
+        related_name=_("final_states"),
         help_text=_("The state of the resource after the action was performed."),
     )
     timestamp = models.DateTimeField(
