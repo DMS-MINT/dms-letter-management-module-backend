@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 from core.letters.models import Letter
+from core.permissions.service import check_permissions
 
 from .services import letter_publish, letter_retract, letter_share, letter_submit
 
@@ -60,6 +61,8 @@ class LetterShareApi(ApiAuthMixin, APIView):
 
     def post(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
+        check_permissions(letter_instance=letter_instance, user=request.user, actions=["share", "comment"])
+
         input_serializer = self.InputSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
 
@@ -80,6 +83,7 @@ class LetterShareApi(ApiAuthMixin, APIView):
 class LetterSubmitApi(ApiAuthMixin, APIView):
     def post(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
+        check_permissions(letter_instance=letter_instance, user=request.user, actions=["submit"])
 
         try:
             letter_submit(user=request.user, letter_instance=letter_instance)
@@ -98,6 +102,7 @@ class LetterSubmitApi(ApiAuthMixin, APIView):
 class LetterRetractApi(ApiAuthMixin, APIView):
     def post(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
+        check_permissions(letter_instance=letter_instance, user=request.user, actions=["retract"])
 
         try:
             letter_retract(user=request.user, letter_instance=letter_instance)
