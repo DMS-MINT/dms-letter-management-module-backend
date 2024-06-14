@@ -32,6 +32,7 @@ THIRD_PARTY_APPS: list[str] = [
     "django_filters",
     "polymorphic",
     "rest_framework",
+    "easyaudit",
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -56,6 +57,7 @@ MIDDLEWARE: list[str] = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
