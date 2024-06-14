@@ -5,7 +5,6 @@ from django.db import transaction
 
 from core.participants.models import Participant
 from core.participants.services import participant_create
-from core.permissions.service import check_permission
 from core.users.models import Member
 
 from .models import Incoming, Internal, Letter, Outgoing, State
@@ -73,8 +72,6 @@ def letter_update(
     content: Optional[str] = None,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
-    check_permission(letter_instance, user, "edit")
-
     if subject is not None:
         letter_instance.subject = subject
 

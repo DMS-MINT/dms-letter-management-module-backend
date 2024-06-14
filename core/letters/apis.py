@@ -8,7 +8,7 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
-from core.permissions.service import check_permission
+from core.permissions.service import check_permissions
 from core.users.serializers import UserCreateSerializer
 
 from .models import Incoming, Internal, Letter, Outgoing
@@ -148,7 +148,7 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
 
     def put(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
-        check_permission(letter_instance=letter_instance, user=request.user, action="edit")
+        check_permissions(letter_instance=letter_instance, user=request.user, actions=["edit"])
 
         input_serializer = self.InputSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
@@ -175,7 +175,7 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
 class LetterDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, letter_id) -> Response:
         letter_instance = get_object_or_404(Letter, pk=letter_id)
-        check_permission(letter_instance=letter_instance, user=request.user, action="delete")
+        check_permissions(letter_instance=letter_instance, user=request.user, actions=["delete"])
 
         letter_instance.delete()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
