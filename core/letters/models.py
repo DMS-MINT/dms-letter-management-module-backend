@@ -3,17 +3,22 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
+from core.permissions.models import Permission
 
 
 class State(BaseModel):
     name = models.CharField(max_length=255)
-    permissions = models.JSONField(default=dict)
-
-    def can_be(self, action):
-        return self.permissions.get(action, False)
+    actions = models.ManyToManyField(Permission)
 
     def __str__(self):
         return self.name
+
+    def can(self, action):
+        return self.actions.filter(name=action).exists()
+
+    class Meta:
+        verbose_name: str = _("State")
+        verbose_name_plural: str = _("States")
 
 
 class Letter(PolymorphicModel, BaseModel):

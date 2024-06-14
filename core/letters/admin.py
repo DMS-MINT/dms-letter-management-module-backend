@@ -17,8 +17,9 @@ class ParticipantInline(admin.StackedInline):
 
 class LetterChildAdmin(PolymorphicChildModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "state", "created_at"]
+    list_display: list[str] = ["subject", "content", "state", "created_at", "updated_at"]
     inlines = [ParticipantInline]
+    ordering = ["-updated_at"]
 
 
 @admin.register(Internal)
@@ -42,11 +43,16 @@ class OutgoingAdmin(LetterChildAdmin):
 @admin.register(Letter)
 class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "state", "created_at"]
+    list_display: list[str] = ["subject", "content", "state", "created_at", "updated_at"]
     child_models = (Internal, Incoming, Outgoing)
     list_filter = (PolymorphicChildModelFilter,)
+    ordering = ["-updated_at"]
 
 
 @admin.register(State)
 class StateAdmin(admin.ModelAdmin):
-    list_display = ["name"]
+    list_display = ["name", "display_actions"]
+    ordering = ["created_at"]
+
+    def display_actions(self, obj):
+        return ", ".join([actions.name for actions in obj.actions.all()])

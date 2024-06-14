@@ -1,12 +1,9 @@
 from rest_framework import serializers
 
 from core.common.utils import inline_serializer
+from core.participants.models import Participant
 from core.users.apis import UserListApi
-
-
-class RoleSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    permissions = serializers.JSONField()
+from core.users.serializers import MemberListSerializer
 
 
 class StateSerializer(serializers.Serializer):
@@ -21,8 +18,8 @@ class LetterListSerializer(serializers.Serializer):
     participants = inline_serializer(
         many=True,
         fields={
+            "role_name": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_name_display"),
             "user": UserListApi.OutputSerializer(),
-            "role": RoleSerializer,
         },
     )
     has_read: serializers.SerializerMethodField()
@@ -46,7 +43,15 @@ class LetterDetailSerializer(serializers.Serializer):
         many=True,
         fields={
             "user": UserListApi.OutputSerializer(),
-            "role": RoleSerializer,
+            "role_name": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_name_display"),
+        },
+    )
+    comments = inline_serializer(
+        many=True,
+        fields={
+            "id": serializers.UUIDField(),
+            "content": serializers.CharField(),
+            "author": MemberListSerializer(),
         },
     )
     created_at = serializers.DateTimeField()
