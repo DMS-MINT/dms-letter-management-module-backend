@@ -71,8 +71,15 @@ def participant_add(*, user: Member, letter_instance: Letter, permissions: list[
         missing_permissions = set(permissions) - set(permission_objects.values_list("name", flat=True))
         raise ValueError(f"Invalid permission names: {missing_permissions}")
 
-    participant_instance = Participant.objects.create(user=user, role_name=role_name, letter=letter_instance)
+    participant_instance = letter_instance.participants.filter(user=user).first()
 
-    participant_instance.permissions.set(permission_objects)
+    if participant_instance:
+        current_permissions = set(participant_instance.permissions.values_list("name", flat=True))
+        new_permissions = set(permission_objects.values_list("name", flat=True))
+        combined_permissions = current_permissions.union(new_permissions)
+        participant_instance.permissions.set(Permission.objects.filter(name__in=combined_permissions))
+    else:
+        participant_instance = Participant.objects.create(user=user, role_name=role_name, letter=letter_instance)
+        participant_instance.permissions.set(permission_objects)
 
     return participant_instance
