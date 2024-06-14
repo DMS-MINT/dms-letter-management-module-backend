@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from .models import Comment
+from .models import WorkflowLog
 
 
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    list_display = ["author", "content", "letter"]
+@admin.register(WorkflowLog)
+class WorkflowLogAdmin(admin.ModelAdmin):
+    list_display = ["user", "action", "resource", "initial_state", "final_state", "timestamp", "success"]
