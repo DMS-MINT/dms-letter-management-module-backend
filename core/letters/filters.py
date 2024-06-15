@@ -38,7 +38,7 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_inbox(queryset):
         return queryset.filter(
             Q(
-                state__in=[
+                current_state__in=[
                     State.objects.get(name="Published"),
                     State.objects.get(name="closed"),
                 ],
@@ -57,7 +57,7 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_outbox(queryset):
         return queryset.filter(
             Q(
-                state__in=[
+                current_state__in=[
                     State.objects.get(name="Submitted"),
                     State.objects.get(name="Published"),
                     State.objects.get(name="Closed"),
@@ -75,7 +75,7 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_draft(queryset):
         return queryset.filter(
             Q(
-                state__in=[
+                current_state__in=[
                     State.objects.get(name="Draft"),
                 ],
             )

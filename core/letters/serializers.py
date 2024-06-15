@@ -9,7 +9,7 @@ from core.users.serializers import MemberListSerializer
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
-    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     participants = inline_serializer(
         many=True,
@@ -33,7 +33,7 @@ class LetterListSerializer(serializers.Serializer):
 class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
-    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     content = serializers.CharField()
     participants = inline_serializer(
@@ -49,6 +49,7 @@ class LetterDetailSerializer(serializers.Serializer):
             "id": serializers.UUIDField(),
             "content": serializers.CharField(),
             "author": MemberListSerializer(),
+            "created_at": serializers.DateTimeField(),
         },
     )
     created_at = serializers.DateTimeField()

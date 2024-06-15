@@ -23,10 +23,10 @@ class State(BaseModel):
 
 class Letter(PolymorphicModel, BaseModel):
     reference_number = models.SlugField(verbose_name=_("Reference Number"), blank=True, null=True)
-    state = models.ForeignKey(
+    current_state = models.ForeignKey(
         State,
         on_delete=models.CASCADE,
-        help_text=_("Select the state of the letter."),
+        help_text=_("Select the current state of the letter."),
     )
     subject = models.CharField(
         _("Subject"),

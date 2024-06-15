@@ -50,7 +50,7 @@ def letter_create(
         current_user=user,
         subject=subject,
         content=content,
-        state=State.objects.get(name="Draft"),
+        current_state=State.objects.get(name="Draft"),
     )
 
     editor = OrderedDict({
