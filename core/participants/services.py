@@ -7,32 +7,6 @@ from core.users.models import Guest, Member
 
 from .models import Participant
 
-ROLE_PERMISSIONS = {
-    Participant.RoleNames.EDITOR: ["view", "edit", "comment"],
-    Participant.RoleNames.AUTHOR: [
-        "view",
-        "edit",
-        "comment",
-        "share",
-        "submit",
-        "delete",
-        "retract",
-        "archive",
-        "close",
-    ],
-    Participant.RoleNames.PRIMARY_RECIPIENT: ["view", "comment", "share"],
-    Participant.RoleNames.CC: ["view", "comment"],
-    Participant.RoleNames.BCC: ["view"],
-}
-
-
-def get_permissions(role):
-    permission_names = ROLE_PERMISSIONS.get(role)
-    if permission_names is None:
-        raise ValueError(f"Invalid role: {role}")
-
-    return Permission.objects.filter(name__in=permission_names)
-
 
 def get_enum_value(key):
     for role in Participant.RoleNames:
@@ -47,7 +21,6 @@ def participant_create(*, participants, letter):
     for participant in participants:
         user_data = participant.get("user")
         role_name = get_enum_value(participant.get("role_name"))
-        permissions = get_permissions(role_name)
 
         if user_data["user_type"] == "member":
             try:
@@ -57,8 +30,7 @@ def participant_create(*, participants, letter):
         elif user_data["user_type"] == "guest":
             user, _ = Guest.objects.get_or_create(name=user_data["name"])
 
-        participant_instance = Participant.objects.create(user=user, role_name=role_name, letter=letter)
-        participant_instance.permissions.set(permissions)
+        Participant.objects.create(user=user, role_name=role_name, letter=letter)
 
 
 # This function adds participants for a given letter.

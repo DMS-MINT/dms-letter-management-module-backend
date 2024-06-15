@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from typing import Optional, Union
 
 from django.db import transaction
@@ -53,15 +52,6 @@ def letter_create(
         current_state=State.objects.get(name="Draft"),
     )
 
-    editor = OrderedDict({
-        "user": OrderedDict({
-            "id": user.id,
-            "user_type": "member",
-        }),
-        "role_name": "Editor",
-    })
-
-    participants.append(editor)
     participant_create(participants=participants, letter=letter_instance)
 
     return letter_instance
