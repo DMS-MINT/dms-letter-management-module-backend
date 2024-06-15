@@ -15,7 +15,7 @@ def check_permissions(letter_instance, user, actions: list):
         if not letter_participants.exists():
             raise PermissionDenied("You are not a participant in this letter.")
 
-        if not letter_instance.state.can(action):
+        if not letter_instance.current_state.can(action):
             raise PermissionDenied(f"The letter cannot be {action} in its current state.")
 
         if not any(participant.can(action) for participant in letter_participants):

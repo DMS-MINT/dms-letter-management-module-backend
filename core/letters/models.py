@@ -44,16 +44,16 @@ class Letter(PolymorphicModel, BaseModel):
 
     _current_user = None
 
-    class Meta:
-        verbose_name: str = "Letter"
-        verbose_name_plural: str = "Letters"
-
     def __str__(self) -> str:
         return f"{self.subject} - {self.pk}"
 
     def save(self, *args, **kwargs):
         self._current_user = kwargs.pop("current_user", None)
         super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name: str = "Letter"
+        verbose_name_plural: str = "Letters"
 
 
 class Internal(Letter):
