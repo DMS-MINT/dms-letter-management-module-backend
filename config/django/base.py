@@ -47,6 +47,10 @@ INSTALLED_APPS: list[str] = [
     *LOCAL_APPS,
 ]
 
+LOCAL_MIDDLEWARES: list[str] = [
+    "core.authentication.middleware.CurrentUserMiddleware",
+]
+
 MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -58,6 +62,7 @@ MIDDLEWARE: list[str] = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
+    *LOCAL_MIDDLEWARES,
 ]
 
 ROOT_URLCONF = "config.urls"
