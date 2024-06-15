@@ -8,6 +8,7 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
+from core.permissions.selectors import get_permissions
 from core.permissions.service import check_permissions
 from core.users.serializers import UserCreateSerializer
 
@@ -93,15 +94,20 @@ class LetterDetailApi(ApiAuthMixin, APIView):
             Outgoing: OutgoingLetterDetailSerializer,
         }
 
-        def to_resource_type(self, model_or_instance):
-            return model_or_instance._meta.object_name.lower()
+        def to_resource_type(self, instance):
+            return instance._meta.object_name.lower()
 
-    def get(self, request, letter_id) -> Response:
-        letter = get_object(Letter, id=letter_id)
+    def get(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+        permissions = get_permissions(letter_instance=letter_instance, user=request.user)
 
-        serializer = self.OutputSerializer(letter, many=False)
+        letter_serializer = self.OutputSerializer(letter_instance, many=False)
 
-        response_data = {"action": ACTIONS, "data": serializer.data}
+        response_data = {
+            "action": ACTIONS,
+            "data": letter_serializer.data,
+            "permissions": permissions,
+        }
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
