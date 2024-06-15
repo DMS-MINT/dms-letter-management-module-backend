@@ -22,6 +22,7 @@ class State(BaseModel):
 
 
 class Letter(PolymorphicModel, BaseModel):
+    reference_number = models.SlugField(verbose_name=_("Reference Number"), blank=True, null=True)
     state = models.ForeignKey(
         State,
         on_delete=models.CASCADE,
