@@ -42,12 +42,18 @@ class Letter(PolymorphicModel, BaseModel):
         help_text=_("Enter the content of the letter."),
     )
 
+    _current_user = None
+
     class Meta:
         verbose_name: str = "Letter"
         verbose_name_plural: str = "Letters"
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.pk}"
+
+    def save(self, *args, **kwargs):
+        self._current_user = kwargs.pop("current_user", None)
+        super().save(*args, **kwargs)
 
 
 class Internal(Letter):

@@ -13,7 +13,7 @@ type LetterParticipant = dict[str, Union[str, int, dict[str, str]]]
 
 
 # Create a letter instance based on the provided letter_type and keyword arguments.
-def create_letter_instance(letter_type: str, **kwargs) -> Letter:
+def create_letter_instance(letter_type: str, current_user: Member, **kwargs) -> Letter:
     letter_instance_class = {
         "internal": Internal,
         "incoming": Incoming,
@@ -21,7 +21,9 @@ def create_letter_instance(letter_type: str, **kwargs) -> Letter:
     }.get(letter_type)
 
     if letter_instance_class:
-        return letter_instance_class.objects.create(**kwargs)
+        letter_instance = letter_instance_class(**kwargs)
+        letter_instance.save(current_user=current_user)
+        return letter_instance
 
     raise ValueError("Invalid letter type")
 
@@ -44,7 +46,8 @@ def letter_create(
     participants: list[LetterParticipant],
 ) -> Letter:
     letter_instance = create_letter_instance(
-        letter_type,
+        letter_type=letter_type,
+        current_user=user,
         subject=subject,
         content=content,
         state=State.objects.get(name="Draft"),
