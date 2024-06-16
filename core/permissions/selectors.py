@@ -3,11 +3,11 @@ from core.participants.models import Participant
 from core.users.models import Member
 
 
-def get_permissions(*, letter_instance: Letter, user=Member):
+def get_permissions(*, current_user=Member, letter_instance: Letter):
     try:
         letter_actions = letter_instance.current_state.actions.all()
 
-        participant_instance = letter_instance.participants.get(user=user, letter=letter_instance)
+        participant_instance = letter_instance.participants.get(user=current_user, letter=letter_instance)
         participant_permissions = participant_instance.permissions.all()
 
         letter_actions_set = set(letter_actions.values_list("name", flat=True))
