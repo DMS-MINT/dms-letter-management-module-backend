@@ -38,7 +38,7 @@ def get_enum_value(key):
 @transaction.atomic
 def letter_create(
     *,
-    user: Member,
+    current_user: Member,
     subject: Optional[str] = None,
     content: Optional[str] = None,
     letter_type: str,
@@ -46,7 +46,7 @@ def letter_create(
 ) -> Letter:
     letter_instance = create_letter_instance(
         letter_type=letter_type,
-        current_user=user,
+        current_user=current_user,
         subject=subject,
         content=content,
         current_state=State.objects.get(name="Draft"),
@@ -59,7 +59,7 @@ def letter_create(
 
 @transaction.atomic
 def letter_update(
-    user: Member,
+    current_user: Member,
     letter_instance: Letter,
     subject: Optional[str] = None,
     content: Optional[str] = None,
@@ -74,7 +74,17 @@ def letter_update(
     letter_instance.save()
 
     if participants is not None:
-        letter_instance.participants.all().delete()
-        participant_create(participants=participants, letter=letter_instance)
+        existing_participants = set(letter_instance.participants.values_list("id", flat=True))
+        new_participants = set(participant["id"] for participant in participants)
+
+        participants_to_remove_ids = existing_participants - new_participants
+        participants_to_add_ids = new_participants - existing_participants
+
+        participants_to_add = [
+            participant for participant in participants if participant["id"] in participants_to_add_ids
+        ]
+
+        letter_instance.participants.filter(id__in=participants_to_remove_ids).delete()
+        participant_create(current_user=current_user, participants=participants_to_add, letter_instance=letter_instance)
 
     return letter_instance

@@ -39,6 +39,7 @@ class LetterDetailSerializer(serializers.Serializer):
     participants = inline_serializer(
         many=True,
         fields={
+            "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
             "role_name": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_name_display"),
         },

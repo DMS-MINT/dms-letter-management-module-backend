@@ -11,8 +11,8 @@ urlpatterns: list[URLPattern] = [
     path("", LetterListApi.as_view(), name="letter-list"),
     path("create/", LetterCreateApi.as_view(), name="letter-create"),
     path("<slug:reference_number>/", LetterDetailApi.as_view(), name="letter-detail"),
-    path("<uuid:letter_id>/update/", LetterUpdateApi.as_view(), name="letter-update"),
-    path("<uuid:letter_id>/delete/", LetterDeleteApi.as_view(), name="letter-delete"),
+    path("<slug:reference_number>/update/", LetterUpdateApi.as_view(), name="letter-update"),
+    path("<slug:reference_number>/delete/", LetterDeleteApi.as_view(), name="letter-delete"),
 ]
 
 urlpatterns.extend(workflow_url_patterns)

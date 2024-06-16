@@ -23,7 +23,7 @@ ROLE_PERMISSIONS = {
 }
 
 
-def get_permissions(role):
+def get_permissions(role: int):
     permission_names = ROLE_PERMISSIONS.get(role)
     if permission_names is None:
         raise ValidationError(f"Invalid role: {role}")

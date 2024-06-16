@@ -39,6 +39,7 @@ class Participant(BaseModel):
     received_at = models.DateTimeField(blank=True, null=True, editable=False)
 
     _dirty = True
+    _current_user = None
 
     @property
     def has_read(self) -> bool:
@@ -48,6 +49,7 @@ class Participant(BaseModel):
         return self.permissions.filter(name=action).exists()
 
     def save(self, *args, **kwargs):
+        self._current_user = kwargs.pop("current_user", None)
         super().save(*args, **kwargs)
 
     class Meta:

@@ -3,15 +3,13 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
-from core.authentication.middleware import get_current_user
-
 from .models import Participant
 from .utils import get_permissions
 
 
 @receiver(pre_save, sender=Participant)
 def validate_participant_role(sender, instance, **kwargs):
-    current_user = get_current_user()
+    current_user = instance._current_user
     if instance.user == current_user and instance.role_name not in [
         Participant.RoleNames.AUTHOR,
         Participant.RoleNames.EDITOR,
@@ -25,7 +23,7 @@ def validate_participant_role(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Participant)
 def assign_default_permissions(sender, instance, created, **kwargs):
-    current_user = get_current_user()
+    current_user = instance._current_user
     letter_instance = instance.letter
 
     if not Participant.objects.filter(user=current_user, letter=letter_instance).exists():
