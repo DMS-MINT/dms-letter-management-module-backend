@@ -3,7 +3,7 @@ from typing import Optional, Union
 from django.db import transaction
 
 from core.participants.models import Participant
-from core.participants.services import participant_create
+from core.participants.services import initialize_participants, update_participants
 from core.users.models import Member
 
 from .models import Incoming, Internal, Letter, Outgoing, State
@@ -52,7 +52,7 @@ def letter_create(
         current_state=State.objects.get(name="Draft"),
     )
 
-    participant_create(participants=participants, letter=letter_instance)
+    initialize_participants(current_user=current_user, participants=participants, letter_instance=letter_instance)
 
     return letter_instance
 
@@ -84,7 +84,24 @@ def letter_update(
             participant for participant in participants if participant["id"] in participants_to_add_ids
         ]
 
-        letter_instance.participants.filter(id__in=participants_to_remove_ids).delete()
-        participant_create(current_user=current_user, participants=participants_to_add, letter_instance=letter_instance)
+        participants_to_delete = letter_instance.participants.filter(id__in=participants_to_remove_ids)
+
+        for participant in participants_to_delete:
+            if participant.user == current_user:
+                participant.delete()
+                Participant.objects.create(
+                    letter=letter_instance,
+                    user=current_user,
+                    role_name=Participant.RoleNames.EDITOR,
+                )
+                return None
+
+            participant.delete()
+
+        update_participants(
+            current_user=current_user,
+            letter_instance=letter_instance,
+            participants_to_add=participants_to_add,
+        )
 
     return letter_instance

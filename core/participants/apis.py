@@ -7,7 +7,7 @@ from core.users.apis import UserListApi
 from core.users.serializers import UserCreateSerializer
 
 from .models import Participant
-from .services import participant_create
+from .services import initialize_participants
 
 
 class ParticipantListApi(APIView):
@@ -38,7 +38,7 @@ class ParticipantCreateApi(APIView):
 
         if input_serializer.is_valid():
             try:
-                participant_instance = participant_create(
+                participant_instance = initialize_participants(
                     validated_data=input_serializer.validated_data,
                     letter_id=input_serializer.validated_data,
                 )

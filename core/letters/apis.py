@@ -99,13 +99,13 @@ class LetterDetailApi(ApiAuthMixin, APIView):
 
     def get(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
-        permissions = get_permissions(letter_instance=letter_instance, user=request.user)
+        permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
 
-        letter_serializer = self.OutputSerializer(letter_instance, many=False)
+        output_serializer = self.OutputSerializer(letter_instance, many=False)
 
         response_data = {
             "action": ACTIONS,
-            "data": letter_serializer.data,
+            "data": output_serializer.data,
             "permissions": permissions,
         }
 
@@ -131,11 +131,16 @@ class LetterCreateApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            letter_instance = letter_create(user=request.user, **input_serializer.validated_data)
+            letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
+            permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
-            response_data = {"action": ACTIONS, "data": output_serializer.data}
+            response_data = {
+                "action": ACTIONS,
+                "data": output_serializer.data,
+                "permissions": permissions,
+            }
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
@@ -174,8 +179,13 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
                 **input_serializer.validated_data,
             )
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
 
-            response_data = {"action": ACTIONS, "data": output_serializer.data}
+            response_data = {
+                "action": ACTIONS,
+                "data": output_serializer.data,
+                "permissions": permissions,
+            }
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
