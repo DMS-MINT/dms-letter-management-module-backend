@@ -21,13 +21,13 @@ def letter_share(
 
 @transaction.atomic
 def letter_submit(user: Member, letter_instance: Letter) -> Letter:
-    letter_instance.state = State.objects.get(name="Submitted")
+    letter_instance.current_state = State.objects.get(name="Submitted")
     letter_instance.save()
 
 
 @transaction.atomic
 def letter_retract(user: Member, letter_instance: Letter) -> Letter:
-    letter_instance.state = State.objects.get(name="Draft")
+    letter_instance.current_state = State.objects.get(name="Draft")
     letter_instance.save()
 
 
@@ -36,7 +36,7 @@ def letter_publish(user: Member, letter_instance: Letter) -> Letter:
     current_state = State.objects.get(name="Submitted")
     next_state = State.objects.get(name="Published")
 
-    if letter_instance.state != current_state or not user.is_admin:
+    if letter_instance.current_state != current_state or not user.is_admin:
         raise PermissionError("User does not have permission to publish letter.")
 
     letter_instance.state = next_state

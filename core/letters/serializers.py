@@ -8,7 +8,8 @@ from core.users.serializers import MemberListSerializer
 
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    reference_number = serializers.SlugField()
+    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     participants = inline_serializer(
         many=True,
@@ -31,12 +32,14 @@ class LetterListSerializer(serializers.Serializer):
 
 class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    reference_number = serializers.SlugField()
+    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
     subject = serializers.CharField()
     content = serializers.CharField()
     participants = inline_serializer(
         many=True,
         fields={
+            "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
             "role_name": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_name_display"),
         },
@@ -47,6 +50,7 @@ class LetterDetailSerializer(serializers.Serializer):
             "id": serializers.UUIDField(),
             "content": serializers.CharField(),
             "author": MemberListSerializer(),
+            "created_at": serializers.DateTimeField(),
         },
     )
     created_at = serializers.DateTimeField()

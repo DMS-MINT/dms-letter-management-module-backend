@@ -38,6 +38,9 @@ class Participant(BaseModel):
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
     received_at = models.DateTimeField(blank=True, null=True, editable=False)
 
+    _dirty = True
+    _current_user = None
+
     @property
     def has_read(self) -> bool:
         return True if self.last_read_at else False
@@ -45,6 +48,11 @@ class Participant(BaseModel):
     def can(self, action):
         return self.permissions.filter(name=action).exists()
 
+    def save(self, *args, **kwargs):
+        self._current_user = kwargs.pop("current_user", None)
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name: str = _("Participant")
         verbose_name_plural: str = _("Participants")
+        unique_together = [["user", "letter"]]

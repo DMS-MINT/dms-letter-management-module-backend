@@ -22,10 +22,11 @@ class State(BaseModel):
 
 
 class Letter(PolymorphicModel, BaseModel):
-    state = models.ForeignKey(
+    reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
+    current_state = models.ForeignKey(
         State,
         on_delete=models.CASCADE,
-        help_text=_("Select the state of the letter."),
+        help_text=_("Select the current state of the letter."),
     )
     subject = models.CharField(
         _("Subject"),
@@ -41,12 +42,18 @@ class Letter(PolymorphicModel, BaseModel):
         help_text=_("Enter the content of the letter."),
     )
 
-    class Meta:
-        verbose_name: str = "Letter"
-        verbose_name_plural: str = "Letters"
+    _current_user = None
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.pk}"
+
+    def save(self, *args, **kwargs):
+        self._current_user = kwargs.pop("current_user", None)
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name: str = "Letter"
+        verbose_name_plural: str = "Letters"
 
 
 class Internal(Letter):

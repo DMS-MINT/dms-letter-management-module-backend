@@ -4,6 +4,7 @@ from .models import Guest, Member
 
 
 def user_get_login_data(*, user: Member):
+    department = user.department.name
     return {
         "id": getattr(user, "id", ""),
         "email": getattr(user, "email", ""),
@@ -12,7 +13,7 @@ def user_get_login_data(*, user: Member):
         "last_name": getattr(user, "last_name", ""),
         "full_name": getattr(user, "full_name", ""),
         "job_title": getattr(user, "job_title", ""),
-        "department": getattr(user, "department", ""),
+        "department": department,
         "phone_number": getattr(user, "phone_number", ""),
     }
 

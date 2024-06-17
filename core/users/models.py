@@ -50,12 +50,11 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
         unique=True,
         help_text=_("Enter the job title of the employee."),
     )
-    department = models.CharField(
-        _("department"),
-        max_length=254,
+    department = models.ForeignKey(
+        "Department",
+        on_delete=models.CASCADE,
         help_text=_("Enter the department of the employee."),
     )
-
     phone_number = models.CharField(
         _("phone number"),
         max_length=20,
@@ -133,4 +132,12 @@ class Guest(BaseUser):
         verbose_name_plural: str = "Guests"
 
     def __str__(self) -> str:
+        return self.name
+
+
+class Department(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    abbreviation = models.CharField(max_length=3, unique=True)
+
+    def __str__(self):
         return self.name
