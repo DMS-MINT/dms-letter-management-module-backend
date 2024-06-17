@@ -90,7 +90,7 @@ def update_participants(*, current_user: Member, letter_instance, participants_t
 
 # This function adds participants for a given letter.
 @transaction.atomic
-def participant_add(*, current_user: Member, letter_instance: Letter, permissions: list[str]):
+def participant_add(*, user: Member, letter_instance: Letter, permissions: list[str]):
     role_name = Participant.RoleNames.COLLABORATOR
 
     permission_objects = Permission.objects.filter(name__in=permissions)
@@ -98,7 +98,7 @@ def participant_add(*, current_user: Member, letter_instance: Letter, permission
         missing_permissions = set(permissions) - set(permission_objects.values_list("name", flat=True))
         raise ValueError(f"Invalid permission names: {missing_permissions}")
 
-    participant_instance = letter_instance.participants.filter(user=current_user).first()
+    participant_instance = letter_instance.participants.filter(user=user).first()
 
     if participant_instance is not None:
         current_permissions = set(participant_instance.permissions.values_list("name", flat=True))
@@ -109,7 +109,7 @@ def participant_add(*, current_user: Member, letter_instance: Letter, permission
         participant_instance.permissions.set(Permission.objects.filter(name__in=combined_permissions))
     else:
         participant_instance = Participant.objects.create(
-            user=current_user,
+            user=user,
             role_name=role_name,
             letter=letter_instance,
         )

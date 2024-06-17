@@ -11,12 +11,12 @@ from core.permissions.service import check_permissions
 
 from .services import letter_publish, letter_retract, letter_share, letter_submit
 
-SHARE_LETTER_HRF = "api/workflow/<uuid:letter_id>/share/"
-SUBMIT_LETTER_HRF = "api/workflow/<uuid:letter_id>/submit/"
-PUBLISH_LETTER_HRF = "api/workflow/<uuid:letter_id>/publish/"
-RETRACT_LETTER_HRF = "api/workflow/<uuid:letter_id>/retract/"
-CLOSE_LETTER_HRF = "api/workflow/<uuid:letter_id>/close/"
-ARCHIVE_LETTER_HRF = "api/workflow/<uuid:letter_id>/archive/"
+SHARE_LETTER_HRF = "api/letters/<slug:reference_number>/share/"
+SUBMIT_LETTER_HRF = "api/letters/<slug:reference_number>/submit/"
+PUBLISH_LETTER_HRF = "api/letters/<slug:reference_number>/publish/"
+RETRACT_LETTER_HRF = "api/letters/<slug:reference_number>/retract/"
+CLOSE_LETTER_HRF = "api/letters/<slug:reference_number>/close/"
+ARCHIVE_LETTER_HRF = "api/letters/<slug:reference_number>/archive/"
 ACTIONS = (
     [
         {
@@ -59,8 +59,8 @@ class LetterShareApi(ApiAuthMixin, APIView):
         message = serializers.CharField()
         permissions = serializers.ListField(child=serializers.CharField(), required=False)
 
-    def post(self, request, letter_id) -> Response:
-        letter_instance = get_object_or_404(Letter, pk=letter_id)
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         check_permissions(letter_instance=letter_instance, user=request.user, actions=["share", "comment"])
 
         input_serializer = self.InputSerializer(data=request.data, partial=True)
@@ -81,8 +81,8 @@ class LetterShareApi(ApiAuthMixin, APIView):
 
 
 class LetterSubmitApi(ApiAuthMixin, APIView):
-    def post(self, request, letter_id) -> Response:
-        letter_instance = get_object_or_404(Letter, pk=letter_id)
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         check_permissions(letter_instance=letter_instance, user=request.user, actions=["submit"])
 
         try:
@@ -100,8 +100,8 @@ class LetterSubmitApi(ApiAuthMixin, APIView):
 
 
 class LetterRetractApi(ApiAuthMixin, APIView):
-    def post(self, request, letter_id) -> Response:
-        letter_instance = get_object_or_404(Letter, pk=letter_id)
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         check_permissions(letter_instance=letter_instance, user=request.user, actions=["retract"])
 
         try:
@@ -119,8 +119,8 @@ class LetterRetractApi(ApiAuthMixin, APIView):
 
 
 class LetterPublishApi(ApiAuthMixin, APIView):
-    def post(self, request, letter_id) -> Response:
-        letter_instance = get_object_or_404(Letter, pk=letter_id)
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
 
         try:
             letter_publish(user=request.user, letter_instance=letter_instance)

@@ -20,6 +20,7 @@ ROLE_PERMISSIONS = {
     Participant.RoleNames.PRIMARY_RECIPIENT: ["view", "comment", "share"],
     Participant.RoleNames.CC: ["view", "comment"],
     Participant.RoleNames.BCC: ["view"],
+    Participant.RoleNames.COLLABORATOR: ["view", "comment"],
 }
 
 
