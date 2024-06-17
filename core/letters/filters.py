@@ -9,14 +9,18 @@ from .models import Letter, State
 
 
 class LetterCategory(Enum):
-    INBOX = "inbox"
-    OUTBOX = "outbox"
-    DRAFT = "draft"
+    INBOX = "inbox/"
+    OUTBOX = "outbox/"
+    DRAFT = "draft/"
 
 
 # Filter class for filtering Letter objects based on different categories like inbox, outbox, or draft.
 class BaseLetterFilter(django_filters.FilterSet):
     category = django_filters.CharFilter(method="filter_by_category")
+
+    def __init__(self, data=None, queryset=None, *, current_user=None, **kwargs):
+        super().__init__(data, queryset, **kwargs)
+        self.current_user = current_user
 
     class Meta:
         model = Letter
@@ -34,56 +38,65 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         return queryset.none()
 
-    @staticmethod
-    def filter_inbox(queryset):
-        return queryset.filter(
-            Q(
-                current_state__in=[
-                    State.objects.get(name="Published"),
-                    State.objects.get(name="closed"),
-                ],
-            )
-            & Q(
-                participants__role_name__in=[
-                    Participant.RoleNames.PRIMARY_RECIPIENT,
-                    Participant.RoleNames.CC,
-                    Participant.RoleNames.BCC,
-                    Participant.RoleNames.COLLABORATOR,
-                ],
-            ),
+    def filter_inbox(self, queryset):
+        current_state_filter = Q(
+            current_state__in=[
+                State.objects.get(name="Published"),
+                State.objects.get(name="Closed"),
+            ],
         )
 
-    @staticmethod
-    def filter_outbox(queryset):
-        return queryset.filter(
-            Q(
-                current_state__in=[
-                    State.objects.get(name="Submitted"),
-                    State.objects.get(name="Published"),
-                    State.objects.get(name="Closed"),
-                ],
-            )
-            & Q(
-                participants__role_name__in=[
-                    Participant.RoleNames.AUTHOR,
-                    Participant.RoleNames.COLLABORATOR,
-                ],
-            ),
+        participant_filter = Q(
+            participants__user_id=self.current_user.id,
+            participants__role_name__in=[
+                Participant.RoleNames.PRIMARY_RECIPIENT,
+                Participant.RoleNames.CC,
+                Participant.RoleNames.BCC,
+                Participant.RoleNames.COLLABORATOR,
+            ],
         )
 
-    @staticmethod
-    def filter_draft(queryset):
-        return queryset.filter(
-            Q(
-                current_state__in=[
-                    State.objects.get(name="Draft"),
-                ],
-            )
-            & Q(
-                participants__role_name__in=[
-                    Participant.RoleNames.AUTHOR,
-                    Participant.RoleNames.EDITOR,
-                    Participant.RoleNames.COLLABORATOR,
-                ],
-            ),
+        combined_filter = current_state_filter & participant_filter
+
+        return queryset.filter(combined_filter)
+
+    def filter_outbox(self, queryset):
+        current_state_filter = Q(
+            current_state__in=[
+                State.objects.get(name="Submitted"),
+                State.objects.get(name="Published"),
+                State.objects.get(name="Closed"),
+            ],
         )
+
+        participant_filter = Q(
+            participants__user_id=self.current_user.id,
+            participants__role_name__in=[
+                Participant.RoleNames.AUTHOR,
+                Participant.RoleNames.EDITOR,
+            ],
+        )
+
+        combined_filter = current_state_filter & participant_filter
+
+        return queryset.filter(combined_filter)
+
+    def filter_draft(self, queryset):
+        current_state_filter = Q(
+            current_state__in=[
+                State.objects.get(name="Draft"),
+            ],
+        )
+
+        participant_filter = Q(
+            participants__user_id=self.current_user.id,
+            participants__role_name__in=[
+                Participant.RoleNames.AUTHOR,
+                Participant.RoleNames.EDITOR,
+                Participant.RoleNames.COLLABORATOR,
+            ],
+        )
+
+        combined_filter = current_state_filter & participant_filter
+
+        return queryset.filter(combined_filter)

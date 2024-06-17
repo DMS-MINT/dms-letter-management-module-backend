@@ -4,9 +4,9 @@ from .filters import BaseLetterFilter
 from .models import Letter
 
 
-def letter_list(*, user=Member, filters=None):
+def letter_list(*, current_user=Member, filters=None):
     filters = filters or {}
 
-    qs = Letter.objects.filter(participants__user_id=user.id)
+    qs = Letter.objects.all()
 
-    return BaseLetterFilter(filters, qs).qs
+    return BaseLetterFilter(filters, qs, current_user=current_user).qs

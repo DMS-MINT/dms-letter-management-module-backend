@@ -59,7 +59,7 @@ ACTIONS = (
 
 class LetterListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
-        category = serializers.ChoiceField(choices=["inbox", "outbox", "draft"], required=True)
+        category = serializers.ChoiceField(choices=["inbox/", "outbox/", "draft/"], required=True)
 
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
@@ -76,7 +76,7 @@ class LetterListApi(ApiAuthMixin, APIView):
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=False)
 
-        letter_instances = letter_list(user=request.user, filters=filter_serializer.validated_data)
+        letter_instances = letter_list(current_user=request.user, filters=filter_serializer.validated_data)
 
         serializer = self.OutputSerializer(letter_instances, many=True)
 
