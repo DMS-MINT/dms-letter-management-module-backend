@@ -42,4 +42,4 @@ class Participant(BaseModel):
     class Meta:
         verbose_name: str = _("Participant")
         verbose_name_plural: str = _("Participants")
-        # unique_together = [["user", "letter"]]
+        unique_together = [["user", "letter"]]

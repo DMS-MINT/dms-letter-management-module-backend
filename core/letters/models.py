@@ -48,14 +48,8 @@ class Letter(PolymorphicModel, BaseModel):
         related_name="owned_letters",
     )
 
-    _current_user = None
-
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"
-
-    def save(self, *args, **kwargs):
-        self._current_user = kwargs.pop("current_user", None)
-        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name: str = "Letter"

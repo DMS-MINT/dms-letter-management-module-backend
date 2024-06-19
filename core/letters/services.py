@@ -21,9 +21,7 @@ def create_letter_instance(letter_type: str, current_user: Member, **kwargs) -> 
     }.get(letter_type)
 
     if letter_instance_class:
-        letter_instance = letter_instance_class(**kwargs)
-        letter_instance.save(current_user=current_user)
-        return letter_instance
+        return letter_instance_class.objects.create(**kwargs)
 
     raise ValueError("Invalid letter type")
 
