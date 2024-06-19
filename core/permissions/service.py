@@ -31,7 +31,6 @@ def check_permissions(letter_instance, user, actions: list):
 
 def assign_permissions(
     *,
-    current_user: Member,
     letter_instance: Letter,
     participant_user,
     participant_role=Participant.RoleNames.COLLABORATOR,
@@ -66,7 +65,6 @@ def assign_permissions(
 
 def remove_permissions(
     *,
-    current_user: Member,
     letter_instance: Letter,
     participant_user,
     participant_role=Participant.RoleNames.COLLABORATOR,
@@ -100,3 +98,11 @@ def remove_permissions(
                     assign_perm(permission, participant_user, letter_instance)
         case _:
             return
+
+
+def grant_owner_permissions(letter_instance: Letter):
+    assign_perm("can_update_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_delete_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_archive_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_share_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_comment_letter", letter_instance.owner, letter_instance)

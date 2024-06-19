@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 from core.letters.models import Letter
-from core.participants.services import participant_create
+from core.participants.services import participants_create
 from core.permissions.service import check_permissions
 
 from .services import letter_publish, letter_retract, letter_share, letter_submit
@@ -154,11 +154,12 @@ class LetterShareApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            participant_create(
-                current_user=request.user,
-                letter_instance=letter_instance,
-                participants_to_create=input_serializer.validated_data,
-            )
+            pass
+            # participant_create(
+            #     current_user=request.user,
+            #     letter_instance=letter_instance,
+            #     participants_to_create=input_serializer.validated_data,
+            # )
         except Exception as e:
             return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
 

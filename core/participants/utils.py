@@ -1,4 +1,4 @@
-from typing import OrderedDict, Union
+from typing import Union
 
 from django.core.exceptions import BadRequest
 
@@ -14,34 +14,36 @@ def get_enum_value(key: str) -> int:
     raise ValueError(f"No matching participant role value for key: {key}")
 
 
-def verify_and_assign_permissions_to_creator(*, current_user, participants, letter_instance):
-    current_user_exists = next(
-        (participant for participant in participants if participant["user"]["id"] == current_user.id),
+def verify_owners_role(*, letter_instance, participants):
+    owner_exists = next(
+        (participant for participant in participants if participant["user"]["id"] == letter_instance.owner),
         None,
     )
 
-    if current_user_exists:
-        role_value = get_enum_value(current_user_exists["role_name"])
+    if owner_exists:
+        role_value = get_enum_value(owner_exists["role_name"])
+
         if role_value not in [Participant.RoleNames.AUTHOR, Participant.RoleNames.COLLABORATOR]:
-            raise BadRequest("You can't send a letter to yourself")
-    else:
-        new_participant = OrderedDict({
-            "user": OrderedDict({"id": current_user.id, "user_type": "member"}),
-            "role": Participant.RoleNames.COLLABORATOR.label,
-        })
-
-        if letter_instance.letter_type == "incoming":
-            new_participant["permissions"] = [
-                "can_update_letter",
-                "can_delete_letter",
-                "can_archive_letter",
-                "can_share_letter",
-                "can_submit_letter",
-                "can_retract_letter",
-                "can_close_letter",
-                "can_comment_letter",
-            ]
-
-        participants.append(new_participant)
+            raise BadRequest("As the owner of the letter, you cannot be a recipient of the same letter.")
 
     return participants
+
+
+def identify_participants_changes(letter_instance, new_participants):
+    existing_participants_ids = set(letter_instance.participants.values_list("id", flat=True))
+    new_participants_ids = set(participant["id"] for participant in new_participants)
+
+    participants_to_remove_ids = existing_participants_ids - new_participants_ids
+    participants_to_add_ids = new_participants_ids - existing_participants_ids
+
+    participants_to_add = [
+        participant for participant in new_participants if participant["id"] in participants_to_add_ids
+    ]
+
+    participants_to_remove = letter_instance.participants.filter(id__in=participants_to_remove_ids)
+
+    return participants_to_add, participants_to_remove
+
+
+def update_creator_role_on_remove():
+    pass

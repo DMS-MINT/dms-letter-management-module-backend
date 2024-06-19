@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from guardian.mixins import PermissionRequiredMixin
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
@@ -159,6 +160,8 @@ class LetterCreateApi(ApiAuthMixin, APIView):
 
 
 class LetterUpdateApi(ApiAuthMixin, APIView):
+    permission_required = "letters.can_update_letter"
+
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         content = serializers.CharField(required=False, allow_blank=True)
@@ -168,13 +171,12 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
             fields={
                 "id": serializers.UUIDField(),
                 "user": UserCreateSerializer(),
-                "role_name": serializers.CharField(),
+                "role": serializers.CharField(),
             },
         )
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["edit"])
 
         input_serializer = self.InputSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
@@ -185,13 +187,12 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
                 letter_instance=letter_instance,
                 **input_serializer.validated_data,
             )
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
+
+            LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
                 "action": ACTIONS,
-                "data": output_serializer.data,
-                "permissions": permissions,
+                "message": "Letter Updated Successfully!",
             }
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)

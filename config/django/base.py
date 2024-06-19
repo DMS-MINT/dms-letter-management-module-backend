@@ -170,5 +170,5 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ANONYMOUS_USER_NAME = None
-
 GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+GUARDIAN_RAISE_403 = True

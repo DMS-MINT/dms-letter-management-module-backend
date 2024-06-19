@@ -2,7 +2,8 @@ from django.db import transaction
 
 from core.comments.services import comment_create
 from core.letters.models import Letter, State
-from core.participants.services import participant_add
+
+# from core.participants.services import participant_add
 from core.users.models import Member
 
 
@@ -15,7 +16,7 @@ def letter_share(
     permissions: list[str] = ["view", "comment"],
 ) -> Letter:
     collaborator = Member.objects.get(pk=to)
-    participant_add(user=collaborator, letter_instance=letter_instance, permissions=permissions)
+    # participant_add(user=collaborator, letter_instance=letter_instance, permissions=permissions)
     comment_create(user=user, letter_instance=letter_instance, content=message)
 
 

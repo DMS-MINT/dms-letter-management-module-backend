@@ -2,8 +2,9 @@ from typing import Optional, Union
 
 from django.db import transaction
 
-from core.participants.models import Participant
-from core.participants.services import initialize_participants, update_participants
+from core.participants.services import participants_create
+from core.participants.utils import identify_participants_changes
+from core.permissions.service import grant_owner_permissions
 from core.users.models import Member
 
 from .models import Incoming, Internal, Letter, Outgoing, State
@@ -43,9 +44,12 @@ def letter_create(
         subject=subject,
         content=content,
         current_state=State.objects.get(name="Draft"),
+        owner=current_user,
     )
 
-    initialize_participants(
+    grant_owner_permissions(letter_instance)
+
+    participants_create(
         current_user=current_user,
         participants=participants,
         letter_instance=letter_instance,
@@ -70,35 +74,17 @@ def letter_update(
 
     letter_instance.save()
 
-    if participants is not None:
-        existing_participants = set(letter_instance.participants.values_list("id", flat=True))
-        new_participants = set(participant["id"] for participant in participants)
+    participants_to_add, participants_to_remove = identify_participants_changes(
+        letter_instance=letter_instance,
+        new_participants=participants,
+    )
 
-        participants_to_remove_ids = existing_participants - new_participants
-        participants_to_add_ids = new_participants - existing_participants
+    participants_to_remove.delete()
 
-        participants_to_add = [
-            participant for participant in participants if participant["id"] in participants_to_add_ids
-        ]
-
-        participants_to_delete = letter_instance.participants.filter(id__in=participants_to_remove_ids)
-
-        for participant in participants_to_delete:
-            if participant.user == current_user:
-                participant.delete()
-                Participant.objects.create(
-                    letter=letter_instance,
-                    user=current_user,
-                    role_name=Participant.RoleNames.EDITOR,
-                )
-                return None
-
-            participant.delete()
-
-        update_participants(
-            current_user=current_user,
-            letter_instance=letter_instance,
-            participants_to_add=participants_to_add,
-        )
+    participants_create(
+        current_user=current_user,
+        participants=participants_to_add,
+        letter_instance=letter_instance,
+    )
 
     return letter_instance
