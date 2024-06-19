@@ -1,80 +1,96 @@
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from typing import OrderedDict, Union
+
+from django.core.exceptions import BadRequest, ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
 from core.letters.models import Letter
 from core.permissions.models import Permission
+from core.permissions.service import assign_permissions
 from core.users.models import Guest, Member
 
 from .models import Participant
+from .utils import get_enum_value, process_participants
+
+type LetterParticipant = dict[str, Union[str, dict[str, str], list[str]]]
 
 
-def get_enum_value(key: str):
-    for role in Participant.RoleNames:
-        if role.label.lower() == key.lower():
-            return role.value
-    raise ValueError(f"No matching participant role value for key: {key}")
+@transaction.atomic
+def participant_create(
+    current_user: Member,
+    user_id: str,
+    user_type: str,
+    letter_instance: Letter,
+    role: int,
+):
+    user_instance_classes = {"member": Member, "guest": Guest}.get(user_type)
+
+    if user_instance_classes:
+        user = user_instance_classes.objects.get(pk=user_id)
+        return Participant.objects.create(
+            user=user,
+            role=role,
+            letter=letter_instance,
+            added_by=current_user,
+        )
+
+    raise ValueError("Invalid user type")
 
 
 # This function create participants for a given letter.
 @transaction.atomic
-def initialize_participants(*, current_user: Member, participants, letter_instance):
-    current_user_exists = next(
-        (participant for participant in participants if participant["user"]["id"] == current_user.id),
-        None,
+def initialize_participants(
+    *,
+    current_user: Member,
+    participants: list[LetterParticipant],
+    letter_instance: Letter,
+):
+    participants = process_participants(
+        current_user=current_user,
+        participants=participants,
+        letter_instance=letter_instance,
     )
-    if current_user_exists:
-        # CREATOR MUST BE AN EDITOR OR AUTHOR NO OTHER ROLES ARE ALLOWED
-        pass
-    else:
-        Participant.objects.create(
-            user=current_user,
-            letter=letter_instance,
-            role_name=Participant.RoleNames.EDITOR,
+
+    for participant in participants:
+        role_value = get_enum_value(participant["role"])
+
+        participant_instance = participant_create(
+            user_id=participant["user"]["id"],
+            user_type=participant["user"]["user_type"],
+            role=role_value,
+            letter_instance=letter_instance,
+            current_user=current_user,
         )
-    if participants:
-        for participant in participants:
-            role_name = get_enum_value(participant["role_name"])
-            user_data = participant["user"]
 
-            if user_data["user_type"] == "member":
-                try:
-                    user = Member.objects.get(pk=user_data["id"])
-                    if user == current_user and role_name not in [
-                        Participant.RoleNames.AUTHOR,
-                        Participant.RoleNames.EDITOR,
-                    ]:
-                        raise ValidationError(
-                            _(  # noqa: F823
-                                f"You cannot be assigned the role of '{participant.get_role_name_display()}' because you are composing the letter.",  # noqa: E501
-                            ),
-                        )
-                except Member.DoesNotExist as e:
-                    raise ObjectDoesNotExist(f"Member with ID {user_data["id"]} does not exist. Error: {e}")
+        assign_permissions(
+            current_user=current_user,
+            letter_instance=letter_instance,
+            participant_user=participant_instance.user,
+            participant_role=role_value,
+            permissions=participant.get("permissions"),
+        )
 
-            elif user_data["user_type"] == "guest":
-                user, _ = Guest.objects.get_or_create(name=user_data["name"])
-
-            Participant.objects.create(user=user, role_name=role_name, letter=letter_instance)
-
-    return
+    return participants
 
 
+# This function updates participants for a given letter.
+@transaction.atomic
 def update_participants(*, current_user: Member, letter_instance, participants_to_add):
     if participants_to_add:
         for participant in participants_to_add:
-            role_name = get_enum_value(participant["role_name"])
+            role = get_enum_value(participant["role"])
             user_data = participant["user"]
 
             if user_data["user_type"] == "member":
                 user = Member.objects.get(pk=user_data["id"])
                 if user == current_user:
-                    if role_name == Participant.RoleNames.AUTHOR:
+                    if role == Participant.RoleNames.AUTHOR:
                         Participant.objects.get(letter=letter_instance, user=user).delete()
                         Participant.objects.create(
                             letter=letter_instance,
                             user=user,
-                            role_name=Participant.RoleNames.AUTHOR,
+                            role=Participant.RoleNames.AUTHOR,
                         )
                         return
 
@@ -83,15 +99,14 @@ def update_participants(*, current_user: Member, letter_instance, participants_t
             elif user_data["user_type"] == "guest":
                 user, _ = Guest.objects.get_or_create(name=user_data["name"])
 
-            Participant.objects.create(user=user, role_name=role_name, letter=letter_instance)
-
+            Participant.objects.create(user=user, role=role, letter=letter_instance)
     return
 
 
 # This function adds participants for a given letter.
 @transaction.atomic
 def participant_add(*, user: Member, letter_instance: Letter, permissions: list[str]):
-    role_name = Participant.RoleNames.COLLABORATOR
+    role = Participant.RoleNames.COLLABORATOR
 
     permission_objects = Permission.objects.filter(name__in=permissions)
     if permission_objects.count() != len(permissions):
@@ -110,7 +125,7 @@ def participant_add(*, user: Member, letter_instance: Letter, permissions: list[
     else:
         participant_instance = Participant.objects.create(
             user=user,
-            role_name=role_name,
+            role=role,
             letter=letter_instance,
         )
         participant_instance.permissions.set(permission_objects)
