@@ -11,7 +11,7 @@ from core.permissions.service import assign_permissions
 from core.users.models import Guest, Member
 
 from .models import Participant
-from .utils import get_enum_value, process_participants
+from .utils import get_enum_value, verify_and_assign_permissions_to_creator
 
 type LetterParticipant = dict[str, Union[str, dict[str, str], list[str]]]
 
@@ -46,7 +46,7 @@ def initialize_participants(
     participants: list[LetterParticipant],
     letter_instance: Letter,
 ):
-    participants = process_participants(
+    participants = verify_and_assign_permissions_to_creator(
         current_user=current_user,
         participants=participants,
         letter_instance=letter_instance,

@@ -14,11 +14,7 @@ from core.users.serializers import UserCreateSerializer
 
 from .models import Incoming, Internal, Letter, Outgoing
 from .selectors import letter_list
-from .serializers import (
-    LetterDetailSerializer,
-    LetterListSerializer,
-    OutgoingLetterDetailSerializer,
-)
+from .serializers import LetterDetailSerializer, LetterListSerializer, OutgoingLetterDetailSerializer
 from .services import letter_create, letter_update
 
 GET_LETTERS_HRF = "api/letter/"
@@ -120,9 +116,20 @@ class LetterCreateApi(ApiAuthMixin, APIView):
         participants = inline_serializer(
             many=True,
             fields={
-                "id": serializers.UUIDField(),
+                "id": serializers.UUIDField(required=False),
                 "user": UserCreateSerializer(),
-                "role_name": serializers.CharField(),
+                "role": serializers.CharField(),
+                "permissions": serializers.ListField(
+                    required=False,
+                    child=serializers.ChoiceField(
+                        choices=[
+                            "can_view_letter",
+                            "can_update_letter",
+                            "can_share_letter",
+                            "can_comment_letter",
+                        ],
+                    ),
+                ),
             },
         )
 

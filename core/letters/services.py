@@ -8,7 +8,7 @@ from core.users.models import Member
 
 from .models import Incoming, Internal, Letter, Outgoing, State
 
-type LetterParticipant = dict[str, Union[str, int, dict[str, str]]]
+type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
 
 # Create a letter instance based on the provided letter_type and keyword arguments.
@@ -25,13 +25,6 @@ def create_letter_instance(letter_type: str, current_user: Member, **kwargs) -> 
         return letter_instance
 
     raise ValueError("Invalid letter type")
-
-
-def get_enum_value(key):
-    for role in Participant.RoleNames:
-        if role.label.lower() == key.lower():
-            return role.value
-    raise ValueError(f"No matching participant role value for key: {key}")
 
 
 # This function orchestrates the creation of a letter and its participants in a transaction.
@@ -52,7 +45,11 @@ def letter_create(
         current_state=State.objects.get(name="Draft"),
     )
 
-    initialize_participants(current_user=current_user, participants=participants, letter_instance=letter_instance)
+    initialize_participants(
+        current_user=current_user,
+        participants=participants,
+        letter_instance=letter_instance,
+    )
 
     return letter_instance
 

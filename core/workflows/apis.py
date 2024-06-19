@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 from core.letters.models import Letter
+from core.participants.services import participant_create
 from core.permissions.service import check_permissions
 
 from .services import letter_publish, letter_retract, letter_share, letter_submit
@@ -53,31 +54,31 @@ ACTIONS = (
 )
 
 
-class LetterShareApi(ApiAuthMixin, APIView):
-    class InputSerializer(serializers.Serializer):
-        to = serializers.CharField()
-        message = serializers.CharField()
-        permissions = serializers.ListField(child=serializers.CharField(), required=False)
+# class LetterShareApi(ApiAuthMixin, APIView):
+#     class InputSerializer(serializers.Serializer):
+#         to = serializers.CharField()
+#         message = serializers.CharField()
+#         permissions = serializers.ListField(child=serializers.CharField(), required=False)
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["share", "comment"])
+#     def post(self, request, reference_number) -> Response:
+#         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+#         check_permissions(letter_instance=letter_instance, user=request.user, actions=["share", "comment"])
 
-        input_serializer = self.InputSerializer(data=request.data, partial=True)
-        input_serializer.is_valid(raise_exception=True)
+#         input_serializer = self.InputSerializer(data=request.data, partial=True)
+#         input_serializer.is_valid(raise_exception=True)
 
-        try:
-            letter_share(user=request.user, letter_instance=letter_instance, **input_serializer.validated_data)
+#         try:
+#             letter_share(user=request.user, letter_instance=letter_instance, **input_serializer.validated_data)
 
-            response_data = {"action": ACTIONS, "message": "Letter has been shared with the specified collaborator."}
+#             response_data = {"action": ACTIONS, "message": "Letter has been shared with the specified collaborator."}
 
-            return Response(data=response_data, status=http_status.HTTP_200_OK)
+#             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
-        except ValueError as e:
-            raise ValidationError(e)
+#         except ValueError as e:
+#             raise ValidationError(e)
 
-        except Exception as e:
-            raise ValidationError(e)
+#         except Exception as e:
+#             raise ValidationError(e)
 
 
 class LetterSubmitApi(ApiAuthMixin, APIView):
@@ -134,3 +135,31 @@ class LetterPublishApi(ApiAuthMixin, APIView):
 
         except Exception as e:
             raise ValidationError(e)
+
+
+class LetterShareApi(ApiAuthMixin, APIView):
+    class InputSerializer(serializers.Serializer):
+        to = serializers.CharField()
+        message = serializers.CharField()
+        permissions = serializers.ListField(child=serializers.CharField())
+
+    class InputListSerializer(serializers.ListSerializer):
+        def __init__(self, *args, **kwargs):
+            self.child = LetterShareApi.InputSerializer()
+            super().__init__(*args, **kwargs)
+
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        input_serializer = self.InputListSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        try:
+            participant_create(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                participants_to_create=input_serializer.validated_data,
+            )
+        except Exception as e:
+            return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
+
+        return Response({"detail": "Participants created successfully"}, status=http_status.HTTP_201_CREATED)
