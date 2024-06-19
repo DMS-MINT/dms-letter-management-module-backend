@@ -45,7 +45,7 @@ class Letter(PolymorphicModel, BaseModel):
     _current_user = None
 
     def __str__(self) -> str:
-        return f"{self.subject} - {self.pk}"
+        return f"{self.subject} - {self.reference_number}"
 
     def save(self, *args, **kwargs):
         self._current_user = kwargs.pop("current_user", None)
@@ -54,6 +54,21 @@ class Letter(PolymorphicModel, BaseModel):
     class Meta:
         verbose_name: str = "Letter"
         verbose_name_plural: str = "Letters"
+        permissions = (
+            # Basic Permissions
+            ("can_view_letter", "Can view letter"),
+            ("can_update_letter", "Can update letter"),
+            ("can_delete_letter", "Can delete letter"),
+            ("can_archive_letter", "Can archive letter"),
+            # Workflow Permissions
+            ("can_share_letter", "Can share letter"),
+            ("can_submit_letter", "Can submit letter"),
+            ("can_publish_letter", "Can publish letter"),
+            ("can_retract_letter", "Can retract letter"),
+            ("can_close_letter", "Can close letter"),
+            # Interaction Permissions
+            ("can_comment_letter", "Can comment letter"),
+        )
 
 
 class Internal(Letter):
