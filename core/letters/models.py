@@ -1,10 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.users.models import BaseUser
 from core.permissions.models import Permission
+from core.users.models import BaseUser
 
 
 class State(BaseModel):
@@ -48,6 +49,12 @@ class Letter(PolymorphicModel, BaseModel):
         related_name="owned_letters",
     )
 
+    def clean(self):
+        if not self.subject or not self.subject.strip():
+            raise ValidationError(_("The subject of the letter cannot be empty."))
+        if not self.content or not self.content.strip():
+            raise ValidationError(_("The content of the letter cannot be empty."))
+
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"
 
@@ -66,6 +73,7 @@ class Letter(PolymorphicModel, BaseModel):
             ("can_publish_letter", "Can publish letter"),
             ("can_retract_letter", "Can retract letter"),
             ("can_close_letter", "Can close letter"),
+            ("can_reopen_letter", "Can reopen letter"),
             # Interaction Permissions
             ("can_comment_letter", "Can comment letter"),
         )
