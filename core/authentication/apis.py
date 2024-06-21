@@ -52,9 +52,4 @@ class LogoutApi(ApiAuthMixin, APIView):
     def get(self, request):
         logout(request)
 
-        return Response()
-
-    def post(self, request):
-        logout(request)
-
-        return Response()
+        return Response(data={"message": "The user has been logged out successfully."})
