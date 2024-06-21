@@ -1,9 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
 from core.permissions.models import Permission
+from core.users.models import BaseUser
 
 
 class State(BaseModel):
@@ -41,19 +43,40 @@ class Letter(PolymorphicModel, BaseModel):
         null=True,
         help_text=_("Enter the content of the letter."),
     )
+    owner = models.ForeignKey(
+        BaseUser,
+        on_delete=models.CASCADE,
+        related_name="owned_letters",
+    )
 
-    _current_user = None
+    def clean(self):
+        if not self.subject or not self.subject.strip():
+            raise ValidationError(_("The subject of the letter cannot be empty."))
+        if not self.content or not self.content.strip():
+            raise ValidationError(_("The content of the letter cannot be empty."))
 
     def __str__(self) -> str:
-        return f"{self.subject} - {self.pk}"
-
-    def save(self, *args, **kwargs):
-        self._current_user = kwargs.pop("current_user", None)
-        super().save(*args, **kwargs)
+        return f"{self.subject} - {self.reference_number}"
 
     class Meta:
         verbose_name: str = "Letter"
         verbose_name_plural: str = "Letters"
+        permissions = (
+            # Basic Permissions
+            ("can_view_letter", "Can view letter"),
+            ("can_update_letter", "Can update letter"),
+            ("can_delete_letter", "Can delete letter"),
+            ("can_archive_letter", "Can archive letter"),
+            # Workflow Permissions
+            ("can_share_letter", "Can share letter"),
+            ("can_submit_letter", "Can submit letter"),
+            ("can_publish_letter", "Can publish letter"),
+            ("can_retract_letter", "Can retract letter"),
+            ("can_close_letter", "Can close letter"),
+            ("can_reopen_letter", "Can reopen letter"),
+            # Interaction Permissions
+            ("can_comment_letter", "Can comment letter"),
+        )
 
 
 class Internal(Letter):

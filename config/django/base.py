@@ -30,9 +30,10 @@ THIRD_PARTY_APPS: list[str] = [
     "drf_spectacular",
     "django_extensions",
     "django_filters",
+    "easyaudit",
+    "guardian",
     "polymorphic",
     "rest_framework",
-    "easyaudit",
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -147,6 +148,14 @@ REST_FRAMEWORK = {
 APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")  # type: ignore
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "guardian.backends.ObjectPermissionBackend",
+)
+
+ANONYMOUS_USER_NAME = None
+GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
 
 from config.settings.cors import *  # noqa
 from config.settings.files_and_storages import *  # noqa

@@ -7,8 +7,8 @@ from .models import Incoming, Internal, Letter, Outgoing
 
 
 def generate_reference_number(instance, new_slug=None, count=1):
-    if instance._current_user and hasattr(instance._current_user, "department"):
-        department_abbreviation = instance._current_user.department.abbreviation
+    if instance.owner and hasattr(instance.owner, "department"):
+        department_abbreviation = instance.owner.department.abbreviation
     else:
         department_abbreviation = "UNK"
     fiscal_year = datetime.datetime.now().year

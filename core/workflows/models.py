@@ -7,10 +7,10 @@ from core.users.models import Member
 
 
 class WorkflowLog(models.Model):
-    user = models.ForeignKey(
+    actor = models.ForeignKey(
         Member,
         on_delete=models.CASCADE,
-        related_name="access_logs",
+        related_name="workflow_logs",
         verbose_name=_("User"),
         help_text=_("The user who performed the action."),
     )
@@ -57,8 +57,8 @@ class WorkflowLog(models.Model):
     )
 
     class Meta:
-        verbose_name = _("Access Log")
-        verbose_name_plural = _("Access Logs")
+        verbose_name = _("Workflow Log")
+        verbose_name_plural = _("Workflow Logs")
         ordering = ["-timestamp"]
 
     def __str__(self):

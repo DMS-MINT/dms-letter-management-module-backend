@@ -55,9 +55,8 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
         on_delete=models.CASCADE,
         help_text=_("Enter the department of the employee."),
     )
-    phone_number = models.CharField(
+    phone_number = models.PositiveBigIntegerField(
         _("phone number"),
-        max_length=20,
         unique=True,
         help_text=_("Enter the phone number of the employee."),
     )
@@ -70,7 +69,7 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     )
 
     is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 

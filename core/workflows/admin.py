@@ -5,4 +5,4 @@ from .models import WorkflowLog
 
 @admin.register(WorkflowLog)
 class WorkflowLogAdmin(admin.ModelAdmin):
-    list_display = ["user", "action", "resource", "initial_state", "final_state", "timestamp", "success"]
+    list_display = ["actor", "action", "resource", "initial_state", "final_state", "timestamp", "success"]

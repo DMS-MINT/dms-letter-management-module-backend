@@ -8,17 +8,12 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
-from core.permissions.selectors import get_permissions
-from core.permissions.service import check_permissions
+from core.permissions.mixins import ApiPermMixin
 from core.users.serializers import UserCreateSerializer
 
 from .models import Incoming, Internal, Letter, Outgoing
 from .selectors import letter_list
-from .serializers import (
-    LetterDetailSerializer,
-    LetterListSerializer,
-    OutgoingLetterDetailSerializer,
-)
+from .serializers import LetterDetailSerializer, LetterListSerializer, OutgoingLetterDetailSerializer
 from .services import letter_create, letter_update
 
 GET_LETTERS_HRF = "api/letter/"
@@ -59,7 +54,7 @@ ACTIONS = (
 
 class LetterListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
-        category = serializers.ChoiceField(choices=["inbox/", "outbox/", "draft/"], required=True)
+        category = serializers.ChoiceField(choices=["inbox/", "outbox/", "draft/", "pending/"], required=True)
 
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
@@ -85,7 +80,9 @@ class LetterListApi(ApiAuthMixin, APIView):
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
-class LetterDetailApi(ApiAuthMixin, APIView):
+class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter"]
+
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "letter_type"
         model_serializer_mapping = {
@@ -99,7 +96,9 @@ class LetterDetailApi(ApiAuthMixin, APIView):
 
     def get(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
-        permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
+        self.check_object_permissions(request, letter_instance)
+
+        permissions = self.get_object_permissions(request, letter_instance)
 
         output_serializer = self.OutputSerializer(letter_instance, many=False)
 
@@ -120,9 +119,15 @@ class LetterCreateApi(ApiAuthMixin, APIView):
         participants = inline_serializer(
             many=True,
             fields={
-                "id": serializers.UUIDField(),
+                "id": serializers.UUIDField(required=False),
                 "user": UserCreateSerializer(),
-                "role_name": serializers.CharField(),
+                "role": serializers.CharField(),
+                "permissions": serializers.ListField(
+                    required=False,
+                    child=serializers.ChoiceField(
+                        choices=["can_view_letter", "can_update_letter", "can_share_letter", "can_comment_letter"],
+                    ),
+                ),
             },
         )
 
@@ -132,7 +137,7 @@ class LetterCreateApi(ApiAuthMixin, APIView):
 
         try:
             letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
-            permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
@@ -151,7 +156,9 @@ class LetterCreateApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterUpdateApi(ApiAuthMixin, APIView):
+class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_update_letter"]
+
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         content = serializers.CharField(required=False, allow_blank=True)
@@ -161,13 +168,13 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
             fields={
                 "id": serializers.UUIDField(),
                 "user": UserCreateSerializer(),
-                "role_name": serializers.CharField(),
+                "role": serializers.CharField(),
             },
         )
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["edit"])
+        self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
@@ -178,12 +185,13 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
                 letter_instance=letter_instance,
                 **input_serializer.validated_data,
             )
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = get_permissions(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
+
+            LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
                 "action": ACTIONS,
-                "data": output_serializer.data,
+                "message": "Letter Updated Successfully!",
                 "permissions": permissions,
             }
 
@@ -196,10 +204,12 @@ class LetterUpdateApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterDeleteApi(ApiAuthMixin, APIView):
+class LetterDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_delete_letter"]
+
     def delete(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["delete"])
+        self.check_object_permissions(request, letter_instance)
 
         letter_instance.delete()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
