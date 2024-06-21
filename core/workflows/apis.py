@@ -2,15 +2,16 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 from core.letters.models import Letter
-from core.participants.services import participants_create
-from core.permissions.service import check_permissions
+from core.participants.services import add_participants
+from core.permissions.mixins import ApiPermMixin
 
-from .services import letter_publish, letter_retract, letter_share, letter_submit
+from .services import letter_publish, letter_retract, letter_submit
 
 SHARE_LETTER_HRF = "api/letters/<slug:reference_number>/share/"
 SUBMIT_LETTER_HRF = "api/letters/<slug:reference_number>/submit/"
@@ -54,42 +55,43 @@ ACTIONS = (
 )
 
 
-# class LetterShareApi(ApiAuthMixin, APIView):
-#     class InputSerializer(serializers.Serializer):
-#         to = serializers.CharField()
-#         message = serializers.CharField()
-#         permissions = serializers.ListField(child=serializers.CharField(), required=False)
+class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_share_letter"]
 
-#     def post(self, request, reference_number) -> Response:
-#         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-#         check_permissions(letter_instance=letter_instance, user=request.user, actions=["share", "comment"])
+    class InputSerializer(serializers.Serializer):
+        to = serializers.ListField(child=serializers.CharField())
+        message = serializers.CharField()
+        permissions = serializers.ListField(
+            child=serializers.ChoiceField(
+                choices=[
+                    "can_view_letter",
+                    "can_update_letter",
+                    "can_comment_letter",
+                    "can_share_letter",
+                ],
+            ),
+        )
 
-#         input_serializer = self.InputSerializer(data=request.data, partial=True)
-#         input_serializer.is_valid(raise_exception=True)
+    class InputListSerializer(serializers.ListSerializer):
+        def __init__(self, *args, **kwargs):
+            self.child = LetterShareApi.InputSerializer()
+            super().__init__(*args, **kwargs)
 
-#         try:
-#             letter_share(user=request.user, letter_instance=letter_instance, **input_serializer.validated_data)
-
-#             response_data = {"action": ACTIONS, "message": "Letter has been shared with the specified collaborator."}
-
-#             return Response(data=response_data, status=http_status.HTTP_200_OK)
-
-#         except ValueError as e:
-#             raise ValidationError(e)
-
-#         except Exception as e:
-#             raise ValidationError(e)
-
-
-class LetterSubmitApi(ApiAuthMixin, APIView):
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["submit"])
+        self.check_object_permissions(request, letter_instance)
+
+        input_serializer = self.InputListSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
 
         try:
-            letter_submit(user=request.user, letter_instance=letter_instance)
+            add_participants(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                participants=input_serializer.validated_data,
+            )
 
-            response_data = {"action": ACTIONS, "message": "Letter has been submitted to the record office."}
+            response_data = {"action": ACTIONS, "message": "Letter has been shared with the specified collaborators."}
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -100,15 +102,48 @@ class LetterSubmitApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterRetractApi(ApiAuthMixin, APIView):
+class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_submit_letter"]
+
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        check_permissions(letter_instance=letter_instance, user=request.user, actions=["retract"])
+        self.check_object_permissions(request, letter_instance)
 
         try:
-            letter_retract(user=request.user, letter_instance=letter_instance)
+            letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
 
-            response_data = {"action": ACTIONS, "message": "Letter has been retracted from the record office."}
+            response_data = {
+                "action": ACTIONS,
+                "message": "Letter has been submitted to the record office.",
+                "permissions": permissions,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_retract_letter"]
+
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        self.check_object_permissions(request, letter_instance)
+
+        try:
+            letter_instance = letter_retract(user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
+
+            response_data = {
+                "action": ACTIONS,
+                "message": "Letter has been retracted from the record office.",
+                "permissions": permissions,
+            }
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -120,6 +155,8 @@ class LetterRetractApi(ApiAuthMixin, APIView):
 
 
 class LetterPublishApi(ApiAuthMixin, APIView):
+    permission_classes = [IsAdminUser]
+
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
 
@@ -127,7 +164,7 @@ class LetterPublishApi(ApiAuthMixin, APIView):
             letter_publish(user=request.user, letter_instance=letter_instance)
 
             response_data = {"action": ACTIONS, "message": "Letter has been published."}
-
+            #
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except ValueError as e:
@@ -135,32 +172,3 @@ class LetterPublishApi(ApiAuthMixin, APIView):
 
         except Exception as e:
             raise ValidationError(e)
-
-
-class LetterShareApi(ApiAuthMixin, APIView):
-    class InputSerializer(serializers.Serializer):
-        to = serializers.CharField()
-        message = serializers.CharField()
-        permissions = serializers.ListField(child=serializers.CharField())
-
-    class InputListSerializer(serializers.ListSerializer):
-        def __init__(self, *args, **kwargs):
-            self.child = LetterShareApi.InputSerializer()
-            super().__init__(*args, **kwargs)
-
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
-        input_serializer = self.InputListSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        try:
-            pass
-            # participant_create(
-            #     current_user=request.user,
-            #     letter_instance=letter_instance,
-            #     participants_to_create=input_serializer.validated_data,
-            # )
-        except Exception as e:
-            return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
-
-        return Response({"detail": "Participants created successfully"}, status=http_status.HTTP_201_CREATED)

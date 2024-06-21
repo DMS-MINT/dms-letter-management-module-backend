@@ -1,6 +1,5 @@
 from django.db import transaction
 
-from core.comments.services import comment_create
 from core.letters.models import Letter, State
 
 # from core.participants.services import participant_add
@@ -8,28 +7,21 @@ from core.users.models import Member
 
 
 @transaction.atomic
-def letter_share(
-    user: Member,
-    letter_instance: Letter,
-    to: str,
-    message: str,
-    permissions: list[str] = ["view", "comment"],
-) -> Letter:
-    collaborator = Member.objects.get(pk=to)
-    # participant_add(user=collaborator, letter_instance=letter_instance, permissions=permissions)
-    comment_create(user=user, letter_instance=letter_instance, content=message)
-
-
-@transaction.atomic
-def letter_submit(user: Member, letter_instance: Letter) -> Letter:
+def letter_submit(*, current_user: Member, letter_instance: Letter) -> Letter:
+    letter_instance.clean()
     letter_instance.current_state = State.objects.get(name="Submitted")
     letter_instance.save()
+    return letter_instance
 
 
 @transaction.atomic
 def letter_retract(user: Member, letter_instance: Letter) -> Letter:
-    letter_instance.current_state = State.objects.get(name="Draft")
+    current_state = letter_instance.current_state
+    next_state = "Submitted" if f"{current_state}" == "Published" else "Draft"
+
+    letter_instance.current_state = State.objects.get(name=next_state)
     letter_instance.save()
+    return letter_instance
 
 
 @transaction.atomic
@@ -42,3 +34,5 @@ def letter_publish(user: Member, letter_instance: Letter) -> Letter:
 
     letter_instance.state = next_state
     letter_instance.save()
+
+    return letter_instance
