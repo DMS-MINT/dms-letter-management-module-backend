@@ -3,6 +3,7 @@ from typing import Union
 from django.db import transaction
 from django.utils.translation import gettext_lazy as _
 
+from core.comments.services import comment_create
 from core.letters.models import Letter
 from core.permissions.service import assign_permissions
 from core.users.models import Guest, Member
@@ -19,7 +20,7 @@ def participant_instance_create(
     user_id: str,
     user_type: str,
     letter_instance: Letter,
-    role: int,
+    role: int = Participant.RoleNames.COLLABORATOR,
 ):
     user_instance_classes = {"member": Member, "guest": Guest}.get(user_type)
 
@@ -40,8 +41,8 @@ def participant_instance_create(
 def participants_create(
     *,
     current_user: Member,
-    participants: list[LetterParticipant],
     letter_instance: Letter,
+    participants: list[LetterParticipant],
 ):
     participants = verify_owners_role(letter_instance=letter_instance, participants=participants)
 
@@ -64,3 +65,33 @@ def participants_create(
         )
 
     return participants
+
+
+def add_participants(
+    *,
+    current_user: Member,
+    letter_instance: Letter,
+    participants: list[LetterParticipant],
+):
+    for participant in participants:
+        user_ids = participant["to"]
+
+        for user_id in user_ids:
+            participant_instance = participant_instance_create(
+                user_id=user_id,
+                user_type="member",
+                letter_instance=letter_instance,
+                current_user=current_user,
+            )
+
+        assign_permissions(
+            letter_instance=letter_instance,
+            participant_user=participant_instance.user,
+            permissions=participant.get("permissions"),
+        )
+
+        comment_create(
+            user=participant_instance.user, letter_instance=letter_instance, content=participant.get("message")
+        )
+
+    return participant
