@@ -101,6 +101,7 @@ def remove_permissions(
 
 
 def grant_owner_permissions(letter_instance: Letter):
+    assign_perm("can_view_letter", letter_instance.owner, letter_instance)
     assign_perm("can_update_letter", letter_instance.owner, letter_instance)
     assign_perm("can_delete_letter", letter_instance.owner, letter_instance)
     assign_perm("can_archive_letter", letter_instance.owner, letter_instance)
