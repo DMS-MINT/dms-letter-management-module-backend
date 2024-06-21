@@ -7,16 +7,17 @@ from core.users.models import BaseUser, Member
 
 
 class Participant(BaseModel):
-    class RoleNames(models.IntegerChoices):
+    class Roles(models.IntegerChoices):
         AUTHOR = 2, _("Author")
         PRIMARY_RECIPIENT = 3, _("Primary Recipient")
         CC = 4, _("Carbon Copy Recipient")
         BCC = 5, _("Blind Carbon Copy Recipient")
         COLLABORATOR = 6, _("Collaborator")
+        ADMINISTRATOR = 7, _("Administrator")
 
     role = models.IntegerField(
-        _("Role"),
-        choices=RoleNames.choices,
+        _("Roles"),
+        choices=Roles.choices,
         help_text=_("Select the role of this participant."),
     )
     user = models.ForeignKey(

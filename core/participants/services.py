@@ -20,7 +20,7 @@ def participant_instance_create(
     user_id: str,
     user_type: str,
     letter_instance: Letter,
-    role: int = Participant.RoleNames.COLLABORATOR,
+    role: int = Participant.Roles.COLLABORATOR,
 ):
     user_instance_classes = {"member": Member, "guest": Guest}.get(user_type)
 

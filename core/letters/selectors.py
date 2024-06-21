@@ -6,7 +6,9 @@ from .models import Letter
 
 def letter_list(*, current_user=Member, filters=None):
     filters = filters or {}
+    print(filters)
 
     qs = Letter.objects.all()
 
-    return BaseLetterFilter(filters, qs, current_user=current_user).qs
+    return qs
+    # return BaseLetterFilter(filters, qs, current_user=current_user).qs

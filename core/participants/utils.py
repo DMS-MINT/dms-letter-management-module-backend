@@ -8,7 +8,7 @@ type LetterParticipant = dict[str, Union[str, dict[str, str]]]
 
 
 def get_enum_value(key: str) -> int:
-    for role in Participant.RoleNames:
+    for role in Participant.Roles:
         if role.label.lower() == key.lower():
             return role.value
     raise ValueError(f"No matching participant role value for key: {key}")
@@ -21,9 +21,9 @@ def verify_owners_role(*, letter_instance, participants):
     )
 
     if owner_exists:
-        role_value = get_enum_value(owner_exists["role_name"])
+        role_value = get_enum_value(owner_exists["role"])
 
-        if role_value not in [Participant.RoleNames.AUTHOR, Participant.RoleNames.COLLABORATOR]:
+        if role_value not in [Participant.Roles.AUTHOR, Participant.Roles.COLLABORATOR]:
             raise BadRequest("As the owner of the letter, you cannot be a recipient of the same letter.")
 
     return participants
