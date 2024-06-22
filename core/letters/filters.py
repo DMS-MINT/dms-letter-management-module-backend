@@ -9,39 +9,45 @@ from .models import Letter
 
 
 class LetterCategory(Enum):
-    INBOX = "inbox/"
-    OUTBOX = "outbox/"
-    DRAFT = "draft/"
-
-
-class LetterState(Enum):
-    PENDING = "pending/"
-    PUBLISHED = "published/"
+    INBOX = "inbox"
+    OUTBOX = "outbox"
+    DRAFT = "draft"
+    PENDING = "pending"
+    PUBLISHED = "published"
 
 
 # Filter class for filtering Letter objects based on different categories like inbox, outbox, or draft.
 class BaseLetterFilter(django_filters.FilterSet):
     category = django_filters.CharFilter(method="filter_by_category")
+    is_admin: bool = False
 
     def __init__(self, data=None, queryset=None, *, current_user=None, **kwargs):
         super().__init__(data, queryset, **kwargs)
         self.current_user = current_user
+        self.is_admin = current_user.is_admin
 
     class Meta:
         model = Letter
         fields = []
 
     def filter_by_category(self, queryset, name, value):
-        if value == LetterCategory.INBOX.value:
-            return self.filter_inbox(queryset)
-
-        if value == LetterCategory.OUTBOX.value:
-            return self.filter_outbox(queryset)
-
-        if value == LetterCategory.DRAFT.value:
-            return self.filter_draft(queryset)
-
-        return queryset.none()
+        match value:
+            case LetterCategory.INBOX.value:
+                return self.filter_inbox(queryset)
+            case LetterCategory.OUTBOX.value:
+                return self.filter_outbox(queryset)
+            case LetterCategory.DRAFT.value:
+                return self.filter_draft(queryset)
+            case LetterCategory.PENDING.value:
+                if self.is_admin:
+                    return self.filter_pending(queryset)
+                return queryset.none()
+            case LetterCategory.PUBLISHED.value:
+                if self.is_admin:
+                    return self.filter_published(queryset)
+                return queryset.none()
+            case _:
+                return queryset.none()
 
     def filter_inbox(self, queryset):
         current_state_filter = Q(
@@ -103,5 +109,37 @@ class BaseLetterFilter(django_filters.FilterSet):
         )
 
         combined_filter = current_state_filter & participant_filter
+
+        return queryset.filter(combined_filter)
+
+    def filter_pending(self, queryset):
+        current_state_filter = Q(
+            current_state__in=[
+                Letter.States.SUBMITTED,
+            ],
+        )
+
+        participant_filter = Q(
+            participant__user_id=self.current_user.id,
+        ) & ~Q(
+            participant__role_in=[
+                Participant.RoleNames.AUTHOR,
+                Participant.RoleNames.PRIMARY_RECIPIENT,
+                Participant.RoleNames.BCC,
+                Participant.RoleNames.CC,
+                Participant.RoleNames.COLLABORATOR,
+            ],
+        )
+
+        combined_filter = current_state_filter & participant_filter
+
+        return queryset.filter(combined_filter).exclude(owner=self.current_user)
+
+    def filter_published(self, queryset):
+        current_state_filter = Q(
+            current_state__in=[Letter.States.PUBLISHED],
+        )
+
+        combined_filter = current_state_filter
 
         return queryset.filter(combined_filter)
