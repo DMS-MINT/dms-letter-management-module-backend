@@ -1,8 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from core.letters.models import Letter, State
-from core.permissions.models import Permission
+from core.letters.models import Letter
 from core.users.models import Member
 
 
@@ -14,10 +13,9 @@ class WorkflowLog(models.Model):
         verbose_name=_("User"),
         help_text=_("The user who performed the action."),
     )
-    action = models.ForeignKey(
-        Permission,
-        on_delete=models.CASCADE,
-        verbose_name=_("Action"),
+    action = models.CharField(
+        _("Action"),
+        max_length=50,
         help_text=_("The action that was performed."),
     )
     resource = models.ForeignKey(
@@ -32,18 +30,14 @@ class WorkflowLog(models.Model):
         verbose_name=_("Role"),
         help_text=_("The role of the user at the time of the action."),
     )
-    initial_state = models.ForeignKey(
-        State,
-        on_delete=models.CASCADE,
-        verbose_name=_("Initial State"),
-        related_name=("initial_states"),
+    initial_state = models.IntegerField(
+        _("Initial State"),
+        choices=Letter.States.choices,
         help_text=_("The state of the resource before the action was performed."),
     )
-    final_state = models.ForeignKey(
-        State,
-        on_delete=models.CASCADE,
-        verbose_name=_("Final State"),
-        related_name=_("final_states"),
+    final_state = models.IntegerField(
+        _("Final State"),
+        choices=Letter.States.choices,
         help_text=_("The state of the resource after the action was performed."),
     )
     timestamp = models.DateTimeField(

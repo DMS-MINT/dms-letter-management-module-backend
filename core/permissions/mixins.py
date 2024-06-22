@@ -1,6 +1,8 @@
 from guardian.shortcuts import get_perms
 from rest_framework.exceptions import PermissionDenied
 
+from core.letters.models import Letter
+
 
 class ApiPermMixin:
     required_object_perms = []
@@ -17,7 +19,7 @@ class ApiPermMixin:
             raise PermissionDenied("You do not have permission to perform this action on this letter.")
 
         if not required_perms.issubset(allowed_actions):
-            raise PermissionDenied("You can not perform this action on this letter.")
+            raise PermissionDenied("You can not perform this action on this letter in its current state..")
 
     def get_object_permissions(self, request, obj):
         user_perms = set(get_perms(request.user, obj))
@@ -29,7 +31,7 @@ class ApiPermMixin:
     def get_allowed_actions(obj):
         current_state = obj.current_state
         state_permissions = {
-            "Draft": [
+            Letter.States.DRAFT: [
                 # Basic Permissions
                 "can_view_letter",
                 "can_update_letter",
@@ -40,7 +42,8 @@ class ApiPermMixin:
                 # Interaction Permissions
                 "can_comment_letter",
             ],
-            "Submitted": [  # Basic Permissions
+            Letter.States.SUBMITTED: [
+                # Basic Permissions
                 "can_view_letter",
                 # Workflow Permissions
                 "can_share_letter",
@@ -49,7 +52,8 @@ class ApiPermMixin:
                 # Interaction Permissions
                 "can_comment_letter",
             ],
-            "Published": [  # Basic Permissions
+            Letter.States.PUBLISHED: [
+                # Basic Permissions
                 "can_view_letter",
                 # Workflow Permissions
                 "can_share_letter",
@@ -58,7 +62,8 @@ class ApiPermMixin:
                 # Interaction Permissions
                 "can_comment_letter",
             ],
-            "Closed": [  # Basic Permissions
+            Letter.States.CLOSED: [
+                # Basic Permissions
                 "can_view_letter",
                 "can_archive_letter",
                 # Workflow Permissions
@@ -67,4 +72,4 @@ class ApiPermMixin:
             ],
         }
 
-        return state_permissions.get(f"{current_state}", [])
+        return state_permissions.get(current_state, [])

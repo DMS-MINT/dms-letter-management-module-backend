@@ -7,7 +7,7 @@ from core.participants.utils import identify_participants_changes
 from core.permissions.service import grant_owner_permissions
 from core.users.models import Member
 
-from .models import Incoming, Internal, Letter, Outgoing, State
+from .models import Incoming, Internal, Letter, Outgoing
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
@@ -41,7 +41,7 @@ def letter_create(
         current_user=current_user,
         subject=subject,
         content=content,
-        current_state=State.objects.get(name="Draft"),
+        current_state=Letter.States.DRAFT,
         owner=current_user,
     )
 

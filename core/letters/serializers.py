@@ -10,13 +10,14 @@ class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     owner = MemberListSerializer()
-    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     participants = inline_serializer(
         many=True,
         fields={
-            "role": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_display"),
+            "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
+            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
         },
     )
     has_read: serializers.SerializerMethodField()
@@ -35,7 +36,7 @@ class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     owner = MemberListSerializer()
-    current_state = inline_serializer(many=False, fields={"name": serializers.CharField()})
+    current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     content = serializers.CharField()
     participants = inline_serializer(
@@ -43,7 +44,7 @@ class LetterDetailSerializer(serializers.Serializer):
         fields={
             "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.RoleNames.choices, source="get_role_display"),
+            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
         },
     )
     comments = inline_serializer(

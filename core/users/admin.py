@@ -37,7 +37,6 @@ class MemberAdmin(BaseUserChildAdmin):
     ]
     readonly_fields: list[str] = [
         "is_active",
-        "is_staff",
         "is_admin",
         "is_superuser",
         "last_login",

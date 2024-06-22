@@ -7,7 +7,7 @@ from polymorphic.admin import (
 
 from core.participants.models import Participant
 
-from .models import Incoming, Internal, Letter, Outgoing, State
+from .models import Incoming, Internal, Letter, Outgoing
 
 
 class ParticipantInline(admin.StackedInline):
@@ -56,7 +56,6 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
         "reference_number",
         "owner",
         "subject",
-        "content",
         "current_state",
         "created_at",
         "updated_at",
@@ -65,12 +64,3 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
     list_filter = (PolymorphicChildModelFilter,)
     ordering = ["-updated_at"]
     readonly_fields = ["reference_number"]
-
-
-@admin.register(State)
-class StateAdmin(admin.ModelAdmin):
-    list_display = ["name", "display_actions"]
-    ordering = ["created_at"]
-
-    def display_actions(self, obj):
-        return ", ".join([actions.name for actions in obj.actions.all()])

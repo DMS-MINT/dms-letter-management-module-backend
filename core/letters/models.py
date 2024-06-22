@@ -4,30 +4,21 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.permissions.models import Permission
 from core.users.models import BaseUser
 
 
-class State(BaseModel):
-    name = models.CharField(max_length=255)
-    actions = models.ManyToManyField(Permission)
-
-    def __str__(self):
-        return self.name
-
-    def can(self, action):
-        return self.actions.filter(name=action).exists()
-
-    class Meta:
-        verbose_name: str = _("State")
-        verbose_name_plural: str = _("States")
-
-
 class Letter(PolymorphicModel, BaseModel):
+    class States(models.IntegerChoices):
+        DRAFT = 1, _("Draft")
+        SUBMITTED = 2, _("Submitted")
+        PUBLISHED = 3, _("Published")
+        CLOSED = 4, _("Closed")
+
     reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
-    current_state = models.ForeignKey(
-        State,
-        on_delete=models.CASCADE,
+
+    current_state = models.IntegerField(
+        _("States"),
+        choices=States.choices,
         help_text=_("Select the current state of the letter."),
     )
     subject = models.CharField(
@@ -71,6 +62,7 @@ class Letter(PolymorphicModel, BaseModel):
             ("can_share_letter", "Can share letter"),
             ("can_submit_letter", "Can submit letter"),
             ("can_publish_letter", "Can publish letter"),
+            ("can_reject_letter", "Can reopen letter"),
             ("can_retract_letter", "Can retract letter"),
             ("can_close_letter", "Can close letter"),
             ("can_reopen_letter", "Can reopen letter"),
