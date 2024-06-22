@@ -56,7 +56,6 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
         "reference_number",
         "owner",
         "subject",
-        "content",
         "current_state",
         "created_at",
         "updated_at",

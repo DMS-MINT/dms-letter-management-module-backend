@@ -136,12 +136,12 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
         self.check_object_permissions(request, letter_instance)
 
         try:
-            letter_instance = letter_retract(user=request.user, letter_instance=letter_instance)
+            letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
                 "action": ACTIONS,
-                "message": "Letter has been retracted from the record office.",
+                "message": "Letter has been retracted.",
                 "permissions": permissions,
             }
 
@@ -154,17 +154,23 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterPublishApi(ApiAuthMixin, APIView):
+class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_publish_letter"]
     permission_classes = [IsAdminUser]
 
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
 
         try:
-            letter_publish(user=request.user, letter_instance=letter_instance)
+            letter_publish(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
 
-            response_data = {"action": ACTIONS, "message": "Letter has been published."}
-            #
+            response_data = {
+                "action": ACTIONS,
+                "message": "Letter has been published.",
+                "permissions": permissions,
+            }
+
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except ValueError as e:

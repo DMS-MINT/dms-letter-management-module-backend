@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
@@ -103,6 +104,10 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     def get(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
+        if request.user.is_staff:
+            assign_perm("can_view_letter", request.user, letter_instance)
+            assign_perm("can_publish_letter", request.user, letter_instance)
+
         self.check_object_permissions(request, letter_instance)
 
         output_serializer = self.OutputSerializer(letter_instance, many=False)
@@ -117,7 +122,7 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
-class LetterCreateApi(ApiAuthMixin, APIView):
+class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False)
         content = serializers.CharField(required=False)
@@ -125,9 +130,19 @@ class LetterCreateApi(ApiAuthMixin, APIView):
         participants = inline_serializer(
             many=True,
             fields={
-                "id": serializers.UUIDField(),
                 "user": UserCreateSerializer(),
                 "role": serializers.CharField(),
+                "permissions": serializers.ListField(
+                    required=False,
+                    child=serializers.ChoiceField(
+                        choices=[
+                            "can_view_letter",
+                            "can_update_letter",
+                            "can_comment_letter",
+                            "can_share_letter",
+                        ],
+                    ),
+                ),
             },
         )
 

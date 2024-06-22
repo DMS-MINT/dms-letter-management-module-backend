@@ -7,8 +7,8 @@ from .models import Comment
 
 
 @transaction.atomic
-def comment_create(*, user=Member, letter_instance: Letter, content: str):
-    Comment.objects.create(content=content, author=user, letter=letter_instance)
+def comment_create(*, current_user=Member, letter_instance: Letter, content: str):
+    Comment.objects.create(content=content, author=current_user, letter=letter_instance)
 
 
 @transaction.atomic

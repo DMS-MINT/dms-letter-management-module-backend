@@ -30,7 +30,7 @@ class LoginApi(APIView):
 
         login(request, user)
 
-        data = user_get_login_data(user=user)
+        data = user_get_login_data(current_user=user)
         session_key = request.session.session_key
 
         response_data = {

@@ -8,12 +8,12 @@ from core.users.models import BaseUser, Member
 
 class Participant(BaseModel):
     class Roles(models.IntegerChoices):
-        AUTHOR = 2, _("Author")
-        PRIMARY_RECIPIENT = 3, _("Primary Recipient")
-        CC = 4, _("Carbon Copy Recipient")
-        BCC = 5, _("Blind Carbon Copy Recipient")
-        COLLABORATOR = 6, _("Collaborator")
-        ADMINISTRATOR = 7, _("Administrator")
+        AUTHOR = 1, _("Author")
+        PRIMARY_RECIPIENT = 2, _("Primary Recipient")
+        CC = 3, _("Carbon Copy Recipient")
+        BCC = 4, _("Blind Carbon Copy Recipient")
+        COLLABORATOR = 5, _("Collaborator")
+        ADMINISTRATOR = 6, _("Administrator")
 
     role = models.IntegerField(
         _("Roles"),

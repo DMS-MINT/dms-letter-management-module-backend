@@ -19,12 +19,10 @@ class LetterCategory(Enum):
 # Filter class for filtering Letter objects based on different categories like inbox, outbox, or draft.
 class BaseLetterFilter(django_filters.FilterSet):
     category = django_filters.CharFilter(method="filter_by_category")
-    is_admin: bool = False
 
     def __init__(self, data=None, queryset=None, *, current_user=None, **kwargs):
         super().__init__(data, queryset, **kwargs)
         self.current_user = current_user
-        self.is_admin = current_user.is_admin
 
     class Meta:
         model = Letter
@@ -39,11 +37,11 @@ class BaseLetterFilter(django_filters.FilterSet):
             case LetterCategory.DRAFT.value:
                 return self.filter_draft(queryset)
             case LetterCategory.PENDING.value:
-                if self.is_admin:
+                if self.current_user.is_staff:
                     return self.filter_pending(queryset)
                 return queryset.none()
             case LetterCategory.PUBLISHED.value:
-                if self.is_admin:
+                if self.current_user.is_staff:
                     return self.filter_published(queryset)
                 return queryset.none()
             case _:
@@ -84,7 +82,7 @@ class BaseLetterFilter(django_filters.FilterSet):
             participants__user_id=self.current_user.id,
             participants__role__in=[
                 Participant.Roles.AUTHOR,
-                Participant.Roles.EDITOR,
+                Participant.Roles.COLLABORATOR,
             ],
         )
 
@@ -93,17 +91,12 @@ class BaseLetterFilter(django_filters.FilterSet):
         return queryset.filter(combined_filter)
 
     def filter_draft(self, queryset):
-        current_state_filter = Q(
-            current_state__in=[
-                Letter.States.DRAFT,
-            ],
-        )
+        current_state_filter = Q(current_state__in=[Letter.States.DRAFT])
 
         participant_filter = Q(
             participants__user_id=self.current_user.id,
             participants__role__in=[
                 Participant.Roles.AUTHOR,
-                Participant.Roles.EDITOR,
                 Participant.Roles.COLLABORATOR,
             ],
         )
@@ -114,20 +107,17 @@ class BaseLetterFilter(django_filters.FilterSet):
 
     def filter_pending(self, queryset):
         current_state_filter = Q(
-            current_state__in=[
-                Letter.States.SUBMITTED,
-            ],
+            current_state__in=[Letter.States.SUBMITTED],
         )
 
-        participant_filter = Q(
-            participant__user_id=self.current_user.id,
-        ) & ~Q(
-            participant__role_in=[
-                Participant.RoleNames.AUTHOR,
-                Participant.RoleNames.PRIMARY_RECIPIENT,
-                Participant.RoleNames.BCC,
-                Participant.RoleNames.CC,
-                Participant.RoleNames.COLLABORATOR,
+        participant_filter = ~Q(
+            participants__user_id=self.current_user.id,
+            participants__role__in=[
+                Participant.Roles.AUTHOR,
+                Participant.Roles.PRIMARY_RECIPIENT,
+                Participant.Roles.BCC,
+                Participant.Roles.CC,
+                Participant.Roles.COLLABORATOR,
             ],
         )
 
