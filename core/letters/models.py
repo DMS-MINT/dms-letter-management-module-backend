@@ -62,6 +62,7 @@ class Letter(PolymorphicModel, BaseModel):
             ("can_share_letter", "Can share letter"),
             ("can_submit_letter", "Can submit letter"),
             ("can_publish_letter", "Can publish letter"),
+            ("can_reject_letter", "Can reopen letter"),
             ("can_retract_letter", "Can retract letter"),
             ("can_close_letter", "Can close letter"),
             ("can_reopen_letter", "Can reopen letter"),

@@ -1,11 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import serializers
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
-from core.users.selectors import user_get_login_data
+
+from .selectors import user_get_login_data
 
 LOGOUT_HRF = "api/auth/logout/"
 
@@ -30,7 +31,6 @@ class LoginApi(APIView):
 
         login(request, user)
 
-        data = user_get_login_data(current_user=user)
         session_key = request.session.session_key
 
         response_data = {
@@ -41,7 +41,6 @@ class LoginApi(APIView):
                     "method": "POST",
                 },
             ],
-            "data": data,
             "session": session_key,
         }
 
@@ -53,3 +52,27 @@ class LogoutApi(ApiAuthMixin, APIView):
         logout(request)
 
         return Response(data={"message": "The user has been logged out successfully."})
+
+
+class MeApi(ApiAuthMixin, APIView):
+    def get(self, request):
+        try:
+            data = user_get_login_data(current_user=request.user)
+
+            response_data = {
+                "action": [
+                    {
+                        "name": "User Listing",
+                        "hrf": LOGOUT_HRF,
+                        "method": "GET",
+                    },
+                ],
+                "data": data,
+            }
+
+            return Response(data=response_data)
+
+        except NotFound as e:
+            raise NotFound(e)
+        except Exception as e:
+            return Response({"message": "An unexpected error occurred", "extra": {"details": str(e)}}, status=500)
