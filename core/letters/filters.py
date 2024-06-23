@@ -101,7 +101,9 @@ class BaseLetterFilter(django_filters.FilterSet):
             ],
         )
 
-        combined_filter = current_state_filter & participant_filter
+        owner_filter = Q(owner=self.current_user)
+
+        combined_filter = current_state_filter & (participant_filter | owner_filter)
 
         return queryset.filter(combined_filter)
 

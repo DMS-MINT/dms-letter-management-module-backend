@@ -11,6 +11,7 @@ from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
 from core.permissions.mixins import ApiPermMixin
 from core.users.serializers import UserCreateSerializer
+from core.workflows.services import letter_submit
 
 from .models import Incoming, Internal, Letter, Outgoing
 from .selectors import letter_list
@@ -132,17 +133,18 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             fields={
                 "user": UserCreateSerializer(),
                 "role": serializers.CharField(),
-                "permissions": serializers.ListField(
-                    required=False,
-                    child=serializers.ChoiceField(
-                        choices=[
-                            "can_view_letter",
-                            "can_update_letter",
-                            "can_comment_letter",
-                            "can_share_letter",
-                        ],
-                    ),
-                ),
+                # "message": serializers.CharField(required=False),
+                # "permissions": serializers.ListField(
+                #     required=False,
+                #     child=serializers.ChoiceField(
+                #         choices=[
+                #             "can_view_letter",
+                #             "can_update_letter",
+                #             "can_comment_letter",
+                #             "can_share_letter",
+                #         ],
+                #     ),
+                # ),
             },
         )
 
@@ -163,6 +165,57 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             }
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_submit_letter"]
+
+    class InputSerializer(serializers.Serializer):
+        subject = serializers.CharField(required=False)
+        content = serializers.CharField(required=False)
+        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+        participants = inline_serializer(
+            many=True,
+            fields={
+                "user": UserCreateSerializer(),
+                "role": serializers.CharField(),
+            },
+        )
+
+    def post(self, request) -> Response:
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        try:
+            letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
+            response_message = "Letter created successfully. The letter has not been submitted."
+            status_code = http_status.HTTP_201_CREATED
+
+            try:
+                self.check_object_permissions(request, letter_instance)
+                letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
+                response_message = "Letter created and submitted successfully."
+                status_code = http_status.HTTP_200_OK
+            except:
+                pass
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
+
+            response_data = {
+                "action": ACTIONS,
+                "message": response_message,
+                "data": output_serializer.data,
+                "permissions": permissions,
+            }
+
+            return Response(data=response_data, status=status_code)
 
         except ValueError as e:
             raise ValidationError(e)
