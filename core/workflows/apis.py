@@ -11,13 +11,14 @@ from core.letters.models import Letter
 from core.participants.services import add_participants
 from core.permissions.mixins import ApiPermMixin
 
-from .services import letter_publish, letter_retract, letter_submit
+from .services import letter_close, letter_publish, letter_reopen, letter_retract, letter_submit
 
 SHARE_LETTER_HRF = "api/letters/<slug:reference_number>/share/"
 SUBMIT_LETTER_HRF = "api/letters/<slug:reference_number>/submit/"
 PUBLISH_LETTER_HRF = "api/letters/<slug:reference_number>/publish/"
 RETRACT_LETTER_HRF = "api/letters/<slug:reference_number>/retract/"
 CLOSE_LETTER_HRF = "api/letters/<slug:reference_number>/close/"
+REOPEN_LETTER_HRF = "api/letters/<slug:reference_number>/reopen/"
 ARCHIVE_LETTER_HRF = "api/letters/<slug:reference_number>/archive/"
 ACTIONS = (
     [
@@ -72,16 +73,11 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
             ),
         )
 
-    class InputListSerializer(serializers.ListSerializer):
-        def __init__(self, *args, **kwargs):
-            self.child = LetterShareApi.InputSerializer()
-            super().__init__(*args, **kwargs)
-
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        input_serializer = self.InputListSerializer(data=request.data)
+        input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -91,7 +87,10 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
                 participants=input_serializer.validated_data,
             )
 
-            response_data = {"action": ACTIONS, "message": "Letter has been shared with the specified collaborators."}
+            response_data = {
+                "action": ACTIONS,
+                "message": "Letter has been shared with the specified collaborators.",
+            }
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -168,6 +167,58 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             response_data = {
                 "action": ACTIONS,
                 "message": "Letter has been published.",
+                "permissions": permissions,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_close_letter"]
+
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        self.check_object_permissions(request, letter_instance)
+
+        try:
+            letter_instance = letter_close(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
+
+            response_data = {
+                "action": ACTIONS,
+                "message": "The letter has been officially closed.",
+                "permissions": permissions,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_reopen_letter"]
+
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        self.check_object_permissions(request, letter_instance)
+
+        try:
+            letter_instance = letter_reopen(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions(request, letter_instance)
+
+            response_data = {
+                "action": ACTIONS,
+                "message": "The letter has been reopened.",
                 "permissions": permissions,
             }
 
