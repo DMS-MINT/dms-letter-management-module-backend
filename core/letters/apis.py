@@ -105,7 +105,11 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     def get(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
-        if request.user.is_staff:
+
+        if request.user.is_staff and letter_instance.current_state in [
+            Letter.States.SUBMITTED,
+            Letter.States.PUBLISHED,
+        ]:
             assign_perm("can_view_letter", request.user, letter_instance)
             assign_perm("can_publish_letter", request.user, letter_instance)
 
@@ -133,18 +137,6 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             fields={
                 "user": UserCreateSerializer(),
                 "role": serializers.CharField(),
-                # "message": serializers.CharField(required=False),
-                # "permissions": serializers.ListField(
-                #     required=False,
-                #     child=serializers.ChoiceField(
-                #         choices=[
-                #             "can_view_letter",
-                #             "can_update_letter",
-                #             "can_comment_letter",
-                #             "can_share_letter",
-                #         ],
-                #     ),
-                # ),
             },
         )
 
