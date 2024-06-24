@@ -1,7 +1,17 @@
+from enum import Enum
+
 from guardian.shortcuts import assign_perm, remove_perm
 
 from core.letters.models import Letter
-from core.participants.models import Participant
+
+
+class Roles(Enum):
+    AUTHOR = 1
+    PRIMARY_RECIPIENT = 2
+    CC = 3
+    BCC = 4
+    COLLABORATOR = 5
+    ADMINISTRATOR = 6
 
 
 def assign_permissions(
@@ -13,7 +23,7 @@ def assign_permissions(
 ):
     assign_perm("can_view_letter", participant_user, letter_instance)
     match participant_role:
-        case Participant.Roles.AUTHOR.value:
+        case Roles.AUTHOR.value:
             # Basic Permissions
             assign_perm("can_update_letter", participant_user, letter_instance)
             assign_perm("can_delete_letter", participant_user, letter_instance)
@@ -26,20 +36,21 @@ def assign_permissions(
             assign_perm("can_reopen_letter", participant_user, letter_instance)
             # Interaction Permissions
             assign_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.PRIMARY_RECIPIENT.value:
+        case Roles.PRIMARY_RECIPIENT.value:
             # Workflow Permissions
             assign_perm("can_share_letter", participant_user, letter_instance)
             assign_perm("can_close_letter", participant_user, letter_instance)
+            assign_perm("can_reopen_letter", participant_user, letter_instance)
             # Interaction Permissions
             assign_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.CC.value:
+        case Roles.CC.value:
             # Interaction Permissions
             assign_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.COLLABORATOR.value:
+        case Roles.COLLABORATOR.value:
             if permissions is not None:
                 for permission in permissions:
                     assign_perm(permission, participant_user, letter_instance)
-        case Participant.Roles.ADMINISTRATOR.value:
+        case Roles.ADMINISTRATOR.value:
             # Workflow Permissions
             if participant_user.is_staff:
                 assign_perm("can_retract_letter", participant_user, letter_instance)
@@ -56,7 +67,7 @@ def remove_permissions(
 ):
     remove_perm("can_view_letter", participant_user, letter_instance)
     match participant_role:
-        case Participant.Roles.AUTHOR.value:
+        case Roles.AUTHOR.value:
             # Basic Permissions
             remove_perm("can_update_letter", participant_user, letter_instance)
             remove_perm("can_delete_letter", participant_user, letter_instance)
@@ -69,20 +80,21 @@ def remove_permissions(
             remove_perm("can_reopen_letter", participant_user, letter_instance)
             # Interaction Permissions
             remove_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.PRIMARY_RECIPIENT.value:
+        case Roles.PRIMARY_RECIPIENT.value:
             # Workflow Permissions
             remove_perm("can_share_letter", participant_user, letter_instance)
             remove_perm("can_close_letter", participant_user, letter_instance)
+            remove_perm("can_reopen_letter", participant_user, letter_instance)
             # Interaction Permissions
             remove_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.CC.value:
+        case Roles.CC.value:
             # Interaction Permissions
             remove_perm("can_comment_letter", participant_user, letter_instance)
-        case Participant.Roles.COLLABORATOR.value:
+        case Roles.COLLABORATOR.value:
             if permissions is not None:
                 for permission in permissions:
                     remove_perm(permission, participant_user, letter_instance)
-        case Participant.Roles.ADMINISTRATOR.value:
+        case Roles.ADMINISTRATOR.value:
             # Workflow Permissions
             if participant_user.is_staff:
                 remove_perm("can_retract_letter", participant_user, letter_instance)

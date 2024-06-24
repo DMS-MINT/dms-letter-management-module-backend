@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
 from core.letters.models import Letter
+from core.permissions.service import assign_permissions, remove_permissions
 from core.users.models import BaseUser, Member
 
 
@@ -39,6 +41,49 @@ class Participant(BaseModel):
     @property
     def has_read(self) -> bool:
         return True if self.last_read_at else False
+
+    def clean(self):
+        author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+
+        if author_count != 1:
+            raise ValidationError(_("The letter must have exactly one designated author."))
+
+        primary_recipient_count = Participant.objects.filter(
+            letter=self.letter,
+            role=self.Roles.PRIMARY_RECIPIENT,
+        ).count()
+
+        if primary_recipient_count == 0:
+            raise ValidationError(_("There should be at least one primary recipient assigned to the letter."))
+
+    def save(self, *args, **kwargs):
+        if self.role == self.Roles.AUTHOR:
+            existing_author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+            if existing_author_count > 0:
+                raise ValidationError({"role": _("There can only be one author per letter.")})
+
+        if self.role == self.Roles.ADMINISTRATOR:
+            existing_admin_count = Participant.objects.filter(letter=self.letter, role=self.Roles.ADMINISTRATOR).count()
+            if existing_admin_count > 0:
+                raise ValidationError({"role": _("There can only be one administrator per letter.")})
+
+        super().save(*args, **kwargs)
+        if isinstance(self.user, Member):
+            assign_permissions(
+                letter_instance=self.letter,
+                participant_user=self.user,
+                participant_role=self.role,
+            )
+
+    def delete(self, *args, **kwargs):
+        if isinstance(self.user, Member):
+            remove_permissions(
+                letter_instance=self.letter,
+                participant_user=self.user,
+                participant_role=self.role,
+            )
+
+        super().delete(*args, **kwargs)
 
     class Meta:
         verbose_name: str = _("Participant")

@@ -42,6 +42,7 @@ class MemberCreateSerializer(serializers.Serializer):
 
 
 class GuestCreateSerializer(serializers.Serializer):
+    id = serializers.CharField()
     name = serializers.CharField()
     email = serializers.EmailField(required=False)
     address = serializers.CharField(required=False)

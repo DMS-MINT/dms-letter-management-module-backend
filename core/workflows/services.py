@@ -3,7 +3,6 @@ from rest_framework.exceptions import PermissionDenied
 
 from core.letters.models import Letter
 from core.participants.models import Participant
-from core.participants.services import add_participants, remove_participants
 from core.users.models import Member
 
 
@@ -12,27 +11,35 @@ def letter_submit(*, current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.SUBMITTED
     letter_instance.save()
+
+    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant.clean()
+
     return letter_instance
 
 
 @transaction.atomic
 def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
-    current_state = letter_instance.current_state
-    next_state = Letter.States.SUBMITTED if current_state == Letter.States.PUBLISHED else Letter.States.DRAFT
+    participant = letter_instance.participants.get(user=current_user)
+    administrator_participant = letter_instance.participants.filter(role=Participant.Roles.ADMINISTRATOR).first()
 
-    administrator_participant = {
-        "to": [current_user.id],
-        "role": Participant.Roles.ADMINISTRATOR.label,
-    }
+    if participant.role == Participant.Roles.AUTHOR:
+        next_state = Letter.States.DRAFT
 
-    remove_participants(
-        current_user=current_user,
-        letter_instance=letter_instance,
-        participants=[administrator_participant],
-    )
+        if administrator_participant is not None:
+            administrator_participant.delete()
+
+    elif participant.role == Participant.Roles.ADMINISTRATOR:
+        next_state = Letter.States.SUBMITTED
+
+        administrator_participant.delete()
+
+    else:
+        raise PermissionDenied("You do not have permission to perform this action on this letter.")
 
     letter_instance.current_state = next_state
     letter_instance.save()
+
     return letter_instance
 
 
@@ -52,15 +59,37 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.current_state = next_state
     letter_instance.save()
 
-    administrator_participant = {
-        "to": [current_user.id],
-        "role": Participant.Roles.ADMINISTRATOR.label,
-    }
-
-    add_participants(
-        current_user=current_user,
-        letter_instance=letter_instance,
-        participants=[administrator_participant],
+    participant_instance = Participant.objects.create(
+        user=current_user,
+        letter=letter_instance,
+        role=Participant.Roles.ADMINISTRATOR,
+        added_by=current_user,
     )
+
+    participant_instance.clean()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_close(*, current_user: Member, letter_instance: Letter) -> Letter:
+    letter_instance.clean()
+    letter_instance.current_state = Letter.States.CLOSED
+    letter_instance.save()
+
+    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant.clean()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_reopen(*, current_user: Member, letter_instance: Letter) -> Letter:
+    letter_instance.clean()
+    letter_instance.current_state = Letter.States.PUBLISHED
+    letter_instance.save()
+
+    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant.clean()
 
     return letter_instance

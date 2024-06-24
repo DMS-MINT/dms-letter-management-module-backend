@@ -1,3 +1,5 @@
+import re
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -43,7 +45,10 @@ class Letter(PolymorphicModel, BaseModel):
     def clean(self):
         if not self.subject or not self.subject.strip():
             raise ValidationError(_("The subject of the letter cannot be empty."))
-        if not self.content or not self.content.strip():
+
+        stripped_content = re.sub("<[^<]+?>", "", self.content or "")
+
+        if not stripped_content.strip():
             raise ValidationError(_("The content of the letter cannot be empty."))
 
     def __str__(self) -> str:
