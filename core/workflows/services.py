@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from core.letters.models import Letter
@@ -10,6 +11,7 @@ from core.users.models import Member
 def letter_submit(*, current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.SUBMITTED
+    letter_instance.submitted_at = timezone.now()
     letter_instance.save()
 
     participant = Participant.objects.get(letter=letter_instance, user=current_user)
@@ -25,6 +27,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
 
     if participant.role == Participant.Roles.AUTHOR:
         next_state = Letter.States.DRAFT
+        letter_instance.submitted_at = None
 
         if administrator_participant is not None:
             administrator_participant.delete()
@@ -37,6 +40,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
     else:
         raise PermissionDenied("You do not have permission to perform this action on this letter.")
 
+    letter_instance.published_at = None
     letter_instance.current_state = next_state
     letter_instance.save()
 
@@ -57,6 +61,7 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
 
     letter_instance.clean()
     letter_instance.current_state = next_state
+    letter_instance.published_at = timezone.now()
     letter_instance.save()
 
     participant_instance = Participant.objects.create(
