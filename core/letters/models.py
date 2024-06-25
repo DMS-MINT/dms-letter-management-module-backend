@@ -41,6 +41,8 @@ class Letter(PolymorphicModel, BaseModel):
         on_delete=models.CASCADE,
         related_name="owned_letters",
     )
+    submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
+    published_at = models.DateTimeField(blank=True, null=True, editable=False)
 
     def clean(self):
         if not self.subject or not self.subject.strip():

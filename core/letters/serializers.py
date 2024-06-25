@@ -21,6 +21,8 @@ class LetterListSerializer(serializers.Serializer):
         },
     )
     has_read: serializers.SerializerMethodField()
+    submitted_at = serializers.DateTimeField()
+    published_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
@@ -56,6 +58,8 @@ class LetterDetailSerializer(serializers.Serializer):
             "created_at": serializers.DateTimeField(),
         },
     )
+    submitted_at = serializers.DateTimeField()
+    published_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
