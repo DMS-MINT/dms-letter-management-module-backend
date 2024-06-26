@@ -1,3 +1,7 @@
+import logging
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
@@ -56,6 +60,8 @@ ACTIONS = (
         },
     ],
 )
+
+logger = logging.getLogger(__name__)
 
 
 class LetterListApi(ApiAuthMixin, APIView):
@@ -123,6 +129,15 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
             "data": output_serializer.data,
             "permissions": permissions,
         }
+
+        # channel_layer = get_channel_layer()
+        # async_to_sync(channel_layer.group_send)(
+        #     f"letter_{reference_number}",
+        #     {
+        #         "type": "letter_update",
+        #         "message": response_data,
+        #     },
+        # )
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 

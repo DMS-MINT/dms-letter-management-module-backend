@@ -84,6 +84,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 ASGI_APPLICATION = "config.asgi.application"
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
@@ -160,6 +166,7 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_NAME = None
 GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
 
+from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
 from config.settings.files_and_storages import *  # noqa
 from config.settings.sessions import *  # noqa

@@ -20,8 +20,11 @@
         "cSpell.words": [
             "Ababa",
             "Addis",
+            "asgiref",
+            "colorlog",
             "corsheaders",
             "isort",
+            "levelname",
             "mypy",
             "namespacing",
             "nostatic",

@@ -14,3 +14,5 @@ urlpatterns = [
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa
 
 urlpatterns = DebugToolbarSetup.do_urls(urlpatterns)
+
+websocket_urlpatterns = []
