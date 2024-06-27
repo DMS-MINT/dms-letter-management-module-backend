@@ -8,7 +8,6 @@ from core.users.models import Member
 
 class Comment(BaseModel):
     content = models.TextField(
-        max_length=255,
         verbose_name=_("Content"),
         help_text=_("Enter the content of the comment."),
     )

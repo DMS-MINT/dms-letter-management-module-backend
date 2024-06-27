@@ -35,7 +35,7 @@ class CommentUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         content = serializers.CharField()
 
-    def post(self, request, comment_id):
+    def put(self, request, comment_id):
         comment_instance = get_object_or_404(Letter, pk=comment_id)
         input_instance = self.InputSerializer(data=request.data)
         input_instance.is_valid(raise_exception=True)
