@@ -3,7 +3,6 @@ from typing import Union
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import PermissionDenied
 
 from core.comments.services import comment_create
@@ -52,7 +51,7 @@ def participants_create(
     *,
     current_user: Member,
     letter_instance: Letter,
-    participants: list[LetterParticipant],
+    participants,
 ):
     participants = verify_owners_role(letter_instance=letter_instance, participants=participants)
 

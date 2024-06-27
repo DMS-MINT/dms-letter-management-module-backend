@@ -15,6 +15,7 @@ ALLOWED_HOSTS: list[str] = ["*"]
 # Application definition
 LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
+    "core.attachments.apps.AttachmentsConfig",
     "core.authentication.apps.AuthenticationConfig",
     "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",

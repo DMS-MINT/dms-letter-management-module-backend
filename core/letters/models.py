@@ -41,6 +41,11 @@ class Letter(PolymorphicModel, BaseModel):
         on_delete=models.CASCADE,
         related_name="owned_letters",
     )
+    signature = models.FileField(
+        upload_to="letters/signatures/",
+        verbose_name=_("Signature"),
+        help_text=_("Upload the author signature file."),
+    )
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
     published_at = models.DateTimeField(blank=True, null=True, editable=False)
 
