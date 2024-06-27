@@ -38,6 +38,7 @@ class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     owner = MemberListSerializer()
+    signature = serializers.ImageField()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     content = serializers.CharField()
@@ -47,6 +48,14 @@ class LetterDetailSerializer(serializers.Serializer):
             "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
             "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
+        },
+    )
+    attachments = inline_serializer(
+        many=True,
+        fields={
+            "id": serializers.UUIDField(),
+            "file": serializers.FileField(),
+            "description": serializers.CharField(required=False, allow_blank=True),
         },
     )
     comments = inline_serializer(

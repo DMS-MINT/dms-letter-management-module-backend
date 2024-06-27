@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 from django.db import transaction
 
+from core.attachments.services import attachment_create
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
 from core.permissions.service import grant_owner_permissions
@@ -33,25 +34,38 @@ def letter_create(
     current_user: Member,
     subject: Optional[str] = None,
     content: Optional[str] = None,
+    signature=None,
     letter_type: str,
-    participants: list[LetterParticipant],
+    participants,
+    attachments=None,
 ) -> Letter:
-    letter_instance = create_letter_instance(
-        letter_type=letter_type,
-        current_user=current_user,
-        subject=subject,
-        content=content,
-        current_state=Letter.States.DRAFT,
-        owner=current_user,
-    )
+    letter_data = {
+        "letter_type": letter_type,
+        "current_user": current_user,
+        "subject": subject,
+        "content": content,
+        "current_state": Letter.States.DRAFT,
+        "owner": current_user,
+    }
+
+    if signature is not None:
+        letter_data["signature"] = signature
+
+    letter_instance = create_letter_instance(**letter_data)
 
     grant_owner_permissions(letter_instance)
 
     participants_create(
         current_user=current_user,
-        participants=participants,
         letter_instance=letter_instance,
+        participants=participants,
     )
+    if attachments is not None:
+        attachment_create(
+            current_user=current_user,
+            letter_instance=letter_instance,
+            attachments=attachments,
+        )
 
     return letter_instance
 
@@ -62,6 +76,9 @@ def letter_update(
     letter_instance: Letter,
     subject: Optional[str] = None,
     content: Optional[str] = None,
+    letter_type: str = "internal",
+    signature=None,
+    attachments=None,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     if subject is not None:
@@ -69,6 +86,9 @@ def letter_update(
 
     if content is not None:
         letter_instance.content = content
+
+    if signature is not None:
+        letter_instance.signature = signature
 
     letter_instance.save()
 
@@ -84,5 +104,12 @@ def letter_update(
         participants=participants_to_add,
         letter_instance=letter_instance,
     )
+
+    if attachments is not None:
+        attachment_create(
+            current_user=current_user,
+            letter_instance=letter_instance,
+            attachments=attachments,
+        )
 
     return letter_instance

@@ -1,8 +1,11 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
@@ -21,41 +24,7 @@ from .serializers import (
     OutgoingLetterDetailSerializer,
 )
 from .services import letter_create, letter_update
-
-GET_LETTERS_HRF = "api/letter/"
-GET_LETTER_HRF = "api/letters/<slug:reference_number>/"
-CREATE_LETTER_HRF = "api/letters/create/"
-UPDATE_LETTER_HRF = "api/letters/<slug:reference_number>/update/"
-DELETE_LETTER_HRF = "api/letters/<slug:reference_number>/delete/"
-ACTIONS = (
-    [
-        {
-            "name": "Letter Listing",
-            "hrf": GET_LETTERS_HRF,
-            "method": "GET",
-        },
-        {
-            "name": "Letter Details",
-            "hrf": GET_LETTER_HRF,
-            "method": "GET",
-        },
-        {
-            "name": "Create Letter",
-            "hrf": CREATE_LETTER_HRF,
-            "method": "PUT",
-        },
-        {
-            "name": "Update Letter",
-            "hrf": UPDATE_LETTER_HRF,
-            "method": "PUT",
-        },
-        {
-            "name": "Delete Letter",
-            "hrf": DELETE_LETTER_HRF,
-            "method": "DELETE",
-        },
-    ],
-)
+from .utils import process_request_data
 
 
 class LetterListApi(ApiAuthMixin, APIView):
@@ -84,7 +53,7 @@ class LetterListApi(ApiAuthMixin, APIView):
 
         serializer = self.OutputSerializer(letter_instances, many=True)
 
-        response_data = {"action": ACTIONS, "data": serializer.data}
+        response_data = {"data": serializer.data}
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -119,29 +88,49 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
         permissions = self.get_object_permissions(request, letter_instance)
 
         response_data = {
-            "action": ACTIONS,
             "data": output_serializer.data,
             "permissions": permissions,
         }
+
+        # channel_layer = get_channel_layer()
+        # async_to_sync(channel_layer.group_send)(
+        #     f"letter_{reference_number}",
+        #     {
+        #         "type": "letter_update",
+        #         "message": response_data,
+        #     },
+        # )
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
     class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False)
-        content = serializers.CharField(required=False)
+        subject = serializers.CharField(required=False, allow_blank=True)
+        content = serializers.CharField(required=False, allow_blank=True)
         letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+        signature = serializers.ImageField(required=False, allow_null=True)
         participants = inline_serializer(
             many=True,
             fields={
+                "id": serializers.UUIDField(),
                 "user": UserCreateSerializer(),
                 "role": serializers.CharField(),
             },
         )
+        attachments = serializers.ListField(
+            required=False,
+            child=serializers.FileField(
+                allow_empty_file=True,
+            ),
+        )
 
     def post(self, request) -> Response:
-        input_serializer = self.InputSerializer(data=request.data)
+        request_data = process_request_data(request)
+
+        input_serializer = self.InputSerializer(data=request_data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -151,7 +140,6 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "data": output_serializer.data,
                 "permissions": permissions,
             }
@@ -169,19 +157,29 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
     class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False)
-        content = serializers.CharField(required=False)
+        subject = serializers.CharField(required=False, allow_blank=True)
+        content = serializers.CharField(required=False, allow_blank=True)
         letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+        signature = serializers.ImageField(required=False, allow_null=True)
         participants = inline_serializer(
             many=True,
             fields={
+                "id": serializers.UUIDField(),
                 "user": UserCreateSerializer(),
                 "role": serializers.CharField(),
             },
         )
+        attachments = serializers.ListField(
+            required=False,
+            child=serializers.FileField(
+                allow_empty_file=True,
+            ),
+        )
 
     def post(self, request) -> Response:
-        input_serializer = self.InputSerializer(data=request.data)
+        request_data = process_request_data(request)
+
+        input_serializer = self.InputSerializer(data=request_data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -201,7 +199,6 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": response_message,
                 "data": output_serializer.data,
                 "permissions": permissions,
@@ -222,6 +219,8 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         content = serializers.CharField(required=False, allow_blank=True)
+        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+        signature = serializers.ImageField(required=False, allow_null=True)
         participants = inline_serializer(
             many=True,
             required=False,
@@ -231,12 +230,20 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "role": serializers.CharField(),
             },
         )
+        attachments = serializers.ListField(
+            required=False,
+            child=serializers.FileField(
+                allow_empty_file=True,
+            ),
+        )
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        input_serializer = self.InputSerializer(data=request.data, partial=True)
+        request_data = process_request_data(request)
+
+        input_serializer = self.InputSerializer(data=request_data, partial=True)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -249,10 +256,22 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "data": output_serializer.data,
                 "permissions": permissions,
             }
+
+            # Notify WebSocket consumers about the update
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -263,7 +282,7 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterDeleteApi(ApiAuthMixin, APIView):
+class LetterDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_delete_letter"]
 
     def delete(self, request, reference_number) -> Response:
