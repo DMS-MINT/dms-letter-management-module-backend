@@ -59,7 +59,7 @@ class Participant(BaseModel):
     def save(self, *args, **kwargs):
         if self.role == self.Roles.AUTHOR:
             existing_author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
-            if existing_author_count > 0:
+            if existing_author_count > 1:
                 raise ValidationError({"role": _("There can only be one author per letter.")})
 
         if self.role == self.Roles.ADMINISTRATOR:

@@ -85,7 +85,7 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
         self.check_object_permissions(request, letter_instance)
 
         output_serializer = self.OutputSerializer(letter_instance, many=False)
-        permissions = self.get_object_permissions(request, letter_instance)
+        permissions = self.get_object_permissions_details(letter_instance)
 
         response_data = {
             "data": output_serializer.data,
@@ -135,13 +135,13 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
-            permissions = self.get_object_permissions(request, letter_instance)
+            # permissions = self.get_object_permissions(request, letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
                 "data": output_serializer.data,
-                "permissions": permissions,
+                "permissions": [],
             }
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
@@ -253,25 +253,25 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 **input_serializer.validated_data,
             )
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            # permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
                 "data": output_serializer.data,
-                "permissions": permissions,
+                "permissions": [],
             }
 
             # Notify WebSocket consumers about the update
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
-                {
-                    "type": "letter_update",
-                    "message": {
-                        "data": output_serializer.data,
-                        "permissions": permissions,
-                    },
-                },
-            )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"letter_{reference_number}",
+            #     {
+            #         "type": "letter_update",
+            #         "message": {
+            #             "data": output_serializer.data,
+            #             "permissions": permissions,
+            #         },
+            #     },
+            # )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
