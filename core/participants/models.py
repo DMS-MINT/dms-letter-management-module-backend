@@ -59,7 +59,7 @@ class Participant(BaseModel):
     def save(self, *args, **kwargs):
         if self.role == self.Roles.AUTHOR:
             existing_author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
-            if existing_author_count > 0:
+            if existing_author_count > 1:
                 raise ValidationError({"role": _("There can only be one author per letter.")})
 
         if self.role == self.Roles.ADMINISTRATOR:
@@ -67,12 +67,16 @@ class Participant(BaseModel):
             if existing_admin_count > 0:
                 raise ValidationError({"role": _("There can only be one administrator per letter.")})
 
+        permissions = kwargs.pop("permissions", None)
+
         super().save(*args, **kwargs)
+
         if isinstance(self.user, Member):
             assign_permissions(
                 letter_instance=self.letter,
                 participant_user=self.user,
                 participant_role=self.role,
+                permissions=permissions,
             )
 
     def delete(self, *args, **kwargs):

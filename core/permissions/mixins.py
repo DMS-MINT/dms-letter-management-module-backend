@@ -21,11 +21,28 @@ class ApiPermMixin:
         if not required_perms.issubset(allowed_actions):
             raise PermissionDenied("You can not perform this action on this letter in its current state..")
 
-    def get_object_permissions(self, request, obj):
-        user_perms = set(get_perms(request.user, obj))
+    def get_object_permissions(self, user, obj):
+        user_perms = set(get_perms(user, obj))
         allowed_actions = set(self.get_allowed_actions(obj))
 
         return list(user_perms.intersection(allowed_actions))
+
+    def get_object_permissions_details(self, obj):
+        participants = obj.participants.all()
+        permissions = []
+        processed_user_ids = set()
+
+        for participant in participants:
+            permission = self.get_object_permissions(participant.user, obj)
+            permissions.append({"user_id": participant.user.id, "permissions": permission})
+            processed_user_ids.add(participant.user.id)
+
+        owner = obj.owner
+        if owner.id not in processed_user_ids:
+            owner_permissions = self.get_object_permissions(owner, obj)
+            permissions.append({"user_id": owner.id, "permissions": owner_permissions})
+
+        return permissions
 
     @staticmethod
     def get_allowed_actions(obj):

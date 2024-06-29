@@ -22,6 +22,7 @@ def participant_instance_create(
     user_type: str,
     letter_instance: Letter,
     role: int,
+    permissions: list[str] = None,
 ):
     user_instance_classes = {"member": Member, "guest": Guest}.get(user_type)
 
@@ -37,12 +38,14 @@ def participant_instance_create(
     else:
         raise ValueError("Invalid user type")
 
-    return Participant.objects.create(
+    participant_instance = Participant.objects.create(
         user=user,
         role=role,
         letter=letter_instance,
         added_by=current_user,
     )
+
+    participant_instance.save(permissions=permissions)
 
 
 # This function create participants for a given letter.
@@ -84,6 +87,7 @@ def add_participants(
             role=participants.get("role", Participant.Roles.COLLABORATOR),
             letter_instance=letter_instance,
             current_user=current_user,
+            permissions=participants.get("permissions"),
         )
 
     comment_create(

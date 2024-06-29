@@ -6,7 +6,7 @@ from .apis import CommentCreateApi, CommentDeleteApi, CommentUpdateApi
 app_name = "comments"
 
 urlpatterns: list[URLPattern] = [
-    path("<uuid:letter_id>/create/", CommentCreateApi.as_view(), name="comment-create"),
+    path("<slug:reference_number>/create/", CommentCreateApi.as_view(), name="comment-create"),
     path("<uuid:comment_id>/update/", CommentUpdateApi.as_view(), name="comment-update"),
     path("<uuid:comment_id>/delete/", CommentDeleteApi.as_view(), name="comment-delete"),
 ]

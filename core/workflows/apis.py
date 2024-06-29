@@ -13,48 +13,6 @@ from core.permissions.mixins import ApiPermMixin
 
 from .services import letter_close, letter_publish, letter_reopen, letter_retract, letter_submit
 
-SHARE_LETTER_HRF = "api/letters/<slug:reference_number>/share/"
-SUBMIT_LETTER_HRF = "api/letters/<slug:reference_number>/submit/"
-PUBLISH_LETTER_HRF = "api/letters/<slug:reference_number>/publish/"
-RETRACT_LETTER_HRF = "api/letters/<slug:reference_number>/retract/"
-CLOSE_LETTER_HRF = "api/letters/<slug:reference_number>/close/"
-REOPEN_LETTER_HRF = "api/letters/<slug:reference_number>/reopen/"
-ARCHIVE_LETTER_HRF = "api/letters/<slug:reference_number>/archive/"
-ACTIONS = (
-    [
-        {
-            "name": "Share Listing",
-            "hrf": SHARE_LETTER_HRF,
-            "method": "GET",
-        },
-        {
-            "name": "Submit Details",
-            "hrf": SUBMIT_LETTER_HRF,
-            "method": "GET",
-        },
-        {
-            "name": "Publish Letter",
-            "hrf": PUBLISH_LETTER_HRF,
-            "method": "PUT",
-        },
-        {
-            "name": "Retract Letter",
-            "hrf": RETRACT_LETTER_HRF,
-            "method": "PUT",
-        },
-        {
-            "name": "Close Letter",
-            "hrf": CLOSE_LETTER_HRF,
-            "method": "DELETE",
-        },
-        {
-            "name": "Archive Letter",
-            "hrf": ARCHIVE_LETTER_HRF,
-            "method": "DELETE",
-        },
-    ],
-)
-
 
 class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_share_letter"]
@@ -88,7 +46,6 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             response_data = {
-                "action": ACTIONS,
                 "message": "Letter has been shared with the specified collaborators.",
             }
 
@@ -113,7 +70,6 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": "Letter has been submitted to the record office.",
                 "permissions": permissions,
             }
@@ -139,7 +95,6 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": "Letter has been retracted.",
                 "permissions": permissions,
             }
@@ -165,7 +120,6 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": "Letter has been published.",
                 "permissions": permissions,
             }
@@ -191,7 +145,6 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": "The letter has been officially closed.",
                 "permissions": permissions,
             }
@@ -217,7 +170,6 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
             permissions = self.get_object_permissions(request, letter_instance)
 
             response_data = {
-                "action": ACTIONS,
                 "message": "The letter has been reopened.",
                 "permissions": permissions,
             }
