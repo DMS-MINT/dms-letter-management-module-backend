@@ -70,7 +70,6 @@ class Participant(BaseModel):
         permissions = kwargs.pop("permissions", None)
 
         super().save(*args, **kwargs)
-
         if isinstance(self.user, Member):
             assign_permissions(
                 letter_instance=self.letter,
