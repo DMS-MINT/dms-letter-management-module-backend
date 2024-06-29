@@ -67,7 +67,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been submitted to the record office.",
@@ -92,7 +92,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been retracted.",
@@ -117,7 +117,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_publish(current_user=request.user, letter_instance=letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been published.",
@@ -142,7 +142,7 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_close(current_user=request.user, letter_instance=letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "The letter has been officially closed.",
@@ -167,7 +167,7 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_reopen(current_user=request.user, letter_instance=letter_instance)
-            permissions = self.get_object_permissions(request, letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "The letter has been reopened.",

@@ -1,4 +1,4 @@
-from guardian.shortcuts import get_perms
+from guardian.shortcuts import get_perms, get_users_with_perms
 from rest_framework.exceptions import PermissionDenied
 
 from core.letters.models import Letter
@@ -28,21 +28,22 @@ class ApiPermMixin:
         return list(user_perms.intersection(allowed_actions))
 
     def get_object_permissions_details(self, obj):
-        participants = obj.participants.all()
-        permissions = []
-        processed_user_ids = set()
+        users_with_perms = get_users_with_perms(obj, attach_perms=True)
+        formatted_data = []
 
-        for participant in participants:
-            permission = self.get_object_permissions(participant.user, obj)
-            permissions.append({"user_id": participant.user.id, "permissions": permission})
-            processed_user_ids.add(participant.user.id)
+        for user, permissions in users_with_perms.items():
+            allowed_actions = set(self.get_allowed_actions(obj))
+            user_permissions = set(permissions)
 
-        owner = obj.owner
-        if owner.id not in processed_user_ids:
-            owner_permissions = self.get_object_permissions(owner, obj)
-            permissions.append({"user_id": owner.id, "permissions": owner_permissions})
+            intersected_permissions = list(user_permissions.intersection(allowed_actions))
 
-        return permissions
+            user_data = {
+                "user_id": str(user.id),
+                "permissions": intersected_permissions,
+            }
+            formatted_data.append(user_data)
+
+        return formatted_data
 
     @staticmethod
     def get_allowed_actions(obj):

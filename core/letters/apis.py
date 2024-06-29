@@ -91,14 +91,15 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
             "data": output_serializer.data,
             "permissions": permissions,
         }
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"letter_{letter_instance.reference_number}",
-            {
-                "type": "letter_update",
-                "message": response_data,
-            },
-        )
+
+        # channel_layer = get_channel_layer()
+        # async_to_sync(channel_layer.group_send)(
+        #     f"letter_{letter_instance.reference_number}",
+        #     {
+        #         "type": "letter_update",
+        #         "message": response_data,
+        #     },
+        # )
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -143,14 +144,14 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"letter_{letter_instance.reference_number}",
-                {
-                    "type": "letter_update",
-                    "message": response_data,
-                },
-            )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"letter_{letter_instance.reference_number}",
+            #     {
+            #         "type": "letter_update",
+            #         "message": response_data,
+            #     },
+            # )
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
@@ -269,14 +270,14 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
             }
 
             # Notify WebSocket consumers about the update
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
-                {
-                    "type": "letter_update",
-                    "message": response_data,
-                },
-            )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"letter_{reference_number}",
+            #     {
+            #         "type": "letter_update",
+            #         "message": response_data,
+            #     },
+            # )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
