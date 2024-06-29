@@ -16,7 +16,7 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
         URLRouter([
             path(
-                "ws/letters/<str:reference_number>/",
+                "ws/letters/<slug:reference_number>/",
                 LetterConsumer.as_asgi(),
             ),
         ]),
