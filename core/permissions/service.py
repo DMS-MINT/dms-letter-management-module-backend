@@ -22,6 +22,7 @@ def assign_permissions(
     permissions: list[str] = None,
 ):
     assign_perm("can_view_letter", participant_user, letter_instance)
+
     match participant_role:
         case Roles.AUTHOR.value:
             # Basic Permissions
@@ -49,7 +50,7 @@ def assign_permissions(
         case Roles.COLLABORATOR.value:
             if permissions is not None:
                 for permission in permissions:
-                    assign_perm(permission, participant_user, letter_instance)
+                    assign_perm(f"{permission}", participant_user, letter_instance)
         case Roles.ADMINISTRATOR.value:
             # Workflow Permissions
             if participant_user.is_staff:
