@@ -67,12 +67,16 @@ class Participant(BaseModel):
             if existing_admin_count > 0:
                 raise ValidationError({"role": _("There can only be one administrator per letter.")})
 
+        permissions = kwargs.pop("permissions", None)
+
         super().save(*args, **kwargs)
+
         if isinstance(self.user, Member):
             assign_permissions(
                 letter_instance=self.letter,
                 participant_user=self.user,
                 participant_role=self.role,
+                permissions=permissions,
             )
 
     def delete(self, *args, **kwargs):
