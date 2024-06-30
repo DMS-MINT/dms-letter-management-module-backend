@@ -333,15 +333,14 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            # Notify WebSocket consumers about the update
-            # channel_layer = get_channel_layer()
-            # async_to_sync(channel_layer.group_send)(
-            #     f"letter_{reference_number}",
-            #     {
-            #         "type": "letter_update",
-            #         "message": response_data,
-            #     },
-            # )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": response_data,
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
