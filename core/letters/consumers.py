@@ -29,6 +29,5 @@ class LetterConsumer(AsyncWebsocketConsumer):
         )
 
     async def letter_update(self, event):
-        print("update called")
         message = event["message"]
         await self.send(text_data=json.dumps({"message": message}))
