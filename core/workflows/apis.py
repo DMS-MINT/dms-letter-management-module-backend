@@ -1,3 +1,5 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -7,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
+from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
 from core.participants.services import add_participants
 from core.permissions.mixins import ApiPermMixin
@@ -45,9 +48,24 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
                 participants=input_serializer.validated_data,
             )
 
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
+
             response_data = {
                 "message": "Letter has been shared with the specified collaborators.",
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -67,12 +85,26 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been submitted to the record office.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -92,12 +124,26 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been retracted.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -117,12 +163,26 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_publish(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been published.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -142,12 +202,26 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_reject(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "Letter has been rejected and sent back to the sender.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -167,12 +241,26 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_close(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "The letter has been officially closed.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -192,12 +280,26 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             letter_instance = letter_reopen(current_user=request.user, letter_instance=letter_instance)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance)
 
             response_data = {
                 "message": "The letter has been reopened.",
                 "permissions": permissions,
             }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
+                },
+            )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 

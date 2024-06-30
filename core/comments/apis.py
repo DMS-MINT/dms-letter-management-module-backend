@@ -1,3 +1,5 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -6,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
+from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
 from core.permissions.mixins import ApiPermMixin
 
@@ -32,6 +35,24 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 letter_instance=letter_instance,
                 **input_instance.validated_data,
             )
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
+
+            response_data = {
+                "data": output_serializer.data,
+                "permissions": permissions,
+            }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": response_data,
+                },
+            )
+
             return Response(
                 data={"message": "Comment successfully created"},
                 status=http_status.HTTP_201_CREATED,
@@ -63,6 +84,23 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             comment_update(comment_instance=comment_instance, **input_instance.validated_data)
+
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
+
+            response_data = {
+                "data": output_serializer.data,
+                "permissions": permissions,
+            }
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{letter_instance.reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": response_data,
+                },
+            )
             return Response(data={"message": "Comment successfully updated"}, status=http_status.HTTP_200_OK)
 
         except ValueError as e:
@@ -77,9 +115,26 @@ class CommentDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     def delete(self, request, comment_id) -> Response:
         comment_instance = get_object_or_404(Comment, pk=comment_id)
+        letter_instance = comment_instance.letter
 
         if comment_instance.author != request.user:
             raise PermissionDenied("You do not have permission to delete this comment.")
 
         comment_instance.delete()
+
+        output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+        permissions = self.get_object_permissions_details(letter_instance)
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"letter_{letter_instance.reference_number}",
+            {
+                "type": "letter_update",
+                "message": {
+                    "data": output_serializer.data,
+                    "permissions": permissions,
+                },
+            },
+        )
+
         return Response(data={"message": "Comment successfully deleted"}, status=http_status.HTTP_200_OK)
