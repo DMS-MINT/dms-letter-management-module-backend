@@ -1,12 +1,14 @@
 from typing import Optional, Union
 
 from django.db import transaction
+from guardian.shortcuts import assign_perm
 
 from core.attachments.services import attachment_create
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
 from core.permissions.service import grant_owner_permissions
 from core.users.models import Member
+from core.workflows.services import letter_publish
 
 from .models import Incoming, Internal, Letter, Outgoing
 
@@ -66,6 +68,53 @@ def letter_create(
             letter_instance=letter_instance,
             attachments=attachments,
         )
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_create_and_publish(
+    *,
+    current_user: Member,
+    subject: Optional[str] = None,
+    content: Optional[str] = None,
+    signature=None,
+    letter_type: str,
+    participants,
+    attachments=None,
+) -> Letter:
+    letter_data = {
+        "letter_type": letter_type,
+        "current_user": current_user,
+        "subject": subject,
+        "content": content,
+        "current_state": Letter.States.DRAFT,
+        "owner": current_user,
+    }
+
+    if signature is not None:
+        letter_data["signature"] = signature
+
+    letter_instance = create_letter_instance(**letter_data)
+
+    letter_instance.current_state = Letter.States.SUBMITTED
+    letter_instance.save()
+
+    grant_owner_permissions(letter_instance)
+
+    participants_create(
+        current_user=current_user,
+        letter_instance=letter_instance,
+        participants=participants,
+    )
+    if attachments is not None:
+        attachment_create(
+            current_user=current_user,
+            letter_instance=letter_instance,
+            attachments=attachments,
+        )
+
+    letter_publish(current_user=current_user, letter_instance=letter_instance)
 
     return letter_instance
 

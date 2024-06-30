@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
-from core.letters.models import Letter
+from core.letters.models import Letter, Incoming
 from core.participants.models import Participant
 from core.users.models import Member
 
@@ -33,7 +33,10 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
             administrator_participant.delete()
 
     elif participant.role == Participant.Roles.ADMINISTRATOR:
-        next_state = Letter.States.SUBMITTED
+        if isinstance(letter_instance, Incoming):
+            next_state = Letter.States.DRAFT
+        else:
+            next_state = Letter.States.SUBMITTED
 
         administrator_participant.delete()
 
@@ -52,8 +55,9 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
     current_state = Letter.States.SUBMITTED.value
     next_state = Letter.States.PUBLISHED.value
 
-    if letter_instance.current_state != current_state:
-        raise PermissionDenied("You can not perform this action on this letter in its current state.")
+    if not isinstance(letter_instance, Incoming):
+        if letter_instance.current_state != current_state:
+            raise PermissionDenied("You can not perform this action on this letter in its current state.")
 
     for participant in letter_instance.participants.all():
         if participant.user == current_user:
@@ -72,6 +76,15 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
     )
 
     participant_instance.clean()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
+    letter_instance.published_at = None
+    letter_instance.current_state = Letter.States.DRAFT
+    letter_instance.save()
 
     return letter_instance
 

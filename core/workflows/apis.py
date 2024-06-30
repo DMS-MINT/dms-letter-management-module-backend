@@ -11,7 +11,7 @@ from core.letters.models import Letter
 from core.participants.services import add_participants
 from core.permissions.mixins import ApiPermMixin
 
-from .services import letter_close, letter_publish, letter_reopen, letter_retract, letter_submit
+from .services import letter_close, letter_publish, letter_reject, letter_reopen, letter_retract, letter_submit
 
 
 class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
@@ -121,6 +121,31 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             response_data = {
                 "message": "Letter has been published.",
+                "permissions": permissions,
+            }
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_reject_letter"]
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+
+        try:
+            letter_reject(current_user=request.user, letter_instance=letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance)
+
+            response_data = {
+                "message": "Letter has been rejected and sent back to the sender.",
                 "permissions": permissions,
             }
 

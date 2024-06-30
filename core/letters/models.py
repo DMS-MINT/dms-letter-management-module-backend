@@ -53,10 +53,19 @@ class Letter(PolymorphicModel, BaseModel):
         if not self.subject or not self.subject.strip():
             raise ValidationError(_("The subject of the letter cannot be empty."))
 
-        stripped_content = re.sub("<[^<]+?>", "", self.content or "")
+        # Skip content validation if the letter is an Incoming letter
+        if not isinstance(self, Incoming):
+            stripped_content = re.sub("<[^<]+?>", "", self.content or "")
+            if not stripped_content.strip():
+                raise ValidationError(_("The content of the letter cannot be empty."))
 
-        if not stripped_content.strip():
-            raise ValidationError(_("The content of the letter cannot be empty."))
+        # Check Attachment validation if the letter is an Incoming letter
+        if isinstance(self, Incoming):
+            if not self.attachments.exists():
+                raise ValidationError(_("The letter must have at least one attachment."))
+
+        if not self.signature:
+            raise ValidationError(_("Please sign the letter before submitting it to the record office."))
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"

@@ -1,7 +1,7 @@
 from guardian.shortcuts import get_perms, get_users_with_perms
 from rest_framework.exceptions import PermissionDenied
 
-from core.letters.models import Letter
+from core.letters.models import Incoming, Letter
 
 
 class ApiPermMixin:
@@ -48,46 +48,95 @@ class ApiPermMixin:
     @staticmethod
     def get_allowed_actions(obj):
         current_state = obj.current_state
-        state_permissions = {
-            Letter.States.DRAFT: [
-                # Basic Permissions
-                "can_view_letter",
-                "can_update_letter",
-                "can_delete_letter",
-                # Workflow Permissions
-                "can_share_letter",
-                "can_submit_letter",
-                # Interaction Permissions
-                "can_comment_letter",
-            ],
-            Letter.States.SUBMITTED: [
-                # Basic Permissions
-                "can_view_letter",
-                # Workflow Permissions
-                "can_share_letter",
-                "can_publish_letter",
-                "can_retract_letter",
-                # Interaction Permissions
-                "can_comment_letter",
-            ],
-            Letter.States.PUBLISHED: [
-                # Basic Permissions
-                "can_view_letter",
-                # Workflow Permissions
-                "can_share_letter",
-                "can_retract_letter",
-                "can_close_letter",
-                # Interaction Permissions
-                "can_comment_letter",
-            ],
-            Letter.States.CLOSED: [
-                # Basic Permissions
-                "can_view_letter",
-                "can_archive_letter",
-                # Workflow Permissions
-                "can_share_letter",
-                "can_reopen_letter",
-            ],
-        }
+
+        if isinstance(obj, Incoming):
+            # Add publishing permission to DRAFT state for IncomingAdd instances
+            state_permissions = {
+                Letter.States.DRAFT: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_update_letter",
+                    "can_delete_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_submit_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                    "can_publish_letter",
+                ],
+                Letter.States.SUBMITTED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_publish_letter",
+                    "can_reject_letter",
+                    "can_retract_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                ],
+                Letter.States.PUBLISHED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_retract_letter",
+                    "can_close_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                ],
+                Letter.States.CLOSED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_archive_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_reopen_letter",
+                ],
+            }
+        else:
+            # Default state permissions without publishing permission in DRAFT
+            state_permissions = {
+                Letter.States.DRAFT: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_update_letter",
+                    "can_delete_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_submit_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                ],
+                Letter.States.SUBMITTED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_publish_letter",
+                    "can_reject_letter",
+                    "can_retract_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                ],
+                Letter.States.PUBLISHED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_retract_letter",
+                    "can_close_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                ],
+                Letter.States.CLOSED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_archive_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_reopen_letter",
+                ],
+            }
 
         return state_permissions.get(current_state, [])
