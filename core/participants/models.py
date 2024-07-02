@@ -1,33 +1,32 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
 from core.letters.models import Letter
-from core.users.models import BaseUser
+from core.permissions.service import assign_permissions, remove_permissions
+from core.users.models import BaseUser, Member
 
 
 class Participant(BaseModel):
     class Roles(models.IntegerChoices):
-        BCC = 1, _("Blind Carbon Copy Recipient")
-        CC = 2, _("Carbon Copy Recipient")
-        DRAFTER = 3, _("Drafter")
-        FORWARDED_RECIPIENT = 4, _("Forwarded Recipient")
-        FORWARDER = 5, _("Forwarder")
-        RECIPIENT = 6, _("Recipient")
-        DRAFT_REVIEWER = 7, _("Draft Reviewer")
-        SENDER = 8, _("Sender")
-        WORKFLOW_MANAGER = 9, _("Workflow Manager")
+        AUTHOR = 1, _("Author")
+        PRIMARY_RECIPIENT = 2, _("Primary Recipient")
+        CC = 3, _("Carbon Copy Recipient")
+        BCC = 4, _("Blind Carbon Copy Recipient")
+        COLLABORATOR = 5, _("Collaborator")
+        ADMINISTRATOR = 6, _("Administrator")
 
+    role = models.IntegerField(
+        _("Roles"),
+        choices=Roles.choices,
+        help_text=_("Select the role of this participant."),
+    )
     user = models.ForeignKey(
         BaseUser,
         on_delete=models.CASCADE,
         related_name="participates_in",
         help_text=_("Select the user associated with this participant."),
-    )
-    role = models.IntegerField(
-        _("Role"),
-        choices=Roles.choices,
-        help_text=_("Select the role of this participant."),
     )
     letter = models.ForeignKey(
         Letter,
@@ -35,22 +34,61 @@ class Participant(BaseModel):
         related_name="participants",
         help_text=_("Select the letter associated with this participant."),
     )
-    is_reading = models.BooleanField(default=False, editable=False)
+    added_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="added_participants")
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
-    message = models.TextField(
-        _("Message"),
-        blank=True,
-        null=True,
-        help_text=_("Enter a message for the participant."),
-    )
-    signature_image = models.ImageField(
-        _("Signature Image"),
-        upload_to="signatures/",
-        blank=True,
-        null=True,
-        help_text=_("Upload a signature image for the participant."),
-    )
+    received_at = models.DateTimeField(blank=True, null=True, editable=False)
+
+    @property
+    def has_read(self) -> bool:
+        return True if self.last_read_at else False
+
+    def clean(self):
+        author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+
+        if author_count != 1:
+            raise ValidationError(_("The letter must have exactly one designated author."))
+
+        primary_recipient_count = Participant.objects.filter(
+            letter=self.letter,
+            role=self.Roles.PRIMARY_RECIPIENT,
+        ).count()
+
+        if primary_recipient_count == 0:
+            raise ValidationError(_("There should be at least one primary recipient assigned to the letter."))
+
+    def save(self, *args, **kwargs):
+        if self.role == self.Roles.AUTHOR:
+            existing_author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+            if existing_author_count > 1:
+                raise ValidationError({"role": _("There can only be one author per letter.")})
+
+        if self.role == self.Roles.ADMINISTRATOR:
+            existing_admin_count = Participant.objects.filter(letter=self.letter, role=self.Roles.ADMINISTRATOR).count()
+            if existing_admin_count > 0:
+                raise ValidationError({"role": _("There can only be one administrator per letter.")})
+
+        permissions = kwargs.pop("permissions", None)
+
+        super().save(*args, **kwargs)
+        if isinstance(self.user, Member):
+            assign_permissions(
+                letter_instance=self.letter,
+                participant_user=self.user,
+                participant_role=self.role,
+                permissions=permissions,
+            )
+
+    def delete(self, *args, **kwargs):
+        if isinstance(self.user, Member):
+            remove_permissions(
+                letter_instance=self.letter,
+                participant_user=self.user,
+                participant_role=self.role,
+            )
+
+        super().delete(*args, **kwargs)
 
     class Meta:
         verbose_name: str = _("Participant")
         verbose_name_plural: str = _("Participants")
+        unique_together = [["user", "letter"]]

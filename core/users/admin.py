@@ -5,7 +5,7 @@ from polymorphic.admin import (
     PolymorphicParentModelAdmin,
 )
 
-from .models import BaseUser, Guest, Member
+from .models import BaseUser, Department, Guest, Member
 
 
 class BaseUserChildAdmin(PolymorphicChildModelAdmin):
@@ -29,13 +29,16 @@ class GuestAdmin(BaseUserChildAdmin):
 class MemberAdmin(BaseUserChildAdmin):
     base_model = Member
     list_display: list[str] = [
-        "username",
+        "email",
         "full_name",
         "job_title",
         "department",
         "is_staff",
     ]
     readonly_fields: list[str] = [
+        "is_active",
+        "is_admin",
+        "is_superuser",
         "last_login",
         "date_joined",
     ]
@@ -53,3 +56,9 @@ class BaseUserParentAdmin(PolymorphicParentModelAdmin):
     ]
     child_models = (Guest, Member)
     list_filter = (PolymorphicChildModelFilter,)
+
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "abbreviation"]
+    ordering = ["name"]

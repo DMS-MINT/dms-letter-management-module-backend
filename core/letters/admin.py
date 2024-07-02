@@ -17,8 +17,18 @@ class ParticipantInline(admin.StackedInline):
 
 class LetterChildAdmin(PolymorphicChildModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created_at"]
+    list_display: list[str] = [
+        "reference_number",
+        "owner",
+        "subject",
+        "content",
+        "current_state",
+        "created_at",
+        "updated_at",
+    ]
     inlines = [ParticipantInline]
+    ordering = ["-updated_at"]
+    readonly_fields = ["reference_number"]
 
 
 @admin.register(Internal)
@@ -42,6 +52,15 @@ class OutgoingAdmin(LetterChildAdmin):
 @admin.register(Letter)
 class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
-    list_display: list[str] = ["subject", "content", "status", "created_at"]
+    list_display: list[str] = [
+        "reference_number",
+        "owner",
+        "subject",
+        "current_state",
+        "created_at",
+        "updated_at",
+    ]
     child_models = (Internal, Incoming, Outgoing)
     list_filter = (PolymorphicChildModelFilter,)
+    ordering = ["-updated_at"]
+    readonly_fields = ["reference_number"]

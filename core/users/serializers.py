@@ -34,7 +34,7 @@ class MemberDetailSerializer(serializers.Serializer):
     department = serializers.CharField()
     email = serializers.EmailField()
     phone_number = serializers.CharField()
-    modified = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
 
 
 class MemberCreateSerializer(serializers.Serializer):
@@ -42,6 +42,7 @@ class MemberCreateSerializer(serializers.Serializer):
 
 
 class GuestCreateSerializer(serializers.Serializer):
+    id = serializers.CharField()
     name = serializers.CharField()
     email = serializers.EmailField(required=False)
     address = serializers.CharField(required=False)
@@ -56,5 +57,5 @@ class UserCreateSerializer(PolymorphicSerializer):
         Guest: GuestCreateSerializer,
     }
 
-    def to_resource_type(self, model_or_instance):
-        return model_or_instance._meta.object_name.lower()
+    def to_resource_type(self, instance):
+        return instance._meta.object_name.lower()

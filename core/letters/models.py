@@ -1,30 +1,28 @@
+import re
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
+from core.users.models import BaseUser
 
 
 class Letter(PolymorphicModel, BaseModel):
-    class LetterStatus(models.IntegerChoices):
-        ARCHIVED = 1, _("Archived")
-        CANCELLED = 2, _("Cancelled")
-        COMPLETED = 3, _("Completed")
-        DRAFT = 4, _("Draft")
-        DRAFT_PENDING_REVIEW = 5, _("Draft and Pending Review")
-        DRAFT_REVIEWED = 6, _("Draft and Reviewed")
-        DRAFT_UNDER_REVIEW = 7, _("Draft and Under Review")
-        FORWARDED_PENDING_REVIEW = 8, _("Forwarded and Pending Review")
-        FORWARDED_REVIEWED = 9, _("Forwarded and Reviewed")
-        FORWARDED_UNDER_REVIEW = 10, _("Forwarded and Under Review")
-        PENDING_APPROVAL = 11, _("Pending Approval")
-        PUBLISHED = 12, _("Published")
+    class States(models.IntegerChoices):
+        DRAFT = 1, _("Draft")
+        SUBMITTED = 2, _("Submitted")
+        PUBLISHED = 3, _("Published")
+        CLOSED = 4, _("Closed")
 
-    status = models.IntegerField(
-        default=LetterStatus.DRAFT,
-        choices=LetterStatus.choices,
+    reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
+
+    current_state = models.IntegerField(
+        _("States"),
+        choices=States.choices,
+        help_text=_("Select the current state of the letter."),
     )
-
     subject = models.CharField(
         _("Subject"),
         blank=True,
@@ -38,13 +36,60 @@ class Letter(PolymorphicModel, BaseModel):
         null=True,
         help_text=_("Enter the content of the letter."),
     )
+    owner = models.ForeignKey(
+        BaseUser,
+        on_delete=models.CASCADE,
+        related_name="owned_letters",
+    )
+    signature = models.FileField(
+        upload_to="letters/signatures/",
+        verbose_name=_("Signature"),
+        help_text=_("Upload the author signature file."),
+    )
+    submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
+    published_at = models.DateTimeField(blank=True, null=True, editable=False)
+
+    def clean(self):
+        if not self.subject or not self.subject.strip():
+            raise ValidationError(_("The subject of the letter cannot be empty."))
+
+        # Skip content validation if the letter is an Incoming letter
+        if not isinstance(self, Incoming):
+            stripped_content = re.sub("<[^<]+?>", "", self.content or "")
+            if not stripped_content.strip():
+                raise ValidationError(_("The content of the letter cannot be empty."))
+
+        # Check Attachment validation if the letter is an Incoming letter
+        if isinstance(self, Incoming):
+            if not self.attachments.exists():
+                raise ValidationError(_("The letter must have at least one attachment."))
+
+        if not self.signature:
+            raise ValidationError(_("Please sign the letter before submitting it to the record office."))
+
+    def __str__(self) -> str:
+        return f"{self.subject} - {self.reference_number}"
 
     class Meta:
         verbose_name: str = "Letter"
         verbose_name_plural: str = "Letters"
-
-    def __str__(self) -> str:
-        return f"{self.subject} - {self.pk}"
+        permissions = (
+            # Basic Permissions
+            ("can_view_letter", "Can view letter"),
+            ("can_update_letter", "Can update letter"),
+            ("can_delete_letter", "Can delete letter"),
+            ("can_archive_letter", "Can archive letter"),
+            # Workflow Permissions
+            ("can_share_letter", "Can share letter"),
+            ("can_submit_letter", "Can submit letter"),
+            ("can_publish_letter", "Can publish letter"),
+            ("can_reject_letter", "Can reopen letter"),
+            ("can_retract_letter", "Can retract letter"),
+            ("can_close_letter", "Can close letter"),
+            ("can_reopen_letter", "Can reopen letter"),
+            # Interaction Permissions
+            ("can_comment_letter", "Can comment letter"),
+        )
 
 
 class Internal(Letter):

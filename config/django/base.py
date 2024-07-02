@@ -15,11 +15,15 @@ ALLOWED_HOSTS: list[str] = ["*"]
 # Application definition
 LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
+    "core.attachments.apps.AttachmentsConfig",
     "core.authentication.apps.AuthenticationConfig",
+    "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",
     "core.letters.apps.LettersConfig",
     "core.participants.apps.ParticipantsConfig",
+    "core.permissions.apps.PermissionsConfig",
     "core.users.apps.UsersConfig",
+    "core.workflows.apps.WorkflowsConfig",
 ]
 
 THIRD_PARTY_APPS: list[str] = [
@@ -27,12 +31,14 @@ THIRD_PARTY_APPS: list[str] = [
     "drf_spectacular",
     "django_extensions",
     "django_filters",
+    "easyaudit",
+    "guardian",
     "polymorphic",
     "rest_framework",
-    "rest_framework_jwt",
 ]
 
 INSTALLED_APPS: list[str] = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -54,6 +60,7 @@ MIDDLEWARE: list[str] = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -76,13 +83,25 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+ASGI_APPLICATION = "config.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "HOST": env.str("DB_HOST"),
+        "PORT": env.str("DB_PORT"),
     },
 }
 
@@ -130,7 +149,8 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.api.exception_handler.drf_exception_handler",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_jwt.authentication.JSONWebTokenAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
@@ -139,15 +159,23 @@ APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")  # type: ignore
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "guardian.backends.ObjectPermissionBackend",
+)
+
+ANONYMOUS_USER_NAME = None
+GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+
+from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
 from config.settings.files_and_storages import *  # noqa
+from config.settings.sessions import *  # noqa
 
 from config.settings.debug_toolbar.settings import *  # noqa
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa
 
 INSTALLED_APPS, MIDDLEWARE = DebugToolbarSetup.do_settings(INSTALLED_APPS, MIDDLEWARE)
-
-CORS_ALLOW_ALL_ORIGINS = True
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Letter Management Module API",
