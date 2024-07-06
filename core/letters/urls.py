@@ -7,9 +7,11 @@ from .apis import (
     LetterCreateAndPublish,
     LetterCreateAndSubmitApi,
     LetterCreateApi,
-    LetterDeleteApi,
     LetterDetailApi,
     LetterListApi,
+    LetterRemoveFromTrashApi,
+    LetterRestoreApi,
+    LetterTrashApi,
     LetterUpdateApi,
 )
 
@@ -22,7 +24,13 @@ urlpatterns: list[URLPattern] = [
     path("create_and_publish/", LetterCreateAndPublish.as_view(), name="letter-create-and-publish"),
     path("<slug:reference_number>/", LetterDetailApi.as_view(), name="letter-detail"),
     path("<slug:reference_number>/update/", LetterUpdateApi.as_view(), name="letter-update"),
-    path("<slug:reference_number>/delete/", LetterDeleteApi.as_view(), name="letter-delete"),
+    path("<slug:reference_number>/trash/", LetterTrashApi.as_view(), name="letter-delete"),
+    path("<slug:reference_number>/restore/", LetterRestoreApi.as_view(), name="letter-restore"),
+    path(
+        "<slug:reference_number>/remove_from_trash/",
+        LetterRemoveFromTrashApi.as_view(),
+        name="letter-remove-from-trash",
+    ),
 ]
 
 urlpatterns.extend(workflow_url_patterns)

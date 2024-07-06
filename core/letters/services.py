@@ -1,12 +1,11 @@
+from collections import OrderedDict
 from typing import Optional, Union
 
 from django.db import transaction
-from guardian.shortcuts import assign_perm
 
 from core.attachments.services import attachment_create
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
-from core.permissions.service import grant_owner_permissions
 from core.users.models import Member
 from core.workflows.services import letter_publish
 
@@ -55,7 +54,16 @@ def letter_create(
 
     letter_instance = create_letter_instance(**letter_data)
 
-    grant_owner_permissions(letter_instance)
+    author_participant = OrderedDict({
+        "id": "",
+        "user": OrderedDict({
+            "id": current_user.id,
+            "user_type": "member",
+        }),
+        "role": "Author",
+    })
+
+    participants.append(author_participant)
 
     participants_create(
         current_user=current_user,
@@ -99,8 +107,6 @@ def letter_create_and_publish(
 
     letter_instance.current_state = Letter.States.SUBMITTED
     letter_instance.save()
-
-    grant_owner_permissions(letter_instance)
 
     participants_create(
         current_user=current_user,

@@ -19,10 +19,11 @@ class LetterChildAdmin(PolymorphicChildModelAdmin):
     base_model = Letter
     list_display: list[str] = [
         "reference_number",
-        "owner",
         "subject",
         "content",
         "current_state",
+        "trashed",
+        "hidden",
         "created_at",
         "updated_at",
     ]
@@ -54,9 +55,10 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
     base_model = Letter
     list_display: list[str] = [
         "reference_number",
-        "owner",
         "subject",
         "current_state",
+        "trashed",
+        "hidden",
         "created_at",
         "updated_at",
     ]
