@@ -6,7 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.users.models import BaseUser
 
 
 class Letter(PolymorphicModel, BaseModel):
@@ -15,6 +14,7 @@ class Letter(PolymorphicModel, BaseModel):
         SUBMITTED = 2, _("Submitted")
         PUBLISHED = 3, _("Published")
         CLOSED = 4, _("Closed")
+        TRASHED = 5, _("Trashed")
 
     reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
 
@@ -36,11 +36,6 @@ class Letter(PolymorphicModel, BaseModel):
         null=True,
         help_text=_("Enter the content of the letter."),
     )
-    owner = models.ForeignKey(
-        BaseUser,
-        on_delete=models.CASCADE,
-        related_name="owned_letters",
-    )
     signature = models.FileField(
         upload_to="letters/signatures/",
         verbose_name=_("Signature"),
@@ -48,6 +43,9 @@ class Letter(PolymorphicModel, BaseModel):
     )
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
     published_at = models.DateTimeField(blank=True, null=True, editable=False)
+
+    trashed = models.BooleanField(default=False, verbose_name=_("Trashed"))
+    hidden = models.BooleanField(default=False, verbose_name=_("Hidden"))
 
     def clean(self):
         if not self.subject or not self.subject.strip():
@@ -77,7 +75,6 @@ class Letter(PolymorphicModel, BaseModel):
             # Basic Permissions
             ("can_view_letter", "Can view letter"),
             ("can_update_letter", "Can update letter"),
-            ("can_delete_letter", "Can delete letter"),
             ("can_archive_letter", "Can archive letter"),
             # Workflow Permissions
             ("can_share_letter", "Can share letter"),
@@ -89,6 +86,10 @@ class Letter(PolymorphicModel, BaseModel):
             ("can_reopen_letter", "Can reopen letter"),
             # Interaction Permissions
             ("can_comment_letter", "Can comment letter"),
+            # Trash and Recover Permissions
+            ("can_trash_letter", "Can trash letter"),
+            ("can_restore_letter", "Can restore letter"),
+            ("can_remove_from_trash_letter", "Can remove from trash letter"),
         )
 
 

@@ -56,13 +56,14 @@ class ApiPermMixin:
                     # Basic Permissions
                     "can_view_letter",
                     "can_update_letter",
-                    "can_delete_letter",
                     # Workflow Permissions
                     "can_share_letter",
                     "can_submit_letter",
                     # Interaction Permissions
                     "can_comment_letter",
                     "can_publish_letter",
+                    # Trash and Recover Permissions
+                    "can_trash_letter",
                 ],
                 Letter.States.SUBMITTED: [
                     # Basic Permissions
@@ -92,6 +93,13 @@ class ApiPermMixin:
                     # Workflow Permissions
                     "can_share_letter",
                     "can_reopen_letter",
+                ],
+                Letter.States.TRASHED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Trash and Recover Permissions
+                    "can_restore_letter",
+                    "can_remove_from_trash_letter",
                 ],
             }
         else:
@@ -101,12 +109,13 @@ class ApiPermMixin:
                     # Basic Permissions
                     "can_view_letter",
                     "can_update_letter",
-                    "can_delete_letter",
                     # Workflow Permissions
                     "can_share_letter",
                     "can_submit_letter",
                     # Interaction Permissions
                     "can_comment_letter",
+                    # Trash and Recover Permissions
+                    "can_trash_letter",
                 ],
                 Letter.States.SUBMITTED: [
                     # Basic Permissions
@@ -136,6 +145,13 @@ class ApiPermMixin:
                     # Workflow Permissions
                     "can_share_letter",
                     "can_reopen_letter",
+                ],
+                Letter.States.TRASHED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    # Trash and Recover Permissions
+                    "can_restore_letter",
+                    "can_remove_from_trash_letter",
                 ],
             }
 

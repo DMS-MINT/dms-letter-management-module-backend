@@ -351,12 +351,38 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
-    required_object_perms = ["can_view_letter", "can_delete_letter"]
+class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_trash_letter"]
 
     def delete(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        letter_instance.delete()
+        letter_instance.trashed = True
+        letter_instance.save()
+        return Response(status=http_status.HTTP_204_NO_CONTENT)
+
+
+class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_restore_letter"]
+
+    def delete(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        self.check_object_permissions(request, letter_instance)
+
+        letter_instance.trashed = False
+        letter_instance.save()
+        return Response(status=http_status.HTTP_204_NO_CONTENT)
+
+
+class LetterRemoveFromTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_remove_from_trash_letter"]
+
+    def delete(self, request, reference_number) -> Response:
+        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        self.check_object_permissions(request, letter_instance)
+
+        letter_instance.trashed = True
+        letter_instance.hidden = True
+        letter_instance.save()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
