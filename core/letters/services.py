@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Optional, Union
 
 from django.db import transaction
@@ -52,6 +53,17 @@ def letter_create(
         letter_data["signature"] = signature
 
     letter_instance = create_letter_instance(**letter_data)
+
+    author_participant = OrderedDict({
+        "id": "",
+        "user": OrderedDict({
+            "id": current_user.id,
+            "user_type": "member",
+        }),
+        "role": "Author",
+    })
+
+    participants.append(author_participant)
 
     participants_create(
         current_user=current_user,
