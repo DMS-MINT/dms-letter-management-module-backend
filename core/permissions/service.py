@@ -107,3 +107,33 @@ def remove_permissions(
                 remove_perm("can_retract_letter", participant_user, letter_instance)
         case _:
             return
+
+
+def grant_owner_permissions(letter_instance: Letter):
+    # Basic Permissions
+    assign_perm("can_view_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_update_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_archive_letter", letter_instance.owner, letter_instance)
+    # Workflow Permissions
+    assign_perm("can_share_letter", letter_instance.owner, letter_instance)
+    # Interaction Permissions
+    assign_perm("can_comment_letter", letter_instance.owner, letter_instance)
+    # Trash and Recover Permissions
+    assign_perm("can_trash_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_restore_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_remove_from_trash_letter", letter_instance.owner, letter_instance)
+
+
+def remove_owner_permissions(letter_instance: Letter):
+    # Basic Permissions
+    remove_perm("can_view_letter", letter_instance.owner, letter_instance)
+    remove_perm("can_update_letter", letter_instance.owner, letter_instance)
+    remove_perm("can_archive_letter", letter_instance.owner, letter_instance)
+    # Interaction Permissions
+    remove_perm("can_share_letter", letter_instance.owner, letter_instance)
+    # Interaction Permissions
+    remove_perm("can_comment_letter", letter_instance.owner, letter_instance)
+    # Trash and Recover Permissions
+    remove_perm("can_trash_letter", letter_instance.owner, letter_instance)
+    remove_perm("can_restore_letter", letter_instance.owner, letter_instance)
+    remove_perm("can_remove_from_trash_letter", letter_instance.owner, letter_instance)

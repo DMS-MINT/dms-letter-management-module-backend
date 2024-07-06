@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
+from core.users.models import BaseUser
 
 
 class Letter(PolymorphicModel, BaseModel):
@@ -35,6 +36,11 @@ class Letter(PolymorphicModel, BaseModel):
         blank=True,
         null=True,
         help_text=_("Enter the content of the letter."),
+    )
+    owner = models.ForeignKey(
+        BaseUser,
+        on_delete=models.CASCADE,
+        related_name="owned_letters",
     )
     signature = models.FileField(
         upload_to="letters/signatures/",
