@@ -54,16 +54,16 @@ def letter_create(
 
     letter_instance = create_letter_instance(**letter_data)
 
-    author_participant = OrderedDict({
-        "id": "",
-        "user": OrderedDict({
-            "id": current_user.id,
-            "user_type": "member",
-        }),
-        "role": "Author",
-    })
-
-    participants.append(author_participant)
+    if letter_type in ["internal", "outgoing"]:
+        author_participant = OrderedDict({
+            "id": "",
+            "user": OrderedDict({
+                "id": current_user.id,
+                "user_type": "member",
+            }),
+            "role": "Author",
+        })
+        participants.append(author_participant)
 
     participants_create(
         current_user=current_user,

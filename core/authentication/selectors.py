@@ -9,7 +9,6 @@ def user_get_login_data(*, current_user: Member):
     return {
         "id": getattr(current_user, "id", ""),
         "email": getattr(current_user, "email", ""),
-        "username": getattr(current_user, "username", ""),
         "first_name": getattr(current_user, "first_name", ""),
         "last_name": getattr(current_user, "last_name", ""),
         "full_name": getattr(current_user, "full_name", ""),

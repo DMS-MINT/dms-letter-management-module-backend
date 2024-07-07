@@ -1,4 +1,5 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from polymorphic.admin import (
     PolymorphicChildModelAdmin,
     PolymorphicChildModelFilter,
@@ -6,6 +7,7 @@ from polymorphic.admin import (
 )
 
 from .models import BaseUser, Department, Guest, Member
+from .services import user_create
 
 
 class BaseUserChildAdmin(PolymorphicChildModelAdmin):
@@ -35,14 +37,73 @@ class MemberAdmin(BaseUserChildAdmin):
         "department",
         "is_staff",
     ]
+    search_fields: list[str] = ["email", "job_title", "department"]
+    fieldsets = (
+        (
+            "Authentication Info",
+            {
+                "fields": (
+                    "email",
+                    "password",
+                ),
+            },
+        ),
+        (
+            "Personal Info",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "phone_number",
+                ),
+            },
+        ),
+        (
+            "Job Details",
+            {
+                "fields": (
+                    "job_title",
+                    "department",
+                ),
+            },
+        ),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                ),
+            },
+        ),
+        (
+            "Important Dates",
+            {
+                "fields": (
+                    "last_login",
+                    "date_joined",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+
     readonly_fields: list[str] = [
-        "is_active",
-        "is_admin",
-        "is_superuser",
         "last_login",
         "date_joined",
+        "updated_at",
     ]
     show_in_index = True
+
+    def save_model(self, request, obj, form, change):
+        if change:
+            return super().save_model(request, obj, form, change)
+
+        try:
+            user_create(**form.cleaned_data)
+        except ValidationError as exc:
+            self.message_user(request, str(exc), messages.ERROR)
 
 
 @admin.register(BaseUser)
