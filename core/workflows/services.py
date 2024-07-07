@@ -2,7 +2,7 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
-from core.letters.models import Letter, Incoming
+from core.letters.models import Incoming, Letter
 from core.participants.models import Participant
 from core.users.models import Member
 
@@ -83,7 +83,7 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
 @transaction.atomic
 def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.published_at = None
-    letter_instance.current_state = Letter.States.DRAFT
+    letter_instance.current_state = Letter.States.REJECTED
     letter_instance.save()
 
     return letter_instance

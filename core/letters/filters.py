@@ -94,7 +94,12 @@ class BaseLetterFilter(django_filters.FilterSet):
         return queryset.filter(combined_filter)
 
     def filter_draft(self, queryset):
-        current_state_filter = Q(current_state__in=[Letter.States.DRAFT])
+        current_state_filter = Q(
+            current_state__in=[
+                Letter.States.DRAFT,
+                Letter.States.REJECTED,
+            ],
+        )
 
         participant_filter = Q(
             participants__user_id=self.current_user.id,

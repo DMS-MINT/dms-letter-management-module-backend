@@ -14,8 +14,9 @@ class Letter(PolymorphicModel, BaseModel):
         DRAFT = 1, _("Draft")
         SUBMITTED = 2, _("Submitted")
         PUBLISHED = 3, _("Published")
-        CLOSED = 4, _("Closed")
-        TRASHED = 5, _("Trashed")
+        REJECTED = 4, _("Rejected")
+        CLOSED = 5, _("Closed")
+        TRASHED = 6, _("Trashed")
 
     reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
 
