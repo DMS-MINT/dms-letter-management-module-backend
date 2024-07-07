@@ -44,6 +44,7 @@ class BaseUser(PolymorphicModel, BaseModel):
 
 
 class Member(BaseUser, AbstractUser, PermissionsMixin):
+    username = None
     job_title = models.CharField(
         _("job title"),
         max_length=254,
@@ -76,7 +77,7 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     objects = BaseUserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name", "username", "job_title", "department", "phone_number"]
+    REQUIRED_FIELDS = ["first_name", "last_name", "job_title", "department", "phone_number"]
 
     class Meta:
         verbose_name: str = "Member"

@@ -26,7 +26,6 @@ class GuestDetailSerializer(serializers.Serializer):
 
 class MemberDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    username = serializers.CharField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     full_name = serializers.CharField()
