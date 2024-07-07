@@ -86,6 +86,19 @@ class ApiPermMixin:
                     # Interaction Permissions
                     "can_comment_letter",
                 ],
+                Letter.States.REJECTED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_update_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_submit_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                    "can_publish_letter",
+                    # Trash and Recover Permissions
+                    "can_trash_letter",
+                ],
                 Letter.States.CLOSED: [
                     # Basic Permissions
                     "can_view_letter",
@@ -137,6 +150,19 @@ class ApiPermMixin:
                     "can_close_letter",
                     # Interaction Permissions
                     "can_comment_letter",
+                ],
+                Letter.States.REJECTED: [
+                    # Basic Permissions
+                    "can_view_letter",
+                    "can_update_letter",
+                    # Workflow Permissions
+                    "can_share_letter",
+                    "can_submit_letter",
+                    # Interaction Permissions
+                    "can_comment_letter",
+                    "can_publish_letter",
+                    # Trash and Recover Permissions
+                    "can_trash_letter",
                 ],
                 Letter.States.CLOSED: [
                     # Basic Permissions
