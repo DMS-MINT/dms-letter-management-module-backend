@@ -31,7 +31,7 @@ from .utils import process_request_data
 class LetterListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
         category = serializers.ChoiceField(
-            choices=["inbox", "outbox", "draft", "pending", "published"],
+            choices=["inbox", "outbox", "draft", "pending", "published", "trash"],
             required=True,
         )
 
@@ -350,6 +350,7 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
         self.check_object_permissions(request, letter_instance)
 
         letter_instance.trashed = True
+        letter_instance.current_state = Letter.States.TRASHED
         letter_instance.save()
         return Response(status=http_status.HTTP_204_NO_CONTENT)
 
