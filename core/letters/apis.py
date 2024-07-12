@@ -24,14 +24,21 @@ from .serializers import (
     LetterListSerializer,
     OutgoingLetterDetailSerializer,
 )
-from .services import letter_create, letter_create_and_publish, letter_update
+from .services import (
+    letter_create,
+    letter_create_and_publish,
+    letter_hide,
+    letter_move_to_trash,
+    letter_restore_from_trash,
+    letter_update,
+)
 from .utils import process_request_data
 
 
 class LetterListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
         category = serializers.ChoiceField(
-            choices=["inbox", "outbox", "draft", "pending", "published", "trash"],
+            choices=["inbox", "outbox", "draft", "trash", "pending", "published"],
             required=True,
         )
 
@@ -345,26 +352,63 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_trash_letter"]
 
-    def delete(self, request, reference_number) -> Response:
+    def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        letter_instance.trashed = True
-        letter_instance.current_state = Letter.States.TRASHED
-        letter_instance.save()
-        return Response(status=http_status.HTTP_204_NO_CONTENT)
+        letter_instance = letter_move_to_trash(letter_instance=letter_instance)
+
+        output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+        permissions = self.get_object_permissions_details(letter_instance)
+
+        response_data = {
+            "message": "The Letter has been moved to the trash.",
+        }
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"letter_{reference_number}",
+            {
+                "type": "letter_update",
+                "message": {
+                    "data": output_serializer.data,
+                    "permissions": permissions,
+                },
+            },
+        )
+
+        return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
 class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_restore_letter"]
 
-    def delete(self, request, reference_number) -> Response:
+    def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        letter_instance.trashed = False
-        letter_instance.save()
-        return Response(status=http_status.HTTP_204_NO_CONTENT)
+        letter_instance = letter_restore_from_trash(letter_instance=letter_instance)
+
+        output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+        permissions = self.get_object_permissions_details(letter_instance)
+
+        response_data = {
+            "message": "The Letter has been restored from the trash.",
+        }
+
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f"letter_{reference_number}",
+            {
+                "type": "letter_update",
+                "message": {
+                    "data": output_serializer.data,
+                    "permissions": permissions,
+                },
+            },
+        )
+
+        return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
 class LetterRemoveFromTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
@@ -374,7 +418,10 @@ class LetterRemoveFromTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        letter_instance.trashed = True
-        letter_instance.hidden = True
-        letter_instance.save()
-        return Response(status=http_status.HTTP_204_NO_CONTENT)
+        letter_hide(letter_instance=letter_instance)
+
+        response_data = {
+            "message": "The Letter has been deleted successfully.",
+        }
+
+        return Response(data=response_data, status=http_status.HTTP_204_NO_CONTENT)
