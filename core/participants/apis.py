@@ -26,12 +26,16 @@ class ParticipantListApi(APIView):
                 "modified",
             ]
 
+    serializer_class = OutputSerializer
+
 
 class ParticipantCreateApi(APIView):
     class InputSerializer(serializers.Serializer):
         user = UserCreateSerializer()
         role = serializers.ChoiceField(choices=Participant.Roles.choices)
         message = serializers.CharField(required=False, allow_null=True)
+
+    serializer_class = InputSerializer
 
     def post(self, request):
         input_serializer = self.InputSerializer(data=request.data, many=True)

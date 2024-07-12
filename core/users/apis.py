@@ -30,6 +30,8 @@ class UserListApi(ApiAuthMixin, APIView):
         def to_resource_type(self, model_or_instance):
             return model_or_instance._meta.object_name.lower()
 
+    serializer_class = OutputSerializer
+
     def get(self, request) -> Response:
         try:
             user = user_get_suggestions()
@@ -64,6 +66,8 @@ class UserDetailAPI(ApiAuthMixin, APIView):
 
         def to_resource_type(self, model_or_instance):
             return model_or_instance._meta.object_name.lower()
+
+    serializer_class = OutputSerializer
 
     def get(self, request, user_id):
         try:

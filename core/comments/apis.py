@@ -22,6 +22,8 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         content = serializers.CharField()
 
+    serializer_class = InputSerializer
+
     def post(self, request, reference_number):
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
@@ -70,6 +72,8 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         content = serializers.CharField()
+
+    serializer_class = InputSerializer
 
     def put(self, request, comment_id):
         comment_instance = get_object_or_404(Comment, pk=comment_id)

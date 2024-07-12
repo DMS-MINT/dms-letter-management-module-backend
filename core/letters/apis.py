@@ -53,6 +53,8 @@ class LetterListApi(ApiAuthMixin, APIView):
         def to_resource_type(self, model_or_instance):
             return model_or_instance._meta.object_name.lower()
 
+    serializer_class = FilterSerializer
+
     def get(self, request) -> Response:
         filter_serializer = self.FilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=True)
@@ -79,6 +81,8 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         def to_resource_type(self, instance):
             return instance._meta.object_name.lower()
+
+    serializer_class = OutputSerializer
 
     def get(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -143,6 +147,8 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             ),
         )
 
+    serializer_class = InputSerializer
+
     def post(self, request) -> Response:
         request_data = process_request_data(request)
 
@@ -191,6 +197,8 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 allow_empty_file=True,
             ),
         )
+
+    serializer_class = InputSerializer
 
     def post(self, request) -> Response:
         request_data = process_request_data(request)
@@ -253,6 +261,8 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
             ),
         )
 
+    serializer_class = InputSerializer
+
     def post(self, request) -> Response:
         request_data = process_request_data(request)
 
@@ -307,6 +317,8 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 allow_empty_file=True,
             ),
         )
+
+    serializer_class = InputSerializer
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)

@@ -34,6 +34,8 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
             ),
         )
 
+    serializer_class = InputSerializer
+
     def post(self, request, reference_number) -> Response:
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
