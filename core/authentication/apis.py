@@ -20,6 +20,8 @@ class LoginApi(APIView):
         email = serializers.EmailField()
         password = serializers.CharField()
 
+    serializer_class = InputSerializer
+
     def post(self, request):
         serializer = self.InputSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

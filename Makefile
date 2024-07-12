@@ -11,6 +11,12 @@ collectstatic:
 	@echo "Collecting static files..."
 	@python manage.py collectstatic --noinput
 
+# Generate API schema
+.PHONY: generate-schema
+generate-schema:
+	@echo "Generating API schema..."
+	@python manage.py spectacular --color --file schema.yml
+
 # Install all dependencies (production and development)
 .PHONY: install-all-requirements
 install-all-requirements:

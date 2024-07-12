@@ -6,82 +6,414 @@ info:
     It includes operations for creating, retrieving, updating, and deleting letters,
     as well as additional features such as search and categorization.
 paths:
+  /api/auth/login/:
+    post:
+      operationId: api_auth_login_create
+      description: Following https://docs.djangoproject.com/en/5.0/topics/auth/default/#how-to-log-a-user-in
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      security:
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
+  /api/auth/logout/:
+    get:
+      operationId: api_auth_logout_retrieve
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/auth/me/:
+    get:
+      operationId: api_auth_me_retrieve
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/auth/retrieve-signature/:
+    post:
+      operationId: api_auth_retrieve_signature_create
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/comments/{comment_id}/delete/:
+    delete:
+      operationId: api_comments_delete_destroy
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/comments/{comment_id}/update/:
+    put:
+      operationId: api_comments_update_update
+      parameters:
+      - in: path
+        name: comment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
+  /api/comments/{reference_number}/create/:
+    post:
+      operationId: api_comments_create_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
   /api/letters/:
     get:
       operationId: api_letters_retrieve
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
       responses:
         '200':
-          description: No response body
-  /api/letters/{letter_id}/:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Filter'
+          description: ''
+  /api/letters/{reference_number}/:
     get:
       operationId: api_letters_retrieve_2
       parameters:
       - in: path
-        name: letter_id
+        name: reference_number
         schema:
           type: string
-          format: uuid
         required: true
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
+  /api/letters/{reference_number}/close/:
+    post:
+      operationId: api_letters_close_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
       responses:
         '200':
           description: No response body
-  /api/letters/{letter_id}/delete/:
-    delete:
-      operationId: api_letters_delete_destroy
+  /api/letters/{reference_number}/publish/:
+    post:
+      operationId: api_letters_publish_create
       parameters:
       - in: path
-        name: letter_id
+        name: reference_number
         schema:
           type: string
-          format: uuid
         required: true
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/reject/:
+    post:
+      operationId: api_letters_reject_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/remove_from_trash/:
+    delete:
+      operationId: api_letters_remove_from_trash_destroy
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
       responses:
         '204':
           description: No response body
-  /api/letters/{letter_id}/update/:
+  /api/letters/{reference_number}/reopen/:
+    post:
+      operationId: api_letters_reopen_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/restore/:
+    put:
+      operationId: api_letters_restore_update
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/retract/:
+    post:
+      operationId: api_letters_retract_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/share/:
+    post:
+      operationId: api_letters_share_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
+  /api/letters/{reference_number}/submit/:
+    post:
+      operationId: api_letters_submit_create
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/trash/:
+    put:
+      operationId: api_letters_trash_update
+      parameters:
+      - in: path
+        name: reference_number
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/update/:
     put:
       operationId: api_letters_update_update
       parameters:
       - in: path
-        name: letter_id
+        name: reference_number
         schema:
           type: string
-          format: uuid
         required: true
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
   /api/letters/create/:
     post:
       operationId: api_letters_create_create
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
+  /api/letters/create_and_publish/:
+    post:
+      operationId: api_letters_create_and_publish_create
+      tags:
+      - api
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
+  /api/letters/create_and_submit/:
+    post:
+      operationId: api_letters_create_and_submit_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Input'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Input'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Input'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Input'
+          description: ''
   /api/schema/:
     get:
       operationId: api_schema_retrieve
@@ -205,7 +537,8 @@ paths:
       tags:
       - api
       security:
-      - jwtAuth: []
+      - basicAuth: []
+      - cookieAuth: []
       - {}
       responses:
         '200':
@@ -232,12 +565,13 @@ paths:
       operationId: api_users_retrieve
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
   /api/users/{user_id}/:
     get:
       operationId: api_users_retrieve_2
@@ -250,15 +584,256 @@ paths:
         required: true
       tags:
       - api
-      security:
-      - jwtAuth: []
-      - {}
       responses:
         '200':
-          description: No response body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Output'
+          description: ''
 components:
+  schemas:
+    CategoryEnum:
+      enum:
+      - inbox
+      - outbox
+      - draft
+      - trash
+      - pending
+      - published
+      type: string
+      description: |-
+        * `inbox` - inbox
+        * `outbox` - outbox
+        * `draft` - draft
+        * `trash` - trash
+        * `pending` - pending
+        * `published` - published
+    Filter:
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+      required:
+      - category
+    Input:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+      - email
+      - password
+    LetterDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference_number:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        owner:
+          $ref: '#/components/schemas/MemberList'
+        signature:
+          type: string
+          format: uri
+        current_state:
+          type: string
+        subject:
+          type: string
+        content:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        submitted_at:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - attachments
+      - comments
+      - content
+      - created_at
+      - current_state
+      - id
+      - owner
+      - participants
+      - published_at
+      - reference_number
+      - signature
+      - subject
+      - submitted_at
+      - updated_at
+    LetterDetailTyped:
+      allOf:
+      - type: object
+        properties:
+          letter_type:
+            type: string
+        required:
+        - letter_type
+      - $ref: '#/components/schemas/LetterDetail'
+    MemberList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+        job_title:
+          type: string
+      required:
+      - full_name
+      - id
+      - job_title
+    OutgoingLetterDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        reference_number:
+          type: string
+          pattern: ^[-a-zA-Z0-9_]+$
+        owner:
+          $ref: '#/components/schemas/MemberList'
+        signature:
+          type: string
+          format: uri
+        current_state:
+          type: string
+        subject:
+          type: string
+        content:
+          type: string
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/inline_serializer'
+        submitted_at:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        delivery_person_name:
+          type: string
+        delivery_person_phone:
+          type: string
+          format: date-time
+        shipment_id:
+          type: string
+          format: date-time
+      required:
+      - attachments
+      - comments
+      - content
+      - created_at
+      - current_state
+      - delivery_person_name
+      - delivery_person_phone
+      - id
+      - owner
+      - participants
+      - published_at
+      - reference_number
+      - shipment_id
+      - signature
+      - subject
+      - submitted_at
+      - updated_at
+    OutgoingLetterDetailTyped:
+      allOf:
+      - type: object
+        properties:
+          letter_type:
+            type: string
+        required:
+        - letter_type
+      - $ref: '#/components/schemas/OutgoingLetterDetail'
+    Output:
+      oneOf:
+      - $ref: '#/components/schemas/LetterDetailTyped'
+      - $ref: '#/components/schemas/LetterDetailTyped'
+      - $ref: '#/components/schemas/OutgoingLetterDetailTyped'
+      discriminator:
+        propertyName: letter_type
+        mapping:
+          internal: '#/components/schemas/LetterDetailTyped'
+          incoming: '#/components/schemas/LetterDetailTyped'
+          outgoing: '#/components/schemas/OutgoingLetterDetailTyped'
+    RoleEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      type: integer
+      description: |-
+        * `1` - Author
+        * `2` - Primary Recipient
+        * `3` - Carbon Copy Recipient
+        * `4` - Blind Carbon Copy Recipient
+        * `5` - Collaborator
+        * `6` - Administrator
+    inline_serializer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user:
+          $ref: '#/components/schemas/Output'
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - id
+      - role
+      - user
   securitySchemes:
-    jwtAuth:
+    basicAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
