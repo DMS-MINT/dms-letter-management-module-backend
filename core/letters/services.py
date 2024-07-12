@@ -168,3 +168,30 @@ def letter_update(
         )
 
     return letter_instance
+
+
+@transaction.atomic
+def letter_move_to_trash(*, letter_instance=Letter):
+    letter_instance.current_state = Letter.States.TRASHED
+    letter_instance.trashed = True
+    letter_instance.save()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_restore_from_trash(*, letter_instance=Letter):
+    letter_instance.current_state = Letter.States.DRAFT
+    letter_instance.trashed = False
+    letter_instance.save()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_hide(*, letter_instance=Letter):
+    letter_instance.trashed = True
+    letter_instance.hidden = True
+    letter_instance.save()
+
+    return letter_instance

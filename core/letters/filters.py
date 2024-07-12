@@ -14,7 +14,7 @@ class LetterCategory(Enum):
     DRAFT = "draft"
     PENDING = "pending"
     PUBLISHED = "published"
-    TRASHED = "trashed"
+    TRASH = "trash"
 
 
 # Filter class for filtering Letter objects based on different categories like inbox, outbox, or draft.
@@ -37,8 +37,8 @@ class BaseLetterFilter(django_filters.FilterSet):
                 return self.filter_outbox(queryset)
             case LetterCategory.DRAFT.value:
                 return self.filter_draft(queryset)
-            case LetterCategory.TRASHED.value:
-                return self.filter_trashed(queryset)
+            case LetterCategory.TRASH.value:
+                return self.filter_trash(queryset)
             case LetterCategory.PENDING.value:
                 if self.current_user.is_staff:
                     return self.filter_pending(queryset)
@@ -113,7 +113,7 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         return queryset.filter(combined_filter)
 
-    def filter_trashed(self, queryset):
+    def filter_trash(self, queryset):
         current_state_filter = Q(current_state__in=[Letter.States.TRASHED])
 
         participant_filter = Q(
