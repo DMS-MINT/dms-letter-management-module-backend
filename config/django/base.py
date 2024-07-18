@@ -19,10 +19,12 @@ LOCAL_APPS: list[str] = [
     "core.authentication.apps.AuthenticationConfig",
     "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",
+    "core.emails.apps.EmailsConfig",
     "core.letters.apps.LettersConfig",
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
+    "core.tasks.apps.TasksConfig",
     "core.users.apps.UsersConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
@@ -30,6 +32,8 @@ LOCAL_APPS: list[str] = [
 THIRD_PARTY_APPS: list[str] = [
     "corsheaders",
     "drf_spectacular",
+    "django_celery_beat",
+    "django_celery_results",
     "django_extensions",
     "django_filters",
     "easyaudit",
@@ -168,8 +172,10 @@ AUTHENTICATION_BACKENDS = (
 ANONYMOUS_USER_NAME = None
 GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
 
+from config.settings.celery import *  # noqa
 from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
+from config.settings.email_sending import *  # noqa
 from config.settings.files_and_storages import *  # noqa
 from config.settings.sessions import *  # noqa
 
