@@ -63,7 +63,7 @@ class LetterListApi(ApiAuthMixin, APIView):
 
         serializer = self.OutputSerializer(letter_instances, many=True)
 
-        response_data = {"data": serializer.data}
+        response_data = {"letters": serializer.data}
 
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
