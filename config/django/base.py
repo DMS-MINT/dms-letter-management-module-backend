@@ -24,7 +24,6 @@ LOCAL_APPS: list[str] = [
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
-    "core.tasks.apps.TasksConfig",
     "core.users.apps.UsersConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
