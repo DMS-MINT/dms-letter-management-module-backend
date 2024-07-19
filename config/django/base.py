@@ -28,7 +28,6 @@ LOCAL_APPS: list[str] = [
 
 THIRD_PARTY_APPS: list[str] = [
     "corsheaders",
-    "drf_spectacular",
     "django_extensions",
     "django_filters",
     "easyaudit",
@@ -105,6 +104,7 @@ DATABASES = {
     },
 }
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -165,20 +165,11 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ANONYMOUS_USER_NAME = None
-GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+GUARDIAN_GET_CONTENT_TYPE = (
+    "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+)
 
 from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
 from config.settings.files_and_storages import *  # noqa
 from config.settings.sessions import *  # noqa
-
-from config.settings.debug_toolbar.settings import *  # noqa
-from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa
-
-INSTALLED_APPS, MIDDLEWARE = DebugToolbarSetup.do_settings(INSTALLED_APPS, MIDDLEWARE)
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Letter Management Module API",
-    "DESCRIPTION": "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",  # noqa: E501
-    "VERSION": "1.0.0",
-}
