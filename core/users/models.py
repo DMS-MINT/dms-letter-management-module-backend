@@ -69,6 +69,8 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
         help_text=_("Enter the email address of the employee."),
     )
 
+    otp_secret = models.TextField(_("OTP Secret"), editable=False, null=True, blank=True)
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
