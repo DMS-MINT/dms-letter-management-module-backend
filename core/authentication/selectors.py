@@ -14,4 +14,5 @@ def user_get_login_data(*, current_user: Member):
         "department": department,
         "phone_number": getattr(current_user, "phone_number", ""),
         "is_staff": getattr(current_user, "is_staff", False),
+        "is_2fa_enabled": getattr(current_user, "is_2fa_enabled", False),
     }

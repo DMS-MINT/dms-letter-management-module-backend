@@ -1,3 +1,4 @@
+import pyotp
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.contrib.auth.models import BaseUserManager as BUM  # noqa: N817
 from django.db import models
@@ -13,7 +14,9 @@ class BaseUserManager(BUM, PolymorphicManager):
             raise ValueError("Users must have an email address")
 
         email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
+        otp_secret = pyotp.random_base32()
+
+        user = self.model(email=email, otp_secret=otp_secret, **extra_fields)
 
         if password:
             user.set_password(password)
@@ -28,13 +31,14 @@ class BaseUserManager(BUM, PolymorphicManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_admin", True)
+        otp_secret = pyotp.random_base32()
 
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
 
-        return self.create_user(email, password, **extra_fields)
+        return self.create_user(email, password, otp_secret, **extra_fields)
 
 
 class BaseUser(PolymorphicModel, BaseModel):
@@ -70,6 +74,7 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     )
 
     otp_secret = models.TextField(_("OTP Secret"), editable=False, null=True, blank=True)
+    is_2fa_enabled = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)

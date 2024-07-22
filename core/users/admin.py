@@ -36,6 +36,7 @@ class MemberAdmin(BaseUserChildAdmin):
         "job_title",
         "department",
         "is_staff",
+        "is_2fa_enabled",
     ]
     search_fields: list[str] = ["email", "job_title", "department"]
     fieldsets = (
@@ -45,6 +46,7 @@ class MemberAdmin(BaseUserChildAdmin):
                 "fields": (
                     "email",
                     "password",
+                    "otp_secret",
                 ),
             },
         ),
@@ -93,6 +95,7 @@ class MemberAdmin(BaseUserChildAdmin):
         "last_login",
         "date_joined",
         "updated_at",
+        "otp_secret",
     ]
     show_in_index = True
 
