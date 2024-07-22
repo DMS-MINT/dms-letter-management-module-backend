@@ -85,43 +85,51 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = OutputSerializer
 
     def get(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+        try:
+            current_user = request.user
+            letter_instance = get_object(Letter, reference_number=reference_number)
 
-        if isinstance(letter_instance, Incoming):
-            if request.user.is_staff:
-                assign_perm("can_view_letter", request.user, letter_instance)
-                assign_perm("can_reject_letter", request.user, letter_instance)
-                assign_perm("can_publish_letter", request.user, letter_instance)
+            if isinstance(letter_instance, Incoming):
+                if request.user.is_staff:
+                    assign_perm("can_view_letter", request.user, letter_instance)
+                    assign_perm("can_reject_letter", request.user, letter_instance)
+                    assign_perm("can_publish_letter", request.user, letter_instance)
 
-        else:
-            if request.user.is_staff and letter_instance.current_state in [
-                Letter.States.SUBMITTED,
-                Letter.States.PUBLISHED,
-            ]:
-                assign_perm("can_view_letter", request.user, letter_instance)
-                assign_perm("can_reject_letter", request.user, letter_instance)
-                assign_perm("can_publish_letter", request.user, letter_instance)
+            else:
+                if request.user.is_staff and letter_instance.current_state in [
+                    Letter.States.SUBMITTED,
+                    Letter.States.PUBLISHED,
+                ]:
+                    assign_perm("can_view_letter", request.user, letter_instance)
+                    assign_perm("can_reject_letter", request.user, letter_instance)
+                    assign_perm("can_publish_letter", request.user, letter_instance)
 
-        self.check_object_permissions(request, letter_instance)
+            self.check_object_permissions(request, letter_instance)
 
-        output_serializer = self.OutputSerializer(letter_instance, many=False)
-        permissions = self.get_object_permissions_details(letter_instance)
+            output_serializer = self.OutputSerializer(letter_instance, many=False)
+            permissions = self.get_object_permissions_details(letter_instance, current_user)
 
-        response_data = {
-            "data": output_serializer.data,
-            "permissions": permissions,
-        }
+            response_data = {
+                "letter": output_serializer.data,
+                "permissions": permissions,
+            }
 
-        # channel_layer = get_channel_layer()
-        # async_to_sync(channel_layer.group_send)(
-        #     f"letter_{letter_instance.reference_number}",
-        #     {
-        #         "type": "letter_update",
-        #         "message": response_data,
-        #     },
-        # )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"letter_{letter_instance.reference_number}",
+            #     {
+            #         "type": "letter_update",
+            #         "message": response_data,
+            #     },
+            # )
 
-        return Response(data=response_data, status=http_status.HTTP_200_OK)
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
 
 
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
