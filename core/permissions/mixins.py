@@ -27,7 +27,7 @@ class ApiPermMixin:
 
         return list(user_perms.intersection(allowed_actions))
 
-    def get_object_permissions_details(self, obj):
+    def get_object_permissions_details(self, obj, current_user):
         users_with_perms = get_users_with_perms(obj, attach_perms=True)
         formatted_data = []
 
@@ -40,6 +40,7 @@ class ApiPermMixin:
             user_data = {
                 "user_id": str(user.id),
                 "permissions": intersected_permissions,
+                "is_current_user": user == current_user,
             }
             formatted_data.append(user_data)
 
