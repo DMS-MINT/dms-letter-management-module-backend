@@ -85,25 +85,25 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = OutputSerializer
 
     def get(self, request, reference_number) -> Response:
+        current_user = request.user
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
+        if isinstance(letter_instance, Incoming):
+            if request.user.is_staff:
+                assign_perm("can_view_letter", request.user, letter_instance)
+                assign_perm("can_reject_letter", request.user, letter_instance)
+                assign_perm("can_publish_letter", request.user, letter_instance)
+
+        else:
+            if request.user.is_staff and letter_instance.current_state in [
+                Letter.States.SUBMITTED,
+                Letter.States.PUBLISHED,
+            ]:
+                assign_perm("can_view_letter", request.user, letter_instance)
+                assign_perm("can_reject_letter", request.user, letter_instance)
+                assign_perm("can_publish_letter", request.user, letter_instance)
+
         try:
-            current_user = request.user
-            letter_instance = get_object(Letter, reference_number=reference_number)
-
-            if isinstance(letter_instance, Incoming):
-                if request.user.is_staff:
-                    assign_perm("can_view_letter", request.user, letter_instance)
-                    assign_perm("can_reject_letter", request.user, letter_instance)
-                    assign_perm("can_publish_letter", request.user, letter_instance)
-
-            else:
-                if request.user.is_staff and letter_instance.current_state in [
-                    Letter.States.SUBMITTED,
-                    Letter.States.PUBLISHED,
-                ]:
-                    assign_perm("can_view_letter", request.user, letter_instance)
-                    assign_perm("can_reject_letter", request.user, letter_instance)
-                    assign_perm("can_publish_letter", request.user, letter_instance)
-
             self.check_object_permissions(request, letter_instance)
 
             output_serializer = self.OutputSerializer(letter_instance, many=False)
