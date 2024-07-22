@@ -11,8 +11,6 @@ from core.signatures.models import Signature
 
 from .selectors import user_get_login_data
 
-LOGOUT_HRF = "api/auth/logout/"
-
 
 class LoginApi(APIView):
     """
@@ -39,13 +37,6 @@ class LoginApi(APIView):
         session_key = request.session.session_key
 
         response_data = {
-            "action": [
-                {
-                    "name": "Logout",
-                    "hrf": LOGOUT_HRF,
-                    "method": "POST",
-                },
-            ],
             "session": session_key,
         }
 
@@ -65,14 +56,7 @@ class MeApi(ApiAuthMixin, APIView):
             data = user_get_login_data(current_user=request.user)
 
             response_data = {
-                "action": [
-                    {
-                        "name": "User Listing",
-                        "hrf": LOGOUT_HRF,
-                        "method": "GET",
-                    },
-                ],
-                "data": data,
+                "my_profile": data,
             }
 
             return Response(data=response_data)

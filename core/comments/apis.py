@@ -39,7 +39,7 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "data": output_serializer.data,
@@ -90,7 +90,7 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
             comment_update(comment_instance=comment_instance, **input_instance.validated_data)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "data": output_serializer.data,
@@ -127,7 +127,7 @@ class CommentDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
         comment_instance.delete()
 
         output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-        permissions = self.get_object_permissions_details(letter_instance)
+        permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
