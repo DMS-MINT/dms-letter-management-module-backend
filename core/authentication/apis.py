@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import setup_2fa, verify_otp
-from core.signatures.models import Signature
 
 from .selectors import user_get_login_data
 
@@ -92,9 +91,6 @@ class ValidateOneTimePassword(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         otp = serializers.IntegerField()
 
-    class OutputSerializer(serializers.Serializer):
-        e_signature = serializers.ImageField()
-
     def post(self, request):
         current_user = request.user
 
@@ -105,13 +101,14 @@ class ValidateOneTimePassword(ApiAuthMixin, APIView):
             result = verify_otp(current_user=current_user, **input_serializer.validated_data)
 
             if not result:
-                raise ValidationError({"otp": "The provided OTP is invalid."})
+                raise ValueError("Invalid OTP provided.")
 
-            signature_instance = Signature.objects.get(user=current_user)
+            current_user.is_2fa_enabled = True
+            current_user.save()
 
-            output_serializer = self.OutputSerializer(signature_instance)
+            response_data = {"message": "OTP verified successfully."}
 
-            return Response(data=output_serializer.data, status=http_status.HTTP_200_OK)
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except ValueError as e:
             raise ValidationError(e)
