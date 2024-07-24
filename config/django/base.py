@@ -14,6 +14,7 @@ ALLOWED_HOSTS: list[str] = ["*"]
 
 # Application definition
 LOCAL_APPS: list[str] = [
+    "core.admin_site.apps.AdminSiteConfig",
     "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
     "core.authentication.apps.AuthenticationConfig",
@@ -23,6 +24,7 @@ LOCAL_APPS: list[str] = [
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.users.apps.UsersConfig",
+    "core.signatures.apps.SignaturesConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
 
@@ -94,14 +96,21 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql_psycopg2",
+#         "NAME": env.str("DB_NAME"),
+#         "USER": env.str("DB_USER"),
+#         "PASSWORD": env.str("DB_PASSWORD"),
+#         "HOST": env.str("DB_HOST"),
+#         "PORT": env.str("DB_PORT"),
+#     },
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     },
 }
 
@@ -165,7 +174,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ANONYMOUS_USER_NAME = None
-GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+GUARDIAN_GET_CONTENT_TYPE = (
+    "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+)
 
 from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
