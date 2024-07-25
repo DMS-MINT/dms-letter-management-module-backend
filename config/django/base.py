@@ -14,6 +14,7 @@ ALLOWED_HOSTS: list[str] = ["*"]
 
 # Application definition
 LOCAL_APPS: list[str] = [
+    "core.admin_site.apps.AdminSiteConfig",
     "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
     "core.authentication.apps.AuthenticationConfig",
@@ -25,6 +26,7 @@ LOCAL_APPS: list[str] = [
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
     "core.users.apps.UsersConfig",
+    "core.signatures.apps.SignaturesConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
 
@@ -109,6 +111,7 @@ DATABASES = {
     },
 }
 
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -169,7 +172,9 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ANONYMOUS_USER_NAME = None
-GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+GUARDIAN_GET_CONTENT_TYPE = (
+    "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+)
 
 from config.settings.celery import *  # noqa
 from config.settings.logging import *  # noqa

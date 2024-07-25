@@ -2,13 +2,15 @@
 
 import uuid
 from django.db import migrations, models
-
+from django.conf import settings
+import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
     initial = True
 
     dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -18,7 +20,8 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('created_at', models.DateTimeField(auto_now_add=True, db_index=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('e_signature', models.ImageField(help_text='Upload your signature image file.', unique=True, upload_to='letters/signatures/', verbose_name='E Signature')),
+                ('e_signature', models.ImageField(upload_to='letters/signatures/', verbose_name='E Signature')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
