@@ -3,7 +3,9 @@ from io import BytesIO
 
 import pyotp
 import qrcode
+from rest_framework import status as http_status
 
+from core.api.exceptions import APIError
 from core.users.models import Member
 
 
@@ -28,7 +30,12 @@ def setup_2fa(current_user: Member):
 def verify_otp(current_user: Member, otp: int):
     totp = pyotp.TOTP(current_user.otp_secret)
 
-    if totp.verify(otp):
-        return True
+    if not totp.verify(otp):
+        raise APIError(
+            error_code="INVALID_OTP",
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            message="Invalid OTP provided. Please check the OTP and try again.",
+            extra={"otp_error": "The provided OTP is incorrect."},
+        )
 
-    return False
+    return True
