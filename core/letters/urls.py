@@ -9,7 +9,7 @@ from .apis import (
     LetterCreateApi,
     LetterDetailApi,
     LetterListApi,
-    LetterRemoveFromTrashApi,
+    LetterPermanentlyDeleteApi,
     LetterRestoreApi,
     LetterTrashApi,
     LetterUpdateApi,
@@ -27,9 +27,9 @@ urlpatterns: list[URLPattern] = [
     path("<slug:reference_number>/trash/", LetterTrashApi.as_view(), name="letter-delete"),
     path("<slug:reference_number>/restore/", LetterRestoreApi.as_view(), name="letter-restore"),
     path(
-        "<slug:reference_number>/remove_from_trash/",
-        LetterRemoveFromTrashApi.as_view(),
-        name="letter-remove-from-trash",
+        "<slug:reference_number>/permanently_delete/",
+        LetterPermanentlyDeleteApi.as_view(),
+        name="letter-permanently-delete",
     ),
 ]
 
