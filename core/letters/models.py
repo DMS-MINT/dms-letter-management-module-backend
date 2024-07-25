@@ -4,9 +4,10 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
+from rest_framework import status as http_status
 
+from core.api.exceptions import APIError
 from core.common.models import BaseModel
-from core.users.models import BaseUser
 
 
 class Letter(PolymorphicModel, BaseModel):
@@ -39,15 +40,17 @@ class Letter(PolymorphicModel, BaseModel):
         help_text=_("Enter the content of the letter."),
     )
     owner = models.ForeignKey(
-        BaseUser,
+        "users.Member",
         on_delete=models.CASCADE,
         related_name="owned_letters",
     )
-    signature = models.FileField(
-        upload_to="letters/signatures/",
-        verbose_name=_("Signature"),
-        help_text=_("Upload the author signature file."),
+
+    e_signature = models.ManyToManyField(
+        "signatures.Signature",
+        blank=True,
+        help_text=_("Select the senders signature file."),
     )
+
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
     published_at = models.DateTimeField(blank=True, null=True, editable=False)
 
@@ -62,15 +65,30 @@ class Letter(PolymorphicModel, BaseModel):
         if not isinstance(self, Incoming):
             stripped_content = re.sub("<[^<]+?>", "", self.content or "")
             if not stripped_content.strip():
-                raise ValidationError(_("The content of the letter cannot be empty."))
+                raise APIError(
+                    error_code="EMPTY_CONTENT",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"content": "The content of the letter cannot be empty."},
+                )
 
         # Check Attachment validation if the letter is an Incoming letter
         if isinstance(self, Incoming):
             if not self.attachments.exists():
-                raise ValidationError(_("The letter must have at least one attachment."))
+                raise APIError(
+                    error_code="MISSING_ATTACHMENT",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"attachment": "The letter must have at least one attachment."},
+                )
 
-        if not self.signature:
-            raise ValidationError(_("Please sign the letter before submitting it to the record office."))
+        if not self.e_signature:
+            raise APIError(
+                error_code="UNSIGNED_LETTER",
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                message="Validation error",
+                extra={"e_signature": "The letter must be signed before proceeding."},
+            )
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"
@@ -96,7 +114,7 @@ class Letter(PolymorphicModel, BaseModel):
             # Trash and Recover Permissions
             ("can_trash_letter", "Can trash letter"),
             ("can_restore_letter", "Can restore letter"),
-            ("can_remove_from_trash_letter", "Can remove from trash letter"),
+            ("can_permanently_delete_letter", "Can permanently delete letter"),
         )
 
 
