@@ -31,14 +31,13 @@ class BaseUserManager(BUM, PolymorphicManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_admin", True)
-        otp_secret = pyotp.random_base32()
 
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
 
-        return self.create_user(email, password, otp_secret, **extra_fields)
+        return self.create_user(email, password, **extra_fields)
 
 
 class BaseUser(PolymorphicModel, BaseModel):
