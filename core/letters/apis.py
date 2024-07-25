@@ -1,6 +1,5 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.shortcuts import get_object_or_404
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -12,6 +11,7 @@ from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
+from core.authentication.services import verify_otp
 from core.common.utils import get_object, inline_serializer
 from core.permissions.mixins import ApiPermMixin
 from core.users.serializers import UserCreateSerializer
@@ -329,7 +329,7 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = InputSerializer
 
     def put(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
         request_data = process_request_data(request)
@@ -373,7 +373,7 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_trash_letter"]
 
     def put(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
         letter_instance = letter_move_to_trash(letter_instance=letter_instance)
@@ -404,7 +404,7 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_restore_letter"]
 
     def put(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
         letter_instance = letter_restore_from_trash(letter_instance=letter_instance)
@@ -431,12 +431,23 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
-class LetterRemoveFromTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
-    required_object_perms = ["can_view_letter", "can_remove_from_trash_letter"]
+class LetterPermanentlyDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
+    required_object_perms = ["can_view_letter", "can_permanently_delete_letter"]
 
-    def delete(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    class InputSerializer(serializers.Serializer):
+        otp = serializers.IntegerField()
+
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
+
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        result = verify_otp(current_user=request.user, **input_serializer.validated_data)
+
+        if not result:
+            raise ValueError("Invalid OTP provided.")
 
         letter_hide(letter_instance=letter_instance)
 
