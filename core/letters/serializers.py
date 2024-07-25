@@ -38,7 +38,7 @@ class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     owner = MemberListSerializer()
-    signature = serializers.ImageField()
+    # e_signature = serializers.ImageField()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     content = serializers.CharField()
