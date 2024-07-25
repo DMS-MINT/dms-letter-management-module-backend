@@ -1,6 +1,5 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
@@ -8,7 +7,10 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
+from core.authentication.services import verify_otp
+from core.common.utils import get_object
 from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
 from core.participants.services import add_participants
@@ -37,7 +39,8 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = InputSerializer
 
     def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
         self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data)
@@ -51,7 +54,7 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "Letter has been shared with the specified collaborators.",
@@ -71,6 +74,9 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
+
         except ValueError as e:
             raise ValidationError(e)
 
@@ -81,19 +87,19 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
         self.check_object_permissions(request, letter_instance)
 
         try:
             letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "Letter has been submitted to the record office.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -109,6 +115,9 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -120,19 +129,30 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_retract_letter"]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    class InputSerializer(serializers.Serializer):
+        otp = serializers.IntegerField()
+
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
         self.check_object_permissions(request, letter_instance)
 
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
         try:
+            result = verify_otp(current_user=request.user, **input_serializer.validated_data)
+
+            if not result:
+                raise ValueError("Invalid OTP provided.")
+
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "Letter has been retracted.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -148,6 +168,9 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -160,18 +183,23 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_publish_letter"]
     permission_classes = [IsAdminUser]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    class InputSerializer(serializers.Serializer):
+        otp = serializers.IntegerField()
+
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
 
         try:
             letter_publish(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "Letter has been published.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -187,6 +215,9 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -199,18 +230,28 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_reject_letter"]
     permission_classes = [IsAdminUser]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    class InputSerializer(serializers.Serializer):
+        otp = serializers.IntegerField()
+
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
 
         try:
+            result = verify_otp(current_user=request.user, **input_serializer.validated_data)
+
+            if not result:
+                raise ValueError("Invalid OTP provided.")
+
             letter_reject(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "Letter has been rejected and sent back to the sender.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -226,6 +267,9 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -237,19 +281,19 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_close_letter"]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
         self.check_object_permissions(request, letter_instance)
 
         try:
             letter_instance = letter_close(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "The letter has been officially closed.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -265,6 +309,9 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -276,19 +323,19 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_reopen_letter"]
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    def put(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
         self.check_object_permissions(request, letter_instance)
 
         try:
             letter_instance = letter_reopen(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "The letter has been reopened.",
-                "permissions": permissions,
             }
 
             channel_layer = get_channel_layer()
@@ -304,6 +351,9 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
             )
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
