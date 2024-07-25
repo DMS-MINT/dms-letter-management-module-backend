@@ -39,7 +39,7 @@ def assign_permissions(
             # Trash and Recover Permissions
             assign_perm("can_trash_letter", participant_user, letter_instance)
             assign_perm("can_restore_letter", participant_user, letter_instance)
-            assign_perm("can_remove_from_trash_letter", participant_user, letter_instance)
+            assign_perm("can_permanently_delete_letter", participant_user, letter_instance)
         case Roles.PRIMARY_RECIPIENT.value:
             # Workflow Permissions
             assign_perm("can_share_letter", participant_user, letter_instance)
@@ -86,7 +86,7 @@ def remove_permissions(
             # Trash and Recover Permissions
             remove_perm("can_trash_letter", participant_user, letter_instance)
             remove_perm("can_restore_letter", participant_user, letter_instance)
-            remove_perm("can_remove_from_trash_letter", participant_user, letter_instance)
+            remove_perm("can_permanently_delete_letter", participant_user, letter_instance)
         case Roles.PRIMARY_RECIPIENT.value:
             # Workflow Permissions
             remove_perm("can_share_letter", participant_user, letter_instance)
@@ -121,7 +121,7 @@ def grant_owner_permissions(letter_instance: Letter):
     # Trash and Recover Permissions
     assign_perm("can_trash_letter", letter_instance.owner, letter_instance)
     assign_perm("can_restore_letter", letter_instance.owner, letter_instance)
-    assign_perm("can_remove_from_trash_letter", letter_instance.owner, letter_instance)
+    assign_perm("can_permanently_delete_letter", letter_instance.owner, letter_instance)
 
 
 def remove_owner_permissions(letter_instance: Letter):
@@ -136,4 +136,4 @@ def remove_owner_permissions(letter_instance: Letter):
     # Trash and Recover Permissions
     remove_perm("can_trash_letter", letter_instance.owner, letter_instance)
     remove_perm("can_restore_letter", letter_instance.owner, letter_instance)
-    remove_perm("can_remove_from_trash_letter", letter_instance.owner, letter_instance)
+    remove_perm("can_permanently_delete_letter", letter_instance.owner, letter_instance)

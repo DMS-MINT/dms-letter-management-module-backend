@@ -113,7 +113,7 @@ class ApiPermMixin:
                     "can_view_letter",
                     # Trash and Recover Permissions
                     "can_restore_letter",
-                    "can_remove_from_trash_letter",
+                    "can_permanently_delete_letter",
                 ],
             }
         else:
@@ -178,7 +178,7 @@ class ApiPermMixin:
                     "can_view_letter",
                     # Trash and Recover Permissions
                     "can_restore_letter",
-                    "can_remove_from_trash_letter",
+                    "can_permanently_delete_letter",
                 ],
             }
 

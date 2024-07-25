@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='letter',
-            options={'permissions': (('can_view_letter', 'Can view letter'), ('can_update_letter', 'Can update letter'), ('can_archive_letter', 'Can archive letter'), ('can_share_letter', 'Can share letter'), ('can_submit_letter', 'Can submit letter'), ('can_publish_letter', 'Can publish letter'), ('can_reject_letter', 'Can reopen letter'), ('can_retract_letter', 'Can retract letter'), ('can_close_letter', 'Can close letter'), ('can_reopen_letter', 'Can reopen letter'), ('can_comment_letter', 'Can comment letter'), ('can_trash_letter', 'Can trash letter'), ('can_restore_letter', 'Can restore letter'), ('can_remove_from_trash_letter', 'Can remove from trash letter')), 'verbose_name': 'Letter', 'verbose_name_plural': 'Letters'},
+            options={'permissions': (('can_view_letter', 'Can view letter'), ('can_update_letter', 'Can update letter'), ('can_archive_letter', 'Can archive letter'), ('can_share_letter', 'Can share letter'), ('can_submit_letter', 'Can submit letter'), ('can_publish_letter', 'Can publish letter'), ('can_reject_letter', 'Can reopen letter'), ('can_retract_letter', 'Can retract letter'), ('can_close_letter', 'Can close letter'), ('can_reopen_letter', 'Can reopen letter'), ('can_comment_letter', 'Can comment letter'), ('can_trash_letter', 'Can trash letter'), ('can_restore_letter', 'Can restore letter'), ('can_permanently_delete_letter', 'Can remove from trash letter')), 'verbose_name': 'Letter', 'verbose_name_plural': 'Letters'},
         ),
         migrations.RemoveField(
             model_name='letter',
