@@ -5,6 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed, NotFound, Validation
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import setup_2fa, verify_otp
 
@@ -109,6 +110,9 @@ class ValidateOneTimePassword(ApiAuthMixin, APIView):
             response_data = {"message": "OTP verified successfully."}
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
