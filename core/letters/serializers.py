@@ -50,6 +50,14 @@ class LetterDetailSerializer(serializers.Serializer):
             "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
         },
     )
+    e_signature = inline_serializer(
+        many=True,
+        fields={
+            "id": serializers.UUIDField(),
+            "user": UserListApi.OutputSerializer(),
+            "e_signature": serializers.ImageField(),
+        },
+    )
     attachments = inline_serializer(
         many=True,
         fields={
