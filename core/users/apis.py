@@ -7,16 +7,13 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.api.mixins import ApiAuthMixin
 from core.users.models import BaseUser, Guest, Member
 
-from .selectors import user_get_suggestions
+from .selectors import user_get_users
 from .serializers import (
     GuestDetailSerializer,
     GustListSerializer,
     MemberDetailSerializer,
     MemberListSerializer,
 )
-
-GET_USERS_HRF = "api/users/"
-GET_USER_HRF = "api/users/<uuid:user_id>/"
 
 
 class UserListApi(ApiAuthMixin, APIView):
@@ -34,18 +31,11 @@ class UserListApi(ApiAuthMixin, APIView):
 
     def get(self, request) -> Response:
         try:
-            user = user_get_suggestions()
+            user = user_get_users(current_user=request.user)
             serializer = self.OutputSerializer(user, many=True)
 
             response_data = {
-                "action": [
-                    {
-                        "name": "User Details",
-                        "hrf": GET_USER_HRF,
-                        "method": "GET",
-                    },
-                ],
-                "data": serializer.data,
+                "users": serializer.data,
             }
 
             return Response(data=response_data)
@@ -76,14 +66,7 @@ class UserDetailAPI(ApiAuthMixin, APIView):
             serializer = self.OutputSerializer(user_instance)
 
             response_data = {
-                "action": [
-                    {
-                        "name": "User Listing",
-                        "hrf": GET_USERS_HRF,
-                        "method": "GET",
-                    },
-                ],
-                "data": serializer.data,
+                "user": serializer.data,
             }
 
             return Response(data=response_data)
