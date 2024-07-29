@@ -133,8 +133,6 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    parser_classes = [MultiPartParser, FormParser]
-
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         content = serializers.CharField(required=False, allow_blank=True)
@@ -158,19 +156,17 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = InputSerializer
 
     def post(self, request) -> Response:
-        request_data = process_request_data(request)
-
-        input_serializer = self.InputSerializer(data=request_data)
+        input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
             letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
             response_data = {
-                "data": output_serializer.data,
+                "letter": output_serializer.data,
                 "permissions": permissions,
             }
 
