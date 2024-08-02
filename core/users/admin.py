@@ -76,6 +76,7 @@ class MemberAdmin(BaseUserChildAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
+                    "is_2fa_enabled",
                 ),
             },
         ),

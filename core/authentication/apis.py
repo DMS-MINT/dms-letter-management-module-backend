@@ -99,10 +99,7 @@ class ValidateOneTimePassword(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            result = verify_otp(current_user=current_user, **input_serializer.validated_data)
-
-            if not result:
-                raise ValueError("Invalid OTP provided.")
+            verify_otp(current_user=current_user, **input_serializer.validated_data)
 
             current_user.is_2fa_enabled = True
             current_user.save()

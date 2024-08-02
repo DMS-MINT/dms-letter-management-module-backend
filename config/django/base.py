@@ -23,6 +23,7 @@ LOCAL_APPS: list[str] = [
     "core.letters.apps.LettersConfig",
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
+    "core.puppeteer.apps.PuppeteerConfig",
     "core.signatures.apps.SignaturesConfig",
     "core.users.apps.UsersConfig",
     "core.workflows.apps.WorkflowsConfig",
@@ -39,6 +40,9 @@ THIRD_PARTY_APPS: list[str] = [
     "guardian",
     "polymorphic",
     "rest_framework",
+    "tailwind",
+    "theme",
+    "django_browser_reload",
 ]
 
 INSTALLED_APPS: list[str] = [
@@ -65,6 +69,7 @@ MIDDLEWARE: list[str] = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -142,12 +147,21 @@ USE_L10N = True
 
 USE_TZ = True
 
+TAILWIND_APP_NAME = "theme"
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATIC_URL = "/static/"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "core", "static"),
+]
 
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.api.exception_handler.drf_exception_handler",

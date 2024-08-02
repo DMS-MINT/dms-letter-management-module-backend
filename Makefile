@@ -72,6 +72,12 @@ superuser:
 	@echo "Creating a superuser..."
 	@python manage.py createsuperuser
 
+# Run tailwind
+.PHONY: run-tailwind
+run-tailwind:
+	@echo "Running tailwind..."
+	@python manage.py tailwind start  
+
 # Update project (install dependencies, apply migrations, install pre-commit hooks)
 .PHONY: update
 update: install-all-requirements migrate install-pre-commit

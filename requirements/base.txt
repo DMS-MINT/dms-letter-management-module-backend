@@ -43,3 +43,7 @@ gunicorn==22.0.0
 
 # Development Tools
 setuptools==70.0.0
+
+weasyprint==62.3
+django-browser-reload==1.13.0
+django-tailwind==3.8.0

@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
+from core.comments.services import comment_create
 from core.common.utils import get_object
 from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
@@ -141,11 +142,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            result = verify_otp(current_user=request.user, **input_serializer.validated_data)
-
-            if not result:
-                raise ValueError("Invalid OTP provided.")
-
+            verify_otp(current_user=request.user, **input_serializer.validated_data)
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
@@ -231,6 +228,7 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
+        message = serializers.CharField()
         otp = serializers.IntegerField()
 
     def put(self, request, reference_number) -> Response:
@@ -239,13 +237,14 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
-        try:
-            result = verify_otp(current_user=request.user, **input_serializer.validated_data)
+        message = input_serializer.validated_data.get("message")
+        otp = input_serializer.validated_data.get("otp")
 
-            if not result:
-                raise ValueError("Invalid OTP provided.")
+        try:
+            verify_otp(current_user=request.user, otp=otp)
 
             letter_reject(current_user=request.user, letter_instance=letter_instance)
+            comment_create(current_user=request.user, letter_instance=letter_instance, content=message)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)

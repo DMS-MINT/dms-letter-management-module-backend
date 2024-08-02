@@ -4,6 +4,9 @@ from django.urls.resolvers import URLPattern
 from core.workflows.urls import workflow_url_patterns
 
 from .apis import (
+    LetterBatchPermanentlyDeleteApi,
+    LetterBatchRestoreApi,
+    LetterBatchTrashApi,
     LetterCreateAndPublish,
     LetterCreateAndSubmitApi,
     LetterCreateApi,
@@ -30,6 +33,13 @@ urlpatterns: list[URLPattern] = [
         "<slug:reference_number>/permanently_delete/",
         LetterPermanentlyDeleteApi.as_view(),
         name="letter-permanently-delete",
+    ),
+    path("batch/trash/", LetterBatchTrashApi.as_view(), name="letter-batch-trash"),
+    path("batch/restore/", LetterBatchRestoreApi.as_view(), name="letter-batch-restore"),
+    path(
+        "batch/permanently_delete/",
+        LetterBatchPermanentlyDeleteApi.as_view(),
+        name="letter-batch-permanently-delete",
     ),
 ]
 
