@@ -21,35 +21,10 @@ class Letter(PolymorphicModel, BaseModel):
 
     reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
 
-    current_state = models.IntegerField(
-        _("States"),
-        choices=States.choices,
-        help_text=_("Select the current state of the letter."),
-    )
-    subject = models.CharField(
-        _("Subject"),
-        blank=True,
-        null=True,
-        max_length=255,
-        help_text=_("Enter the subject of the letter."),
-    )
-    content = models.TextField(
-        _("Content"),
-        blank=True,
-        null=True,
-        help_text=_("Enter the content of the letter."),
-    )
-    owner = models.ForeignKey(
-        "users.Member",
-        on_delete=models.CASCADE,
-        related_name="owned_letters",
-    )
-
-    e_signature = models.ManyToManyField(
-        "signatures.Signature",
-        blank=True,
-        help_text=_("Select the senders signature file."),
-    )
+    current_state = models.IntegerField(_("States"), choices=States.choices)
+    subject = models.CharField(_("Subject"), blank=True, null=True, max_length=255)
+    content = models.TextField(_("Content"), blank=True, null=True)
+    owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
 
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
     published_at = models.DateTimeField(blank=True, null=True, editable=False)
@@ -131,27 +106,9 @@ class Incoming(Letter):
 
 
 class Outgoing(Letter):
-    delivery_person_name = models.CharField(
-        _("Delivery Person Name"),
-        blank=True,
-        null=True,
-        max_length=255,
-        help_text=_("Name of the person responsible for delivery."),
-    )
-    delivery_person_phone = models.CharField(
-        _("Delivery Person Phone"),
-        blank=True,
-        null=True,
-        max_length=255,
-        help_text=_("Phone number of the delivery person."),
-    )
-    shipment_id = models.CharField(
-        _("Shipment ID"),
-        blank=True,
-        null=True,
-        max_length=255,
-        help_text=_("Unique identifier for the shipment."),
-    )
+    delivery_person_name = models.CharField(_("Delivery Person Name"), blank=True, null=True, max_length=255)
+    delivery_person_phone = models.CharField(_("Delivery Person Phone"), blank=True, null=True, max_length=255)
+    shipment_id = models.CharField(_("Shipment ID"), blank=True, null=True, max_length=255)
 
     class Meta:
         verbose_name: str = "Outgoing Letter"
