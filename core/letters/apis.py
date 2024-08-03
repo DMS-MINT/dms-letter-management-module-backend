@@ -1,5 +1,6 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.http import HttpResponse
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -19,7 +20,7 @@ from core.users.serializers import UserCreateSerializer
 from core.workflows.services import letter_submit
 
 from .models import Incoming, Internal, Letter, Outgoing
-from .selectors import letter_list
+from .selectors import generate_pdf, letter_list, letter_pdf
 from .serializers import (
     LetterDetailSerializer,
     LetterListSerializer,
@@ -133,6 +134,40 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
             raise ValidationError(e)
 
 
+class LetterPDFApi(APIView):
+    def get(self, request, reference_number):
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
+        try:
+            pdf_file = letter_pdf(letter_instance=letter_instance)
+
+            response = HttpResponse(pdf_file, content_type="application/pdf")
+            response["Content-Disposition"] = f'inline; filename="{reference_number}.pdf"'
+
+            return response
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class ReportPDFView(APIView):
+    def get(self, request, *args, **kwargs):
+        try:
+            pdf_io = generate_pdf()
+
+            response = HttpResponse(pdf_io, content_type="application/pdf")
+            response["Content-Disposition"] = 'inline; filename="report.pdf"'
+
+            return response
+        except ValueError as e:
+            raise ValidationError(e)
+        except Exception as e:
+            raise ValidationError(e)
+
+
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
@@ -194,8 +229,8 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            # otp = input_serializer.validated_data.get("otp")
-            # verify_otp(current_user=request.user, otp=otp)
+            otp = input_serializer.validated_data.get("otp")
+            verify_otp(current_user=request.user, otp=otp)
 
             letter_data = input_serializer.validated_data.get("letter")
             letter_instance = letter_create(current_user=request.user, **letter_data)
