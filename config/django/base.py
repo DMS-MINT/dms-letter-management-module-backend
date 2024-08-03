@@ -19,6 +19,7 @@ LOCAL_APPS: list[str] = [
     "core.authentication.apps.AuthenticationConfig",
     "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",
+    "core.departments.apps.DepartmentsConfig",
     "core.emails.apps.EmailsConfig",
     "core.letters.apps.LettersConfig",
     "core.participants.apps.ParticipantsConfig",
