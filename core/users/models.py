@@ -48,31 +48,12 @@ class BaseUser(PolymorphicModel, BaseModel):
 
 class Member(BaseUser, AbstractUser, PermissionsMixin):
     username = None
-    job_title = models.CharField(
-        _("job title"),
-        max_length=254,
-        unique=True,
-        help_text=_("Enter the job title of the employee."),
-    )
-    department = models.ForeignKey(
-        "Department",
-        on_delete=models.CASCADE,
-        help_text=_("Enter the department of the employee."),
-    )
-    phone_number = models.PositiveBigIntegerField(
-        _("phone number"),
-        unique=True,
-        help_text=_("Enter the phone number of the employee."),
-    )
-    email = models.EmailField(
-        _("email address"),
-        blank=False,
-        max_length=255,
-        unique=True,
-        help_text=_("Enter the email address of the employee."),
-    )
+    job_title = models.CharField(max_length=254, unique=True, verbose_name=_("Job title"))
+    department = models.ForeignKey("departments.Department", on_delete=models.CASCADE)
+    phone_number = models.PositiveBigIntegerField(_("phone number"), unique=True)
+    email = models.EmailField(blank=False, max_length=255, unique=True, verbose_name=_("Email address"))
 
-    otp_secret = models.TextField(_("OTP Secret"), editable=False, null=True, blank=True)
+    otp_secret = models.TextField(editable=False, null=True, blank=True)
     is_2fa_enabled = models.BooleanField(default=False)
 
     is_active = models.BooleanField(default=True)
@@ -138,12 +119,4 @@ class Guest(BaseUser):
         verbose_name_plural: str = "Guests"
 
     def __str__(self) -> str:
-        return self.name
-
-
-class Department(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    abbreviation = models.CharField(max_length=3, unique=True)
-
-    def __str__(self):
         return self.name
