@@ -19,18 +19,24 @@ class Letter(PolymorphicModel, BaseModel):
         CLOSED = 5, _("Closed")
         TRASHED = 6, _("Trashed")
 
-    reference_number = models.SlugField(unique=True, verbose_name=_("Reference Number"))
+    class Languages(models.TextChoices):
+        ENGLISH = "EN", _("English")
+        AMHARIC = "AM", _("Amharic")
 
-    current_state = models.IntegerField(_("States"), choices=States.choices)
-    subject = models.CharField(_("Subject"), blank=True, null=True, max_length=255)
-    content = models.TextField(_("Content"), blank=True, null=True)
+    subject = models.CharField(blank=True, null=True, max_length=255)
+    content = models.TextField(blank=True, null=True)
     owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
+
+    reference_number = models.SlugField(unique=True)
+    current_state = models.IntegerField(choices=States.choices)
+    language = models.CharField(max_length=2, choices=Languages.choices, default=Languages.AMHARIC)
 
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
     published_at = models.DateTimeField(blank=True, null=True, editable=False)
 
-    trashed = models.BooleanField(default=False, verbose_name=_("Trashed"))
-    hidden = models.BooleanField(default=False, verbose_name=_("Hidden"))
+    hidden = models.BooleanField(default=False)
+
+    pdf_version = models.URLField(blank=True, null=True, editable=False)
 
     def clean(self):
         if not self.subject or not self.subject.strip():
@@ -106,9 +112,9 @@ class Incoming(Letter):
 
 
 class Outgoing(Letter):
-    delivery_person_name = models.CharField(_("Delivery Person Name"), blank=True, null=True, max_length=255)
-    delivery_person_phone = models.CharField(_("Delivery Person Phone"), blank=True, null=True, max_length=255)
-    shipment_id = models.CharField(_("Shipment ID"), blank=True, null=True, max_length=255)
+    delivery_person_name = models.CharField(blank=True, null=True, max_length=255)
+    delivery_person_phone = models.CharField(blank=True, null=True, max_length=255)
+    shipment_id = models.CharField(blank=True, null=True, max_length=255)
 
     class Meta:
         verbose_name: str = "Outgoing Letter"
