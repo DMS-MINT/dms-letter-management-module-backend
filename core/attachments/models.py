@@ -12,7 +12,7 @@ def attachment_directory_path(instance, filename):
         # For LetterAttachment
         department = instance.uploaded_by.department.name_en
         letter_ref_no = instance.letter.reference_number
-        return f"letters/{department}/{letter_ref_no}/attachments/{filename}"
+        return f"letters/{department}/letter_{letter_ref_no}/attachments/{filename}"
 
     # Default fallback path
     return f"fallback/signatures/{filename}"
