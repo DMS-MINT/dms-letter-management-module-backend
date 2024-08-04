@@ -42,19 +42,3 @@ def letter_pdf(*, letter_instance: Letter):
     html_string = render_to_string(template_name, context)
 
     return HTML(string=html_string).write_pdf()
-
-
-def generate_pdf():
-    template_name = "report.html"
-    context = {
-        "title": "My Report Title",
-        "body": "This is the body of the report.",
-    }
-
-    html_string = render_to_string(template_name=template_name, context=context)
-
-    pdf_io = io.BytesIO()
-    HTML(string=html_string).write_pdf(pdf_io)
-    pdf_io.seek(0)
-
-    return pdf_io
