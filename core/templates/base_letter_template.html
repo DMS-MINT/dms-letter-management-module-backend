@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <title>{% block title %}Default Title{% endblock %}</title>
+  </head>
+  <body>
+    {% block header %} {% endblock %} 
+
+    {% block separator %} {% endblock %} 
+    
+    {% block letter_metadata %} {% endblock %} 
+
+    {% block primary_recipients %} {% endblock %} 
+    
+    {% block letter_body %} {% endblock %}
+
+    {% block e_signatures %} {% endblock %}
+
+    <section class="bcc-participants-section">
+      <p class="bcc-header">እንዲያውቁት:-</p>
+      <ul class="bcc-participants-list">
+        {% for participant in bcc_participants %}
+        <li class="bcc-participant-item">ለ {{ participant.user.job_title }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section class="cc-participants-section">
+      <p class="cc-header">ግልባጭ:-</p>
+      <ul class="cc-participants-list">
+        {% for participant in cc_participants %}
+        <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% block footer %} {% endblock %}
+  </body>
+</html>
