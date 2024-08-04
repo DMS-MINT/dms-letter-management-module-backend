@@ -7,11 +7,16 @@ from .models import Incoming, Internal, Letter, Outgoing
 
 
 def generate_reference_number(instance, new_slug=None, count=1):
-    if instance.owner and hasattr(instance.owner, "department"):
-        department_abbreviation = instance.owner.department.abbreviation
+    if instance.language == Letter.Languages.AMHARIC:
+        department_abbreviation = instance.owner.department.abbreviation_am
+        fiscal_year = 2016
+    elif instance.language == Letter.Languages.ENGLISH:
+        department_abbreviation = instance.owner.department.abbreviation_en
+        fiscal_year = datetime.datetime.now().year
     else:
+        fiscal_year = datetime.datetime.now().year
         department_abbreviation = "UNK"
-    fiscal_year = datetime.datetime.now().year
+
     if new_slug:
         slug = new_slug
     else:
