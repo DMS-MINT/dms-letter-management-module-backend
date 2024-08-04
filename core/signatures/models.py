@@ -12,28 +12,24 @@ def signature_directory_path(instance, filename):
         # For UserDefaultSignature
         department = instance.user.department.name_en
         user_id = instance.user.id
-        return f"users/{department}/{user_id}/default_signature.png"
+        return f"users/{department}/user_{user_id}/default_signature.png"
 
     if hasattr(instance, "letter"):
         # For LetterSignature
         department = instance.signer.department.name_en
-        letter_id = instance.letter.id
+        letter_ref_no = instance.letter.reference_number
         user_id = instance.signer.id
-        return f"letters/{department}/{letter_id}/signatures/{user_id}.png"
+        return f"letters/{department}/letter_{letter_ref_no}/signatures/user_{user_id}.png"
 
     if hasattr(instance, "document"):
         # For DocumentSignature
         department = instance.signer.department.name_en
-        letter_id = instance.letter.id
+        doc_ref_no = ""  # Set the document reference number here
         user_id = instance.signer.id
-        return f"documents/{department}/{letter_id}/signatures/{user_id}.png"
+        return f"documents/{department}/documents_{doc_ref_no}/signatures/user_{user_id}.png"
 
     # Default fallback path
     return f"fallback/signatures/{filename}"
-
-
-def user_directory_path(instance, filename):
-    return f"signatures/{instance.user.department.name_en}/user_{instance.user.id}/signatures/default_signature.png"
 
 
 class Signature(BaseModel):
