@@ -14,14 +14,14 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
-from core.common.utils import get_object, inline_serializer
+from core.common.utils import get_object
 from core.permissions.mixins import ApiPermMixin
-from core.users.serializers import UserCreateSerializer
 from core.workflows.services import letter_submit
 
 from .models import Incoming, Internal, Letter, Outgoing
-from .selectors import generate_pdf, letter_list, letter_pdf
+from .selectors import letter_list
 from .serializers import (
+    LetterCreateSerializer,
     LetterDetailSerializer,
     LetterListSerializer,
     OutgoingLetterDetailSerializer,
@@ -134,65 +134,11 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
             raise ValidationError(e)
 
 
-class LetterPDFApi(APIView):
-    def get(self, request, reference_number):
-        letter_instance = get_object(Letter, reference_number=reference_number)
-
-        try:
-            pdf_file = letter_pdf(letter_instance=letter_instance)
-
-            response = HttpResponse(pdf_file, content_type="application/pdf")
-            response["Content-Disposition"] = f'inline; filename="{reference_number}.pdf"'
-
-            return response
-
-        except ValueError as e:
-            raise ValidationError(e)
-
-        except Exception as e:
-            raise ValidationError(e)
-
-
-class ReportPDFView(APIView):
-    def get(self, request, *args, **kwargs):
-        try:
-            pdf_io = generate_pdf()
-
-            response = HttpResponse(pdf_io, content_type="application/pdf")
-            response["Content-Disposition"] = 'inline; filename="report.pdf"'
-
-            return response
-        except ValueError as e:
-            raise ValidationError(e)
-        except Exception as e:
-            raise ValidationError(e)
-
-
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            fields={
-                "id": serializers.UUIDField(required=False),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
-
-    serializer_class = InputSerializer
+    serializer_class = LetterCreateSerializer
 
     def post(self, request) -> Response:
-        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer = LetterCreateSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -219,13 +165,13 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
     class InputSerializer(serializers.Serializer):
-        letter = LetterCreateApi.InputSerializer()
+        letter = LetterCreateSerializer()
         otp = serializers.IntegerField()
 
     serializer_class = InputSerializer
 
     def post(self, request) -> Response:
-        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer = LetterCreateSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -271,32 +217,12 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
     parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAdminUser]
 
-    class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            fields={
-                "id": serializers.UUIDField(required=False),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
-
-    serializer_class = InputSerializer
+    serializer_class = LetterCreateSerializer
 
     def post(self, request) -> Response:
         request_data = process_request_data(request)
 
-        input_serializer = self.InputSerializer(data=request_data)
+        input_serializer = LetterCreateSerializer(data=request_data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -328,39 +254,13 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    required_object_perms = ["can_view_letter", "can_update_letter"]
-    parser_classes = [MultiPartParser, FormParser]
-
-    class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            required=False,
-            fields={
-                "id": serializers.UUIDField(),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
-
-    serializer_class = InputSerializer
+    serializer_class = LetterCreateSerializer
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        request_data = process_request_data(request)
-
-        input_serializer = self.InputSerializer(data=request_data, partial=True)
+        input_serializer = LetterCreateSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
 
         try:
