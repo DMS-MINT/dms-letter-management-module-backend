@@ -1,0 +1,28 @@
+{% extends "base_letter_template.html" %}
+{% load static %}
+
+{% block title %}Letter_{{ letter.reference_number }}{% endblock %}
+
+{% block header %} 
+  <section class="letter-body">
+    <p class="letter-subject">
+      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+    </p>
+  </section>
+{% endblock %} 
+
+{% block separator %} {% endblock %} 
+
+{% block letter_metadata %} {% endblock %} 
+
+{% block primary_recipients %} 
+  <section class="pr-participant-section">
+    {% for participant in primary_recipients %}
+    <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+    {% empty %} {% endfor %}
+  </section>
+{% endblock %} 
+
+{% block e_signatures %} {% endblock %}
+
+{% block footer %} {% endblock %}
