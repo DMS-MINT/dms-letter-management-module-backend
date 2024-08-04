@@ -1,0 +1,220 @@
+@page {
+  margin: 10mm;
+}
+
+.internal_letter_header {
+  height: 120px;
+}
+
+.outgoing_letter_header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .pentagram {
+    width: 100px;
+    height: 100px;
+  }
+
+  .logo {
+    width: 120px;
+    height: 100px;
+  }
+
+  .header-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-title {
+    text-align: center;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+    font-weight: 600;
+    margin: 0px;
+  }
+
+  .header-subtitle {
+    text-align: center;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    margin: 0px;
+  }
+}
+
+.letter-metadata {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  .metadata-item {
+    display: flex;
+    width: 230px;
+
+    .metadata-label {
+      display: flex;
+      flex-direction: column;
+      margin: 0px;
+    }
+
+    .metadata-divider {
+      flex: 1 1 0%;
+      height: 0.1px;
+      background-color: black;
+      align-self: flex-end;
+      margin: 0px;
+      margin-left: 3px;
+      margin-bottom: 4px;
+    }
+  }
+}
+
+.pr-participant-section {
+  display: flex;
+  flex-direction: column;
+
+  .pr-participant-item {
+    margin: 0px;
+    padding-bottom: 5px;
+
+    &:last-child {
+      padding: 0;
+    }
+  }
+}
+
+.letter-body {
+  .letter-subject {
+    text-align: center;
+
+    .subject-label {
+      margin-right: 5px;
+    }
+  }
+
+  .letter-content {
+  }
+}
+
+.e-signatures {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  .signature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .signature-image {
+      width: 150px;
+    }
+
+    .signer-info {
+      margin: 0px;
+      display: flex;
+      flex-direction: column;
+      text-align: end;
+    }
+  }
+}
+
+.bcc-participants-section {
+  page-break-inside: avoid;
+  .bcc-header {
+  }
+
+  .bcc-participants-list {
+    .bcc-participant-item {
+      padding-bottom: 5px;
+      &:last-child {
+        padding: 0;
+      }
+    }
+  }
+}
+
+.cc-participants-section {
+  page-break-inside: avoid;
+  .cc-header {
+  }
+
+  .cc-participants-list {
+    .cc-participant-item {
+      padding-bottom: 5px;
+      &:last-child {
+        padding: 0;
+      }
+    }
+  }
+}
+.footer-wrapper {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+
+  footer {
+    display: flex;
+    align-items: flex-end;
+
+    .contact-info {
+      flex: 1 1 0%;
+      display: flex;
+      flex-direction: column;
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+
+        .contact-icon {
+          width: 20px;
+          height: 20px;
+          margin-right: 5px;
+        }
+
+        .contact-text {
+          margin: 0px;
+          width: 100%;
+          font-size: 0.875rem;
+          line-height: 1.25rem;
+        }
+      }
+    }
+
+    .footer-info {
+      align-self: center;
+      height: 100%;
+
+      .footer-title {
+        text-align: center;
+        font-size: 1.5rem;
+        line-height: 2rem;
+        font-weight: 700;
+        margin: 0px;
+      }
+
+      .footer-subtitle {
+        margin: 0px;
+        font-size: 1.25rem;
+        line-height: 1.75rem;
+        font-weight: 500;
+      }
+    }
+
+    .qr-code-container {
+      flex: 1 1 0%;
+      display: flex;
+      justify-content: flex-end;
+
+      .qr-code-image {
+        width: 120px;
+        height: 120px;
+      }
+    }
+  }
+}
+
+.separator {
+  height: 1px;
+  background-color: black;
+}
