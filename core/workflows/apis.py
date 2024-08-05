@@ -88,20 +88,32 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
+    class InputSerializer(serializers.Serializer):
+        signature_method = serializers.ChoiceField(choices=["Default", "Canvas"])
+        otp = serializers.IntegerField()
+
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
-
         self.check_object_permissions(request, letter_instance)
 
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        signature_method = input_serializer.validated_data.get("signature_method")
+        otp = input_serializer.validated_data.get("otp")
+
         try:
-            letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
+            verify_otp(current_user=request.user, otp=otp)
+            letter_instance = letter_submit(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                signature_method=signature_method,
+            )
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            response_data = {
-                "message": "Letter has been submitted to the record office.",
-            }
+            response_data = {"message": "Letter has been submitted to the record office."}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
