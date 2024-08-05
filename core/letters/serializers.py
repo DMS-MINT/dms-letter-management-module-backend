@@ -40,6 +40,8 @@ class LetterDetailSerializer(serializers.Serializer):
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     content = serializers.CharField()
+    owner = MemberListSerializer()
+    language = serializers.CharField(source="get_language_display")
     pdf_version = serializers.URLField()
     participants = inline_serializer(
         many=True,
