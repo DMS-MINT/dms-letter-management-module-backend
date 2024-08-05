@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class PuppeteerConfig(AppConfig):
+class DepartmentsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "core.puppeteer"
+    name = "core.departments"

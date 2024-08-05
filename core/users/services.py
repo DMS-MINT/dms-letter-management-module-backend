@@ -2,7 +2,9 @@ from typing import Optional
 
 from django.core.exceptions import ValidationError
 
-from .models import Department, Guest, Member
+from core.departments.models import Department
+
+from .models import Guest, Member
 
 
 def user_create(
@@ -18,7 +20,7 @@ def user_create(
     is_superuser: bool = False,
     password: Optional[str] = None,
 ) -> Member:
-    department_instance = Department.objects.get(name=department)
+    department_instance = Department.objects.get(name_en=department)
 
     return (
         Member.objects.create_user(

@@ -2,15 +2,12 @@ from django.contrib import admin
 from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
 from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 
-from core.signatures.admin import SignatureAdmin
-from core.signatures.models import Signature
-from core.users.admin import (
-    BaseUserParentAdmin,
-    DepartmentAdmin,
-    GuestAdmin,
-    MemberAdmin,
-)
-from core.users.models import BaseUser, Department, Guest, Member  # noqa: F811
+from core.departments.admin import DepartmentAdmin
+from core.departments.models import Department
+from core.signatures.admin import LetterSignatureAdmin
+from core.signatures.models import LetterSignature
+from core.users.admin import BaseUserParentAdmin, GuestAdmin, MemberAdmin
+from core.users.models import BaseUser, Guest, Member
 
 
 class DMSAdminSite(admin.AdminSite):
@@ -26,7 +23,7 @@ dms_admin_site.register(BaseUser, BaseUserParentAdmin)
 dms_admin_site.register(Guest, GuestAdmin)
 dms_admin_site.register(Member, MemberAdmin)
 dms_admin_site.register(Department, DepartmentAdmin)
-dms_admin_site.register(Signature, SignatureAdmin)
+dms_admin_site.register(LetterSignature, LetterSignatureAdmin)
 dms_admin_site.register(LoginEvent, LoginEventAdmin)
 dms_admin_site.register(RequestEvent, RequestEventAdmin)
 dms_admin_site.register(CRUDEvent, CRUDEventAdmin)

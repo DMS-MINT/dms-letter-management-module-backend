@@ -1,9 +1,16 @@
+import io
 from collections import OrderedDict
 from typing import Optional, Union
 
+from django.conf import settings
+from django.core.files.storage import default_storage
 from django.db import transaction
+from django.template.loader import render_to_string
+from django_weasyprint.utils import django_url_fetcher
+from weasyprint import HTML
 
-from core.attachments.services import attachment_create
+from config.env import BASE_URL
+from core.participants.models import Participant
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
 from core.users.models import Member
@@ -15,7 +22,7 @@ type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
 
 # Create a letter instance based on the provided letter_type and keyword arguments.
-def create_letter_instance(letter_type: str, current_user: Member, **kwargs) -> Letter:
+def create_letter_instance(letter_type: str, **kwargs) -> Letter:
     letter_instance_class = {
         "internal": Internal,
         "incoming": Incoming,
@@ -28,29 +35,25 @@ def create_letter_instance(letter_type: str, current_user: Member, **kwargs) -> 
     raise ValueError("Invalid letter type")
 
 
-# This function orchestrates the creation of a letter and its participants in a transaction.
+# This function orchestrates the creation of a letter and its participants
 @transaction.atomic
 def letter_create(
     *,
     current_user: Member,
     subject: Optional[str] = None,
     content: Optional[str] = None,
-    signature=None,
     letter_type: str,
+    language: str,
     participants,
-    attachments=None,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
-        "current_user": current_user,
         "subject": subject,
         "content": content,
         "current_state": Letter.States.DRAFT,
         "owner": current_user,
+        "language": language,
     }
-
-    if signature is not None:
-        letter_data["signature"] = signature
 
     letter_instance = create_letter_instance(**letter_data)
 
@@ -70,13 +73,8 @@ def letter_create(
         letter_instance=letter_instance,
         participants=participants,
     )
-    if attachments is not None:
-        attachment_create(
-            current_user=current_user,
-            letter_instance=letter_instance,
-            attachments=attachments,
-        )
 
+    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 
@@ -89,7 +87,6 @@ def letter_create_and_publish(
     signature=None,
     letter_type: str,
     participants,
-    attachments=None,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
@@ -113,15 +110,10 @@ def letter_create_and_publish(
         letter_instance=letter_instance,
         participants=participants,
     )
-    if attachments is not None:
-        attachment_create(
-            current_user=current_user,
-            letter_instance=letter_instance,
-            attachments=attachments,
-        )
 
     letter_publish(current_user=current_user, letter_instance=letter_instance)
 
+    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 
@@ -132,8 +124,6 @@ def letter_update(
     subject: Optional[str] = None,
     content: Optional[str] = None,
     letter_type: str = "internal",
-    signature=None,
-    attachments=None,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     if subject is not None:
@@ -141,9 +131,6 @@ def letter_update(
 
     if content is not None:
         letter_instance.content = content
-
-    if signature is not None:
-        letter_instance.signature = signature
 
     letter_instance.save()
 
@@ -160,20 +147,13 @@ def letter_update(
         letter_instance=letter_instance,
     )
 
-    if attachments is not None:
-        attachment_create(
-            current_user=current_user,
-            letter_instance=letter_instance,
-            attachments=attachments,
-        )
-
+    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 
 @transaction.atomic
 def letter_move_to_trash(*, letter_instance=Letter):
     letter_instance.current_state = Letter.States.TRASHED
-    letter_instance.trashed = True
     letter_instance.save()
 
     return letter_instance
@@ -182,7 +162,6 @@ def letter_move_to_trash(*, letter_instance=Letter):
 @transaction.atomic
 def letter_restore_from_trash(*, letter_instance=Letter):
     letter_instance.current_state = Letter.States.DRAFT
-    letter_instance.trashed = False
     letter_instance.save()
 
     return letter_instance
@@ -190,8 +169,59 @@ def letter_restore_from_trash(*, letter_instance=Letter):
 
 @transaction.atomic
 def letter_hide(*, letter_instance=Letter):
-    letter_instance.trashed = True
     letter_instance.hidden = True
     letter_instance.save()
+
+    return letter_instance
+
+
+@transaction.atomic
+def letter_generate_pdf(letter_instance: Letter) -> Letter:
+    primary_recipients = letter_instance.participants.filter(role=Participant.Roles.PRIMARY_RECIPIENT)
+    cc_participants = letter_instance.participants.filter(role=Participant.Roles.CC)
+    bcc_participants = letter_instance.participants.filter(role=Participant.Roles.BCC)
+
+    context = {
+        "letter": letter_instance,
+        "primary_recipients": primary_recipients,
+        "cc_participants": cc_participants,
+        "bcc_participants": bcc_participants,
+        "e_signatures": letter_instance.e_signatures.all(),
+        "base_url": BASE_URL,
+    }
+
+    if isinstance(letter_instance, Internal):
+        template_name = "internal_letter_template.html"
+    elif isinstance(letter_instance, Outgoing):
+        template_name = "outgoing_letter_template.html"
+    elif isinstance(letter_instance, Incoming):
+        template_name = "incoming_letter_template.html"
+    else:
+        raise ValueError("Unknown letter type")
+
+    html_content = render_to_string(template_name=template_name, context=context)
+
+    pdf_io = io.BytesIO()
+    weasy_html = HTML(
+        string=html_content,
+        url_fetcher=django_url_fetcher,
+        base_url=settings.STATIC_URL,
+    )
+
+    weasy_html.write_pdf(pdf_io)
+    pdf_io.seek(0)
+
+    department = letter_instance.owner.department.name_en
+    letter_ref_no = letter_instance.reference_number
+
+    letter_pdf_path = f"letters/{department}/letter_{letter_ref_no}/letter_{letter_ref_no}.pdf"
+
+    if default_storage.exists(letter_pdf_path):
+        default_storage.delete(letter_pdf_path)
+
+    default_storage.save(letter_pdf_path, pdf_io)
+
+    letter_instance.pdf_version = default_storage.url(letter_pdf_path)
+    letter_instance.save(update_fields=["pdf_version"])
 
     return letter_instance

@@ -9,11 +9,15 @@ from core.users.models import Member
 
 
 @transaction.atomic
-def letter_submit(*, current_user: Member, letter_instance: Letter) -> Letter:
+def letter_submit(*, current_user: Member, letter_instance: Letter, signature_method: str) -> Letter:
     letter_instance.current_state = Letter.States.SUBMITTED
     letter_instance.submitted_at = timezone.now()
 
-    letter_instance = sign_letter(letter_instance=letter_instance, current_user=current_user)
+    letter_instance = sign_letter(
+        letter_instance=letter_instance,
+        current_user=current_user,
+        signature_method=signature_method,
+    )
 
     letter_instance.clean()
     letter_instance.save()
@@ -21,6 +25,9 @@ def letter_submit(*, current_user: Member, letter_instance: Letter) -> Letter:
     participant = Participant.objects.get(letter=letter_instance, user=current_user)
     participant.clean()
 
+    from core.letters.services import letter_generate_pdf
+
+    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 
@@ -32,7 +39,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
     if participant.role == Participant.Roles.AUTHOR:
         next_state = Letter.States.DRAFT
         letter_instance.submitted_at = None
-        letter_instance.e_signature.clear()
+        letter_instance.e_signatures.filter(signer=current_user).delete()
 
         if administrator_participant is not None:
             administrator_participant.delete()
@@ -52,6 +59,9 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.current_state = next_state
     letter_instance.save()
 
+    from core.letters.services import letter_generate_pdf
+
+    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 

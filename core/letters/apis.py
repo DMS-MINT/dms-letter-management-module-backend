@@ -1,5 +1,6 @@
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.http import HttpResponse
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -13,14 +14,14 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
-from core.common.utils import get_object, inline_serializer
+from core.common.utils import get_object
 from core.permissions.mixins import ApiPermMixin
-from core.users.serializers import UserCreateSerializer
 from core.workflows.services import letter_submit
 
 from .models import Incoming, Internal, Letter, Outgoing
-from .selectors import letter_list
+from .selectors import letter_list, letter_pdf
 from .serializers import (
+    LetterCreateSerializer,
     LetterDetailSerializer,
     LetterListSerializer,
     OutgoingLetterDetailSerializer,
@@ -34,6 +35,24 @@ from .services import (
     letter_update,
 )
 from .utils import process_request_data
+
+
+class LetterPDF(APIView):
+    def get(self, request, reference_number) -> Response:
+        letter_instance = get_object(Letter, reference_number=reference_number)
+
+        try:
+            pdf_content = letter_pdf(letter_instance=letter_instance)
+
+            response = HttpResponse(pdf_content, content_type="application/pdf")
+            response["Content-Disposition"] = f'inline; filename="letter_{letter_instance.reference_number}.pdf"'
+            return response
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
 
 
 class LetterListApi(ApiAuthMixin, APIView):
@@ -134,30 +153,10 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            fields={
-                "id": serializers.UUIDField(required=False),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
-
-    serializer_class = InputSerializer
+    serializer_class = LetterCreateSerializer
 
     def post(self, request) -> Response:
-        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer = LetterCreateSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -184,7 +183,7 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
     class InputSerializer(serializers.Serializer):
-        letter = LetterCreateApi.InputSerializer()
+        letter = LetterCreateSerializer()
         otp = serializers.IntegerField()
 
     serializer_class = InputSerializer
@@ -194,10 +193,11 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            # otp = input_serializer.validated_data.get("otp")
-            # verify_otp(current_user=request.user, otp=otp)
+            otp = input_serializer.validated_data.pop("otp")
+            verify_otp(current_user=request.user, otp=otp)
 
-            letter_data = input_serializer.validated_data.get("letter")
+            letter_data = input_serializer.validated_data.pop("letter")
+
             letter_instance = letter_create(current_user=request.user, **letter_data)
 
             response_message = "Warning: The letter has been successfully created but has not yet been submitted."
@@ -205,7 +205,11 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             try:
                 self.check_object_permissions(request, letter_instance)
-                letter_instance = letter_submit(current_user=request.user, letter_instance=letter_instance)
+                letter_instance = letter_submit(
+                    current_user=request.user,
+                    letter_instance=letter_instance,
+                    signature_method="Default",
+                )
                 response_message = "Success: The letter has been successfully created and submitted."
                 status_code = http_status.HTTP_200_OK
             except Exception as e:
@@ -237,24 +241,8 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            fields={
-                "id": serializers.UUIDField(required=False),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
+        letter = LetterCreateSerializer()
+        otp = serializers.IntegerField()
 
     serializer_class = InputSerializer
 
@@ -268,12 +256,12 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
             otp = input_serializer.validated_data.pop("otp")
             verify_otp(current_user=request.user, otp=otp)
 
-            letter_data = input_serializer.validated_data.get("letter")
+            letter_data = input_serializer.validated_data.pop("letter")
             letter_instance = letter_create_and_publish(
                 current_user=request.user,
                 **letter_data,
             )
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
 
@@ -293,39 +281,13 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    required_object_perms = ["can_view_letter", "can_update_letter"]
-    parser_classes = [MultiPartParser, FormParser]
-
-    class InputSerializer(serializers.Serializer):
-        subject = serializers.CharField(required=False, allow_blank=True)
-        content = serializers.CharField(required=False, allow_blank=True)
-        letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
-        signature = serializers.ImageField(required=False, allow_null=True)
-        participants = inline_serializer(
-            many=True,
-            required=False,
-            fields={
-                "id": serializers.UUIDField(),
-                "user": UserCreateSerializer(),
-                "role": serializers.CharField(),
-            },
-        )
-        attachments = serializers.ListField(
-            required=False,
-            child=serializers.FileField(
-                allow_empty_file=True,
-            ),
-        )
-
-    serializer_class = InputSerializer
+    serializer_class = LetterCreateSerializer
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        request_data = process_request_data(request)
-
-        input_serializer = self.InputSerializer(data=request_data, partial=True)
+        input_serializer = LetterCreateSerializer(data=request.data, partial=True)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -335,7 +297,7 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 **input_serializer.validated_data,
             )
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "data": output_serializer.data,
@@ -371,7 +333,7 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
             letter_instance = letter_move_to_trash(letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "The Letter has been moved to the trash.",
@@ -422,7 +384,7 @@ class LetterBatchTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
                 updated_letters.append(letter_instance)
 
                 output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-                permissions = self.get_object_permissions_details(letter_instance)
+                permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
@@ -466,7 +428,7 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
             letter_instance = letter_restore_from_trash(letter_instance=letter_instance)
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-            permissions = self.get_object_permissions_details(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
                 "message": "The Letter has been restored from the trash.",
@@ -517,7 +479,7 @@ class LetterBatchRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
                 updated_letters.append(letter_instance)
 
                 output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-                permissions = self.get_object_permissions_details(letter_instance)
+                permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(

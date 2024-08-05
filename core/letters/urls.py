@@ -12,6 +12,7 @@ from .apis import (
     LetterCreateApi,
     LetterDetailApi,
     LetterListApi,
+    LetterPDF,
     LetterPermanentlyDeleteApi,
     LetterRestoreApi,
     LetterTrashApi,
@@ -25,6 +26,14 @@ urlpatterns: list[URLPattern] = [
     path("create/", LetterCreateApi.as_view(), name="letter-create"),
     path("create_and_submit/", LetterCreateAndSubmitApi.as_view(), name="letter-create-and-submit"),
     path("create_and_publish/", LetterCreateAndPublish.as_view(), name="letter-create-and-publish"),
+    path("batch/trash/", LetterBatchTrashApi.as_view(), name="letter-batch-trash"),
+    path("batch/restore/", LetterBatchRestoreApi.as_view(), name="letter-batch-restore"),
+    path(
+        "batch/permanently_delete/",
+        LetterBatchPermanentlyDeleteApi.as_view(),
+        name="letter-batch-permanently-delete",
+    ),
+    path("<slug:reference_number>/pdf/", LetterPDF.as_view(), name="letter-pdf"),
     path("<slug:reference_number>/", LetterDetailApi.as_view(), name="letter-detail"),
     path("<slug:reference_number>/update/", LetterUpdateApi.as_view(), name="letter-update"),
     path("<slug:reference_number>/trash/", LetterTrashApi.as_view(), name="letter-delete"),
@@ -33,13 +42,6 @@ urlpatterns: list[URLPattern] = [
         "<slug:reference_number>/permanently_delete/",
         LetterPermanentlyDeleteApi.as_view(),
         name="letter-permanently-delete",
-    ),
-    path("batch/trash/", LetterBatchTrashApi.as_view(), name="letter-batch-trash"),
-    path("batch/restore/", LetterBatchRestoreApi.as_view(), name="letter-batch-restore"),
-    path(
-        "batch/permanently_delete/",
-        LetterBatchPermanentlyDeleteApi.as_view(),
-        name="letter-batch-permanently-delete",
     ),
 ]
 
