@@ -63,7 +63,7 @@ class Letter(PolymorphicModel, BaseModel):
                     extra={"attachment": "The letter must have at least one attachment."},
                 )
 
-        if not self.e_signature:
+        if not self.e_signatures.exists():
             raise APIError(
                 error_code="UNSIGNED_LETTER",
                 status_code=http_status.HTTP_400_BAD_REQUEST,
