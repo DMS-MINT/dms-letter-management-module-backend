@@ -34,7 +34,7 @@ from .services import (
     letter_restore_from_trash,
     letter_update,
 )
-from .utils import process_request_data
+from .tasks import generate_pdf_task
 
 
 class LetterPDF(APIView):
@@ -170,6 +170,8 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
         except ValueError as e:
@@ -224,6 +226,8 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=status_code)
 
         except APIError as e:
@@ -237,7 +241,6 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
-    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
@@ -247,9 +250,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = InputSerializer
 
     def post(self, request) -> Response:
-        request_data = process_request_data(request)
-
-        input_serializer = self.InputSerializer(data=request_data)
+        input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -271,7 +272,12 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -312,6 +318,8 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                     "message": response_data,
                 },
             )
+
+            generate_pdf_task.delay(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
