@@ -6,30 +6,26 @@ from django.dispatch import receiver
 from .models import Incoming, Internal, Letter, Outgoing
 
 
-def generate_reference_number(instance, new_slug=None, count=1):
-    if instance.language == Letter.Languages.AMHARIC:
-        department_abbreviation = instance.owner.department.abbreviation_am
-        fiscal_year = 2016
-    elif instance.language == Letter.Languages.ENGLISH:
-        department_abbreviation = instance.owner.department.abbreviation_en
-        fiscal_year = datetime.datetime.now().year
-    else:
-        fiscal_year = datetime.datetime.now().year
-        department_abbreviation = "UNK"
+def generate_reference_number(instance, new_slug=None, new_slug_am=None, count=1):
+    department = instance.owner.department
+    fiscal_year = datetime.datetime.now().year
 
     if new_slug:
         slug = new_slug
+        slug_am = new_slug_am
     else:
-        slug = f"{department_abbreviation}-{fiscal_year}-{count:04d}"
+        slug = f"{department.abbreviation_en}-{fiscal_year}-{count:04d}"
+        slug_am = f"{department.abbreviation_am}-2016-{count:04d}"
 
     qs = Letter.objects.filter(reference_number=slug).exclude(id=instance.id)
 
     if qs.exists():
         count += 1
-        new_slug = f"{department_abbreviation}-{fiscal_year}-{count:04d}"
-        return generate_reference_number(instance, new_slug, count)
+        new_slug = f"{department.abbreviation_en}-{fiscal_year}-{count:04d}"
+        new_slug_am = f"{department.abbreviation_am}-2016-{count:04d}"
+        return generate_reference_number(instance, new_slug, new_slug_am, count)
 
-    return slug
+    return slug, slug_am
 
 
 @receiver(pre_save, sender=Incoming)
@@ -37,7 +33,10 @@ def generate_reference_number(instance, new_slug=None, count=1):
 @receiver(pre_save, sender=Outgoing)
 def letter_pre_save(sender, instance, **kwargs):
     if not instance.reference_number:
-        instance.reference_number = generate_reference_number(instance)
+        slug, slug_am = generate_reference_number(instance)
+
+        instance.reference_number = slug
+        instance.reference_number_am = slug_am
 
 
 @receiver(post_save, sender=Incoming)
@@ -45,5 +44,7 @@ def letter_pre_save(sender, instance, **kwargs):
 @receiver(post_save, sender=Outgoing)
 def letter_post_save(sender, instance, created, **kwargs):
     if created and not instance.reference_number:
-        instance.reference_number = generate_reference_number(instance)
-        instance.save()
+        slug, slug_am = generate_reference_number(instance)
+
+        instance.reference_number = slug
+        instance.reference_number_am = slug_am
