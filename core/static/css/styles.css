@@ -1,4 +1,5 @@
 @page {
+  size: A4;
   margin: 10mm;
 }
 
@@ -43,6 +44,8 @@
 }
 
 .letter-metadata {
+  padding-left: 5mm;
+  padding-right: 5mm;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -69,7 +72,27 @@
   }
 }
 
+.author-participant-section {
+  margin-top: 20px;
+  padding-left: 5mm;
+  padding-right: 5mm;
+  display: flex;
+  flex-direction: column;
+
+  .author-participant-item {
+    margin: 0px;
+    padding-bottom: 5px;
+
+    &:last-child {
+      padding: 0;
+    }
+  }
+}
+
 .pr-participant-section {
+  margin-top: 20px;
+  padding-left: 5mm;
+  padding-right: 5mm;
   display: flex;
   flex-direction: column;
 
@@ -84,6 +107,9 @@
 }
 
 .letter-body {
+  margin-top: 20px;
+  padding-left: 5mm;
+  padding-right: 5mm;
   .letter-subject {
     text-align: center;
 
@@ -97,9 +123,12 @@
 }
 
 .e-signatures {
+  padding-left: 5mm;
+  padding-right: 5mm;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  page-break-inside: avoid;
 
   .signature-item {
     display: flex;
@@ -120,6 +149,10 @@
 }
 
 .bcc-participants-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding-left: 5mm;
+  padding-right: 5mm;
   page-break-inside: avoid;
   .bcc-header {
   }
@@ -135,6 +168,8 @@
 }
 
 .cc-participants-section {
+  padding-left: 5mm;
+  padding-right: 5mm;
   page-break-inside: avoid;
   .cc-header {
   }
@@ -148,6 +183,7 @@
     }
   }
 }
+
 .footer-wrapper {
   position: absolute;
   bottom: 0;
