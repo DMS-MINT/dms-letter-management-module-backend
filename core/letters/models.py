@@ -28,6 +28,7 @@ class Letter(PolymorphicModel, BaseModel):
     owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
 
     reference_number = models.SlugField(unique=True)
+    reference_number_am = models.SlugField(unique=True)
     current_state = models.IntegerField(choices=States.choices)
     language = models.CharField(max_length=2, choices=Languages.choices, default=Languages.AMHARIC)
 
@@ -55,7 +56,7 @@ class Letter(PolymorphicModel, BaseModel):
 
         # Check Attachment validation if the letter is an Incoming letter
         if isinstance(self, Incoming):
-            if not self.attachments.exists():
+            if not self.letter_attachments.exists():
                 raise APIError(
                     error_code="MISSING_ATTACHMENT",
                     status_code=http_status.HTTP_400_BAD_REQUEST,
@@ -63,13 +64,14 @@ class Letter(PolymorphicModel, BaseModel):
                     extra={"attachment": "The letter must have at least one attachment."},
                 )
 
-        if not self.e_signatures.exists():
-            raise APIError(
-                error_code="UNSIGNED_LETTER",
-                status_code=http_status.HTTP_400_BAD_REQUEST,
-                message="Validation error",
-                extra={"e_signature": "The letter must be signed before proceeding."},
-            )
+        if not isinstance(self, Incoming):
+            if not self.e_signatures.exists():
+                raise APIError(
+                    error_code="UNSIGNED_LETTER",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"e_signature": "The letter must be signed before proceeding."},
+                )
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"

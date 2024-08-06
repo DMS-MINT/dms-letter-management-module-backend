@@ -4,8 +4,7 @@ from django.http import HttpResponse
 from guardian.shortcuts import assign_perm
 from rest_framework import serializers
 from rest_framework import status as http_status
-from rest_framework.exceptions import ValidationError
-from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -34,7 +33,7 @@ from .services import (
     letter_restore_from_trash,
     letter_update,
 )
-from .utils import process_request_data
+from .tasks import generate_pdf_task
 
 
 class LetterPDF(APIView):
@@ -170,6 +169,8 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
         except ValueError as e:
@@ -224,6 +225,8 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=status_code)
 
         except APIError as e:
@@ -237,7 +240,6 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
 
 class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
-    parser_classes = [MultiPartParser, FormParser]
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
@@ -247,9 +249,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = InputSerializer
 
     def post(self, request) -> Response:
-        request_data = process_request_data(request)
-
-        input_serializer = self.InputSerializer(data=request_data)
+        input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
         try:
@@ -271,7 +271,12 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
+            generate_pdf_task.delay(letter_id=letter_instance.id)
+
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
+
+        except APIError as e:
+            raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -312,6 +317,8 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                     "message": response_data,
                 },
             )
+
+            generate_pdf_task.delay(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -374,6 +381,7 @@ class LetterBatchTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
         response_data = {"message": "The letters have been moved to the trash."}
         updated_letters = []
         failed_references = []
+        permission_errors = []
 
         for ref_number in reference_numbers:
             try:
@@ -398,22 +406,40 @@ class LetterBatchTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
                     },
                 )
 
+            except PermissionDenied:
+                failed_references.append(ref_number)
+
             except ValueError:
                 failed_references.append(ref_number)
 
             except Exception:
                 failed_references.append(ref_number)
 
-        response_data = {
-            "message": "The Letter has been moved to the trash.",
-        }
+        succeeded_references = [
+            ref for ref in reference_numbers if ref not in failed_references and ref not in permission_errors
+        ]
 
-        if failed_references:
-            response_data["errors"] = {
-                "failed_references": failed_references,
-                "message": "Some letters could not be moved to the trash.",
-            }
+        if permission_errors or failed_references:
+            error_message = (
+                f"Operation summary:\n"
+                f"Successfully moved to trash: {", ".join(succeeded_references)}.\n"
+                f"Permission denied for: {", ".join(permission_errors)}.\n"
+                f"Failed to move to trash due to errors: {", ".join(failed_references)}."
+            )
 
+            raise APIError(
+                error_code="BATCH_OPERATION_FAILED",
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                message="Validation error",
+                extra={
+                    "succeeded_references": succeeded_references,
+                    "permission_errors": permission_errors,
+                    "failed_references": failed_references,
+                    "message": error_message,
+                },
+            )
+
+        response_data = {"message": "The letters have been moved to the trash."}
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
@@ -469,6 +495,7 @@ class LetterBatchRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         updated_letters = []
         failed_references = []
+        permission_errors = []
 
         for ref_number in reference_numbers:
             try:
@@ -492,6 +519,8 @@ class LetterBatchRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
                         },
                     },
                 )
+            except PermissionDenied:
+                failed_references.append(ref_number)
 
             except ValueError as e:
                 failed_references.append({"reference_number": ref_number, "error": str(e)})
@@ -499,14 +528,31 @@ class LetterBatchRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
             except Exception as e:
                 failed_references.append({"reference_number": ref_number, "error": str(e)})
 
-        response_data = {"message": "The letters have been restored from the trash."}
+        succeeded_references = [
+            ref for ref in reference_numbers if ref not in failed_references and ref not in permission_errors
+        ]
 
-        if failed_references:
-            response_data["errors"] = {
-                "failed_references": failed_references,
-                "message": "Some letters could not be restored from the trash.",
-            }
+        if permission_errors or failed_references:
+            error_message = (
+                f"Operation summary:\n"
+                f"Successfully moved to trash: {", ".join(succeeded_references)}.\n"
+                f"Permission denied for: {", ".join(permission_errors)}.\n"
+                f"Failed to move to trash due to errors: {", ".join(failed_references)}."
+            )
 
+            raise APIError(
+                error_code="BATCH_OPERATION_FAILED",
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                message="Validation error",
+                extra={
+                    "succeeded_references": succeeded_references,
+                    "permission_errors": permission_errors,
+                    "failed_references": failed_references,
+                    "message": error_message,
+                },
+            )
+
+        response_data = {"message": "The letters have been moved to the trash."}
         return Response(data=response_data, status=http_status.HTTP_200_OK)
 
 
@@ -564,6 +610,7 @@ class LetterBatchPermanentlyDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
         verify_otp(current_user=request.user, otp=otp)
 
         failed_references = []
+        permission_errors = []
 
         for ref_number in reference_numbers:
             try:
@@ -575,18 +622,38 @@ class LetterBatchPermanentlyDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
             except APIError as e:
                 raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
+            except PermissionDenied:
+                failed_references.append(ref_number)
+
             except ValueError as e:
                 failed_references.append({"reference_number": ref_number, "error": str(e)})
 
             except Exception as e:
                 failed_references.append({"reference_number": ref_number, "error": str(e)})
 
-        response_data = {"message": "The letters have been deleted successfully."}
+        succeeded_references = [
+            ref for ref in reference_numbers if ref not in failed_references and ref not in permission_errors
+        ]
 
-        if failed_references:
-            response_data["errors"] = {
-                "failed_references": failed_references,
-                "message": "Some letters could not be permanently deleted.",
-            }
+        if permission_errors or failed_references:
+            error_message = (
+                f"Operation summary:\n"
+                f"Successfully moved to trash: {", ".join(succeeded_references)}.\n"
+                f"Permission denied for: {", ".join(permission_errors)}.\n"
+                f"Failed to move to trash due to errors: {", ".join(failed_references)}."
+            )
 
-        return Response(data=response_data, status=http_status.HTTP_204_NO_CONTENT)
+            raise APIError(
+                error_code="BATCH_OPERATION_FAILED",
+                status_code=http_status.HTTP_400_BAD_REQUEST,
+                message="Validation error",
+                extra={
+                    "succeeded_references": succeeded_references,
+                    "permission_errors": permission_errors,
+                    "failed_references": failed_references,
+                    "message": error_message,
+                },
+            )
+
+        response_data = {"message": "The letters have been moved to the trash."}
+        return Response(data=response_data, status=http_status.HTTP_200_OK)

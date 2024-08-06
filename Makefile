@@ -1,3 +1,9 @@
+# Run celery
+.PHONY: run-celery
+run-celery:
+	@echo "Running celery..."
+	@celery -A config.settings.celery worker -l INFO
+
 # Clean up migration files
 .PHONY: clean-migrations
 clean-migrations:

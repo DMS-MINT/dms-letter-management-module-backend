@@ -14,6 +14,7 @@ from core.comments.services import comment_create
 from core.common.utils import get_object
 from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
+from core.letters.tasks import generate_pdf_task
 from core.participants.services import add_participants
 from core.permissions.mixins import ApiPermMixin
 
@@ -89,7 +90,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_submit_letter"]
 
     class InputSerializer(serializers.Serializer):
-        signature_method = serializers.ChoiceField(choices=["Default", "Canvas"])
+        signature_method = serializers.ChoiceField(required=False, choices=["Default", "Canvas"])
         otp = serializers.IntegerField()
 
     def put(self, request, reference_number) -> Response:
@@ -107,7 +108,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
             letter_instance = letter_submit(
                 current_user=request.user,
                 letter_instance=letter_instance,
-                signature_method=signature_method,
+                signature_method="Default",
             )
 
             output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
@@ -126,6 +127,8 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                     },
                 },
             )
+
+            generate_pdf_task.delay(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -175,6 +178,8 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
                     },
                 },
             )
+
+            generate_pdf_task.delay(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 

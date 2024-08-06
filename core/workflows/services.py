@@ -25,9 +25,6 @@ def letter_submit(*, current_user: Member, letter_instance: Letter, signature_me
     participant = Participant.objects.get(letter=letter_instance, user=current_user)
     participant.clean()
 
-    from core.letters.services import letter_generate_pdf
-
-    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 
@@ -59,9 +56,6 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.current_state = next_state
     letter_instance.save()
 
-    from core.letters.services import letter_generate_pdf
-
-    letter_generate_pdf(letter_instance=letter_instance)
     return letter_instance
 
 

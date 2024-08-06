@@ -30,7 +30,7 @@ def setup_2fa(current_user: Member):
 def verify_otp(current_user: Member, otp: int):
     totp = pyotp.TOTP(current_user.otp_secret)
 
-    if not totp.verify(otp):
+    if not totp.verify(otp, valid_window=1):
         raise APIError(
             error_code="INVALID_OTP",
             status_code=http_status.HTTP_400_BAD_REQUEST,

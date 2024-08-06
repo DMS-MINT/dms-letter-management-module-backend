@@ -9,6 +9,7 @@ from core.users.serializers import MemberListSerializer, UserCreateSerializer
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
+    reference_number_am = serializers.SlugField()
     owner = MemberListSerializer()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
@@ -37,6 +38,7 @@ class LetterListSerializer(serializers.Serializer):
 class LetterDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
+    reference_number_am = serializers.SlugField()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     content = serializers.CharField()
