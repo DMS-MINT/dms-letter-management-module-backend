@@ -20,12 +20,14 @@ def letter_list(*, current_user=Member, filters=None):
 
 
 def letter_pdf(letter_instance):
+    authors = letter_instance.participants.filter(role=Participant.Roles.AUTHOR)
     primary_recipients = letter_instance.participants.filter(role=Participant.Roles.PRIMARY_RECIPIENT)
     cc_participants = letter_instance.participants.filter(role=Participant.Roles.CC)
     bcc_participants = letter_instance.participants.filter(role=Participant.Roles.BCC)
 
     context = {
         "letter": letter_instance,
+        "authors": authors,
         "primary_recipients": primary_recipients,
         "cc_participants": cc_participants,
         "bcc_participants": bcc_participants,
@@ -50,6 +52,4 @@ def letter_pdf(letter_instance):
         base_url=settings.STATIC_URL,
     )
 
-    pdf_content = weasy_html.write_pdf()
-
-    return pdf_content
+    return weasy_html.write_pdf()
