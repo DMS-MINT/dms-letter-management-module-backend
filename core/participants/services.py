@@ -93,7 +93,7 @@ def add_participants(
     comment_create(
         current_user=current_user,
         letter_instance=letter_instance,
-        content=participants.get("message"),
+        body=participants.get("message"),
     )
 
     return

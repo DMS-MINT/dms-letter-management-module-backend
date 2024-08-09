@@ -41,7 +41,7 @@ class LetterDetailSerializer(serializers.Serializer):
     reference_number_am = serializers.SlugField()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
-    content = serializers.CharField()
+    body = serializers.CharField()
     owner = MemberListSerializer()
     language = serializers.CharField(source="get_language_display")
     pdf_version = serializers.URLField()
@@ -57,7 +57,7 @@ class LetterDetailSerializer(serializers.Serializer):
         many=True,
         fields={
             "id": serializers.UUIDField(),
-            "content": serializers.CharField(),
+            "body": serializers.CharField(),
             "author": MemberListSerializer(),
             "created_at": serializers.DateTimeField(),
         },
@@ -76,8 +76,8 @@ class OutgoingLetterDetailSerializer(LetterDetailSerializer):
 
 class LetterCreateSerializer(serializers.Serializer):
     subject = serializers.CharField(required=False, allow_blank=True)
-    content = serializers.CharField(required=False, allow_blank=True)
-    letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+    body = serializers.CharField(required=False, allow_blank=True)
+    letter_category = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
     language = serializers.ChoiceField(choices=["EN", "AM"])
     participants = inline_serializer(
         many=True,

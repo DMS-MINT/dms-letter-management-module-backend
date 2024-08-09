@@ -13,13 +13,13 @@ from .models import Incoming, Internal, Letter, Outgoing
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
 
-# Create a letter instance based on the provided letter_type and keyword arguments.
-def create_letter_instance(letter_type: str, **kwargs) -> Letter:
+# Create a letter instance based on the provided letter_category and keyword arguments.
+def create_letter_instance(letter_category: str, **kwargs) -> Letter:
     letter_instance_class = {
         "internal": Internal,
         "incoming": Incoming,
         "outgoing": Outgoing,
-    }.get(letter_type)
+    }.get(letter_category)
 
     if letter_instance_class:
         return letter_instance_class.objects.create(**kwargs)
@@ -32,15 +32,15 @@ def letter_create(
     *,
     current_user: Member,
     subject: Optional[str] = None,
-    content: Optional[str] = None,
-    letter_type: str,
+    body: Optional[str] = None,
+    letter_category: str,
     language: str,
     participants,
 ) -> Letter:
     letter_data = {
-        "letter_type": letter_type,
+        "letter_category": letter_category,
         "subject": subject,
-        "content": content,
+        "body": body,
         "current_state": Letter.States.DRAFT,
         "owner": current_user,
         "language": language,
@@ -48,7 +48,7 @@ def letter_create(
 
     letter_instance = create_letter_instance(**letter_data)
 
-    if letter_type in ["internal", "outgoing"]:
+    if letter_category in ["internal", "outgoing"]:
         author_participant = OrderedDict({
             "id": "",
             "user": OrderedDict({
@@ -73,15 +73,15 @@ def letter_create_and_publish(
     *,
     current_user: Member,
     subject: Optional[str] = None,
-    content: Optional[str] = None,
-    letter_type: str,
+    body: Optional[str] = None,
+    letter_category: str,
     language: str,
     participants,
 ) -> Letter:
     letter_data = {
-        "letter_type": letter_type,
+        "letter_category": letter_category,
         "subject": subject,
-        "content": content,
+        "body": body,
         "current_state": Letter.States.DRAFT,
         "owner": current_user,
         "language": language,
@@ -108,15 +108,15 @@ def letter_update(
     current_user: Member,
     letter_instance: Letter,
     subject: Optional[str] = None,
-    content: Optional[str] = None,
-    letter_type: str = "internal",
+    body: Optional[str] = None,
+    letter_category: str = "internal",
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     if subject is not None:
         letter_instance.subject = subject
 
-    if content is not None:
-        letter_instance.content = content
+    if body is not None:
+        letter_instance.body = body
 
     letter_instance.save()
 

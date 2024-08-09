@@ -62,7 +62,7 @@ class LetterListApi(ApiAuthMixin, APIView):
         )
 
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "letter_type"
+        resource_type_field_name = "letter_category"
         model_serializer_mapping = {
             Internal: LetterListSerializer,
             Incoming: LetterListSerializer,
@@ -91,7 +91,7 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter"]
 
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "letter_type"
+        resource_type_field_name = "letter_category"
         model_serializer_mapping = {
             Internal: LetterDetailSerializer,
             Incoming: LetterDetailSerializer,

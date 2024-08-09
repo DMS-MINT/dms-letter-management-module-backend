@@ -1,54 +1,35 @@
-{% extends "base_letter_template.html" %}
-{% load static %}
+{% extends "base_letter_template.html" %} {% load static %} {% block title
+%}Letter_{{ letter.reference_number }}{% endblock %} {% block header %}
+<header class="internal_letter_header"></header>
+{% endblock %} {% block separator %} {% endblock %} {% block letter_metadata %}
+{% endblock %} {% block authors %} {% endblock %} {% block primary_recipients %}
+<section class="pr-participant-section">
+  {% for participant in primary_recipients %}
+  <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+  {% empty %} {% endfor %}
+</section>
+{% endblock %} {% block letter_body %}
+<section class="letter-body">
+  <p class="letter-subject">
+    <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+  </p>
 
-{% block title %}Letter_{{ letter.reference_number }}{% endblock %}
-
-{% block header %} 
-  <header class="internal_letter_header">
-  
-  </header> 
-{% endblock %} 
-
-{% block separator %} {% endblock %} 
-
-{% block letter_metadata %} {% endblock %} 
-
-{% block authors %} {% endblock %} 
-
-{% block primary_recipients %} 
-  <section class="pr-participant-section">
-    {% for participant in primary_recipients %}
-    <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-    {% empty %} {% endfor %}
-  </section>
-{% endblock %} 
-
-{% block letter_body %} 
-  <section class="letter-body">
-    <p class="letter-subject">
-      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+  <div class="letter-body">{{ letter.body|safe }}</div>
+</section>
+{% endblock %} {% block e_signatures %}
+<section class="e-signatures">
+  {% for e_signature in e_signatures %}
+  <div class="signature-item">
+    <img
+      src="{{ base_url }}{{ e_signature.signature_image.url }}"
+      alt="{{ e_signature.signer.full_name }}'s signature"
+      class="signature-image"
+    />
+    <p class="signer-info">
+      <span>{{ e_signature.signer.full_name }}</span>
+      <span>{{ e_signature.signer.job_title }}</span>
     </p>
-
-    <div class="letter-content">{{ letter.content|safe }}</div>
-  </section>
-{% endblock %}
-
-{% block e_signatures %} 
-  <section class="e-signatures">
-    {% for e_signature in e_signatures %}
-    <div class="signature-item">
-      <img
-        src="{{ base_url }}{{ e_signature.signature_image.url }}"
-        alt="{{ e_signature.signer.full_name }}'s signature"
-        class="signature-image"
-      />
-      <p class="signer-info">
-        <span>{{ e_signature.signer.full_name }}</span>
-        <span>{{ e_signature.signer.job_title }}</span>
-      </p>
-    </div>
-    {% empty %} {% endfor %}
-  </section>
-{% endblock %}
-
-{% block footer %} {% endblock %}
+  </div>
+  {% empty %} {% endfor %}
+</section>
+{% endblock %} {% block footer %} {% endblock %}

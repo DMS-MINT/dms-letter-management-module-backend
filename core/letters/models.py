@@ -24,7 +24,7 @@ class Letter(PolymorphicModel, BaseModel):
         AMHARIC = "AM", _("Amharic")
 
     subject = models.CharField(blank=True, null=True, max_length=255)
-    content = models.TextField(blank=True, null=True)
+    body = models.TextField(blank=True, null=True)
     owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
 
     reference_number = models.SlugField(unique=True)
@@ -43,15 +43,15 @@ class Letter(PolymorphicModel, BaseModel):
         if not self.subject or not self.subject.strip():
             raise ValidationError(_("The subject of the letter cannot be empty."))
 
-        # Skip content validation if the letter is an Incoming letter
+        # Skip body validation if the letter is an Incoming letter
         if not isinstance(self, Incoming):
-            stripped_content = re.sub("<[^<]+?>", "", self.content or "")
-            if not stripped_content.strip():
+            stripped_body = re.sub("<[^<]+?>", "", self.body or "")
+            if not stripped_body.strip():
                 raise APIError(
-                    error_code="EMPTY_CONTENT",
+                    error_code="EMPTY_body",
                     status_code=http_status.HTTP_400_BAD_REQUEST,
                     message="Validation error",
-                    extra={"content": "The content of the letter cannot be empty."},
+                    extra={"body": "The body of the letter cannot be empty."},
                 )
 
         # Check Attachment validation if the letter is an Incoming letter
