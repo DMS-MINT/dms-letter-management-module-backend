@@ -90,7 +90,7 @@ class RequestQRCodeApi(ApiAuthMixin, APIView):
 
 class ValidateOneTimePassword(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def post(self, request):
         current_user = request.user

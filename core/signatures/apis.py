@@ -11,7 +11,7 @@ from core.signatures.models import Signature
 
 class GetDefaultSignature(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     class OutputSerializer(serializers.Serializer):
         e_signature = serializers.ImageField()

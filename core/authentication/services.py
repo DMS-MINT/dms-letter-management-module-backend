@@ -27,7 +27,7 @@ def setup_2fa(current_user: Member):
     return base64.b64encode(buffer.getvalue()).decode()
 
 
-def verify_otp(current_user: Member, otp: int):
+def verify_otp(current_user: Member, otp: str):
     totp = pyotp.TOTP(current_user.otp_secret)
 
     if not totp.verify(otp, valid_window=1):
