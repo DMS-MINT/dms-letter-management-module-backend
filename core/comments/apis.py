@@ -118,27 +118,37 @@ class CommentDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_comment_letter"]
 
     def delete(self, request, comment_id) -> Response:
-        comment_instance = get_object_or_404(Comment, pk=comment_id)
-        letter_instance = comment_instance.letter
+        try:
+            comment_instance = get_object_or_404(Comment, pk=comment_id)
+            letter_instance = comment_instance.letter
 
-        if comment_instance.author != request.user:
-            raise PermissionDenied("You do not have permission to delete this comment.")
+            if comment_instance.author != request.user:
+                raise PermissionDenied("You do not have permission to delete this comment.")
 
-        comment_instance.delete()
+            comment_instance.delete()
 
-        output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
-        permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
+            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"letter_{letter_instance.reference_number}",
-            {
-                "type": "letter_update",
-                "message": {
-                    "data": output_serializer.data,
-                    "permissions": permissions,
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"letter_{letter_instance.reference_number}",
+                {
+                    "type": "letter_update",
+                    "message": {
+                        "data": output_serializer.data,
+                        "permissions": permissions,
+                    },
                 },
-            },
-        )
+            )
 
-        return Response(data={"message": "Comment successfully deleted"}, status=http_status.HTTP_200_OK)
+            return Response(data={"message": "Comment successfully deleted"}, status=http_status.HTTP_200_OK)
+
+        except PermissionDenied as e:
+            raise PermissionDenied(e)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
