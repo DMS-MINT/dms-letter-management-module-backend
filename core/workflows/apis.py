@@ -91,7 +91,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         signature_method = serializers.ChoiceField(required=False, choices=["Default", "Canvas"])
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -128,7 +128,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 },
             )
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -146,7 +146,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_retract_letter"]
 
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -179,7 +179,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
                 },
             )
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -198,7 +198,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -246,7 +246,7 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         message = serializers.CharField()
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)

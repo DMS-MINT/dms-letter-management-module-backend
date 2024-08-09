@@ -169,7 +169,7 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
@@ -185,7 +185,7 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         letter = LetterCreateSerializer()
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     serializer_class = InputSerializer
 
@@ -225,7 +225,7 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=status_code)
 
@@ -244,7 +244,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         letter = LetterCreateSerializer()
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     serializer_class = InputSerializer
 
@@ -271,7 +271,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
@@ -318,7 +318,7 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 },
             )
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -560,7 +560,7 @@ class LetterPermanentlyDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_permanently_delete_letter"]
 
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         try:
@@ -598,7 +598,7 @@ class LetterBatchPermanentlyDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         reference_numbers = serializers.ListField(child=serializers.CharField())
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request) -> Response:
         input_serializer = self.InputSerializer(data=request.data)
