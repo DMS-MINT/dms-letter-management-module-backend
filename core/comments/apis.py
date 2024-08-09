@@ -20,7 +20,7 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_comment_letter"]
 
     class InputSerializer(serializers.Serializer):
-        content = serializers.CharField()
+        message = serializers.CharField()
 
     serializer_class = InputSerializer
 
@@ -71,7 +71,7 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_comment_letter"]
 
     class InputSerializer(serializers.Serializer):
-        content = serializers.CharField()
+        message = serializers.CharField()
 
     serializer_class = InputSerializer
 

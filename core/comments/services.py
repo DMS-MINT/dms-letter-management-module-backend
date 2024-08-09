@@ -7,11 +7,11 @@ from .models import Comment
 
 
 @transaction.atomic
-def comment_create(*, current_user=Member, letter_instance: Letter, content: str):
-    Comment.objects.create(content=content, author=current_user, letter=letter_instance)
+def comment_create(*, current_user=Member, letter_instance: Letter, message: str):
+    Comment.objects.create(message=message, author=current_user, letter=letter_instance)
 
 
 @transaction.atomic
-def comment_update(*, comment_instance: Comment, content: str):
-    comment_instance.content = content
+def comment_update(*, comment_instance: Comment, message: str):
+    comment_instance.content = message
     comment_instance.save()
