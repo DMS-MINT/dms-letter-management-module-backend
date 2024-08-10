@@ -1,35 +1,36 @@
 {% extends "base_letter_template.html" %}
+
 {% load static %}
 
 {% block title %}Letter_{{ letter.reference_number }}{% endblock %}
 
-{% block header %} 
+{% block header %}
   <section class="letter-body">
     <p class="letter-subject">
       <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
     </p>
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block separator %} {% endblock %} 
+{% block separator %} {% endblock %}
 
-{% block letter_metadata %} {% endblock %} 
+{% block letter_metadata %} {% endblock %}
 
-{% block authors %} 
+{% block authors %}
   <section class="author-participant-section">
     {% for author in authors %}
-    <p class="author-participant-item">ከ {{author.user.job_title}}</p>
-    {% empty %} {% endfor %}
+      <p class="author-participant-item">ከ {{author.user.job_title}}</p>
+    {% endfor %}
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block primary_recipients %} 
+{% block primary_recipients %}
   <section class="pr-participant-section">
     {% for participant in primary_recipients %}
-    <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-    {% empty %} {% endfor %}
+      <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+    {% endfor %}
   </section>
-{% endblock %} 
+{% endblock %}
 
 {% block e_signatures %} {% endblock %}
 

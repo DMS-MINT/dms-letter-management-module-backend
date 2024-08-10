@@ -1,145 +1,160 @@
-{% extends "base_letter_template.html" %} {% load static %} {% block title
-%}Letter_{{ letter.reference_number }}{% endblock %} {% block header %}
-<header class="outgoing_letter_header">
-  <img
-    src="{% static 'images/pentagram.png' %}"
-    alt="Ethiopian flag pentagon star symbol"
-    class="pentagram"
-  />
-  <div class="header-info">
-    <p class="header-title">በኢትዮጵያ ፌደራላዊ ዲሞክራሲያዊ ሪፐብሊክ</p>
-    <p class="header-title">የኢኖቬሽንና ቴከኖሎጂ ሚኒስቴር</p>
-    <p class="header-subtitle">The Federal Democratic Republic of Ethiopia</p>
-    <p class="header-subtitle">Minister of Innovation and Technology</p>
-  </div>
-  <img
-    src="{% static 'images/mint.png' %}"
-    alt="Ministry of Innovation and Technology logo"
-    class="logo"
-  />
-</header>
-{% endblock %} {% block separator %}
-<hr class="separator" />
-{% endblock %} {% block letter_metadata %}
-<section class="letter-metadata">
-  <div class="metadata-item">
-    <p class="metadata-label">
-      <span>ቁጥር</span>
-      <span>Ref.No.</span>
-    </p>
-    <hr class="metadata-divider" />
-  </div>
-  <div class="metadata-item">
-    <p class="metadata-label">
-      <span>ቀን</span>
-      <span>Date</span>
-    </p>
-    <hr class="metadata-divider" />
-  </div>
-</section>
-{% endblock %} {% block authors %} {% endblock %} {% block primary_recipients %}
-<section class="pr-participant-section">
-  {% for participant in primary_recipients %}
-  <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-  {% empty %} {% endfor %}
-</section>
-{% endblock %} {% block letter_body %}
-<section class="letter-body">
-  <p class="letter-subject">
-    <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
-  </p>
+{% extends "base_letter_template.html" %}
 
-  <div class="letter-body">{{ letter.body|safe }}</div>
-</section>
-{% endblock %} {% block e_signatures %}
-<section class="e-signatures">
-  {% for e_signature in e_signatures %}
-  <div class="signature-item">
+{% load static %} {% block title%}Letter_{{ letter.reference_number }}{% endblock %}
+
+{% block header %}
+  <header class="outgoing_letter_header">
     <img
-      src="{{ base_url }}{{ e_signature.signature_image.url }}"
-      alt="{{ e_signature.signer.full_name }}'s signature"
-      class="signature-image"
+      src="{% static 'images/pentagram.png' %}"
+      alt="Ethiopian flag pentagon star symbol"
+      class="pentagram"
     />
-    <p class="signer-info">
-      <span>{{ e_signature.signer.full_name }}</span>
-      <span>{{ e_signature.signer.job_title }}</span>
+    <div class="header-info">
+      <p class="header-title">በኢትዮጵያ ፌደራላዊ ዲሞክራሲያዊ ሪፐብሊክ</p>
+      <p class="header-title">የኢኖቬሽንና ቴከኖሎጂ ሚኒስቴር</p>
+      <p class="header-subtitle">The Federal Democratic Republic of Ethiopia</p>
+      <p class="header-subtitle">Minister of Innovation and Technology</p>
+    </div>
+    <img
+      src="{% static 'images/mint.png' %}"
+      alt="Ministry of Innovation and Technology logo"
+      class="logo"
+    />
+  </header>
+{% endblock %}
+
+{% block separator %}<hr class="separator" />{% endblock %}
+
+{% block letter_metadata %}
+  <section class="letter-metadata">
+    <div class="metadata-item">
+      <p class="metadata-label">
+        <span>ቁጥር</span>
+        <span>Ref.No.</span>
+      </p>
+      <hr class="metadata-divider" />
+    </div>
+    <div class="metadata-item">
+      <p class="metadata-label">
+        <span>ቀን</span>
+        <span>Date</span>
+      </p>
+      <hr class="metadata-divider" />
+    </div>
+  </section>
+{% endblock %}
+
+{% block authors %} {% endblock %}
+
+{% block primary_recipients %}
+  <section class="pr-participant-section">
+    {% for participant in primary_recipients %}
+      <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+    {% endfor %}
+  </section>
+{% endblock %}
+
+{% block letter_body %}
+  <section class="letter-body">
+    <p class="letter-subject">
+      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
     </p>
-  </div>
-  {% empty %} {% endfor %}
-</section>
-{% endblock %} {% block footer %}
-<section class="footer-wrapper">
-  <hr class="separator" />
-  <footer>
-    <div class="contact-info">
-      <div class="contact-item">
+
+    <div class="letter-body">{{ letter.body|safe }}</div>
+  </section>
+{% endblock %}
+
+{% block e_signatures %}
+  <section class="e-signatures">
+    {% for e_signature in e_signatures %}
+      <div class="signature-item">
         <img
-          class="contact-icon"
-          src="{% static 'icons/laptop.svg' %}"
-          alt="Website icon"
-          width="15"
-          height="15"
+          src="{{ base_url }}{{ e_signature.signature_image.url }}"
+          alt="{{ e_signature.signer.full_name }}'s signature"
+          class="signature-image"
         />
-        <p class="contact-text">WWW.MINT.gov.et</p>
+        <p class="signer-info">
+          <span>{{ e_signature.signer.full_name }}</span>
+          <span>{{ e_signature.signer.job_title }}</span>
+        </p>
+      </div>
+    {% endfor %}
+  </section>
+{% endblock %}
+
+{% block footer %}
+  <section class="footer-wrapper">
+    <hr class="separator" />
+    <footer>
+      <div class="contact-info">
+        <div class="contact-item">
+          <img
+            class="contact-icon"
+            src="{% static 'icons/laptop.svg' %}"
+            alt="Website icon"
+            width="15"
+            height="15"
+          />
+          <p class="contact-text">WWW.MINT.gov.et</p>
+        </div>
+
+        <div class="contact-item">
+          <img
+            class="contact-icon"
+            src="{% static 'icons/phone.svg' %}"
+            alt="Phone icon"
+            width="15"
+            height="15"
+          />
+          <p class="contact-text">+251111264994</p>
+        </div>
+
+        <div class="contact-item">
+          <img
+            class="contact-icon"
+            src="{% static 'icons/square-pen.svg' %}"
+            alt="Social media icon"
+            width="15"
+            height="15"
+          />
+          <p class="contact-text">mint @ethionet.et</p>
+        </div>
+
+        <div class="contact-item">
+          <img
+            class="contact-icon"
+            src="{% static 'icons/mail.svg' %}"
+            alt="Mail icon"
+            width="15"
+            height="15"
+          />
+          <p class="contact-text">2490</p>
+        </div>
+
+        <div class="contact-item">
+          <img
+            class="contact-icon"
+            src="{% static 'icons/map-pin.svg' %}"
+            alt="Location icon"
+            width="15"
+            height="15"
+          />
+          <p class="contact-text">Addis Ababa Ethiopia</p>
+        </div>
       </div>
 
-      <div class="contact-item">
-        <img
-          class="contact-icon"
-          src="{% static 'icons/phone.svg' %}"
-          alt="Phone icon"
-          width="15"
-          height="15"
-        />
-        <p class="contact-text">+251111264994</p>
+      <div class="footer-info">
+        <p class="footer-title">ከእርምጃ ወደ ሩጫ</p>
+        <p class="footer-subtitle">From Faciltator to Main Actor</p>
       </div>
 
-      <div class="contact-item">
+      <div class="qr-code-container">
         <img
-          class="contact-icon"
-          src="{% static 'icons/square-pen.svg' %}"
-          alt="Social media icon"
-          width="15"
-          height="15"
+          src="{% static 'images/qr_code.png' %}"
+          alt="QR code"
+          class="qr-code-image"
         />
-        <p class="contact-text">mint @ethionet.et</p>
       </div>
-
-      <div class="contact-item">
-        <img
-          class="contact-icon"
-          src="{% static 'icons/mail.svg' %}"
-          alt="Mail icon"
-          width="15"
-          height="15"
-        />
-        <p class="contact-text">2490</p>
-      </div>
-
-      <div class="contact-item">
-        <img
-          class="contact-icon"
-          src="{% static 'icons/map-pin.svg' %}"
-          alt="Location icon"
-          width="15"
-          height="15"
-        />
-        <p class="contact-text">Addis Ababa Ethiopia</p>
-      </div>
-    </div>
-
-    <div class="footer-info">
-      <p class="footer-title">ከእርምጃ ወደ ሩጫ</p>
-      <p class="footer-subtitle">From Faciltator to Main Actor</p>
-    </div>
-
-    <div class="qr-code-container">
-      <img
-        src="{% static 'images/qr_code.png' %}"
-        alt="QR code"
-        class="qr-code-image"
-      />
-    </div>
-  </footer>
-</section>
+    </footer>
+  </section>
 {% endblock %}
