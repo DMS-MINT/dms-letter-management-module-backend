@@ -7,7 +7,6 @@ target-version = "py312"
 output-format = "grouped"
 respect-gitignore = true
 show-fixes = true
-show-source = true
 exclude = [ 
     ".direnv",
     ".eggs",
