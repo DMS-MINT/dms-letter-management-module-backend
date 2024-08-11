@@ -22,17 +22,3 @@ class PublicEnterprise(BaseModel):
 
     class Meta:
         unique_together = ("name_en", "name_am")
-
-
-class Branch(BaseModel):
-    enterprise = models.ForeignKey(PublicEnterprise, related_name="branches", on_delete=models.CASCADE)
-    email = models.EmailField(blank=True, null=True, verbose_name=_("Email Address"))
-    phone_number = models.CharField(blank=True, null=True, max_length=20, verbose_name=_("Phone Number"))
-    address = models.CharField(max_length=255, blank=True, default="Addis Ababa, Ethiopia", verbose_name=_("Address"))
-    postal_code = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Postal Code"))
-
-    def __str__(self):
-        return f"{self.enterprise.name_en} - {self.address}"
-
-    class Meta:
-        unique_together = ("enterprise", "address")
