@@ -100,7 +100,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
-        signature_method = input_serializer.validated_data.get("signature_method")
+        _signature_method = input_serializer.validated_data.get("signature_method")
         otp = input_serializer.validated_data.get("otp")
 
         try:

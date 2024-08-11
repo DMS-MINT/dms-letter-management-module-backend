@@ -169,7 +169,7 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 "permissions": permissions,
             }
 
-            generate_pdf_task.delay_on_commit_on_commit(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
 
