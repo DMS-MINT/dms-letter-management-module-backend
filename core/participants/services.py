@@ -9,7 +9,7 @@ from core.comments.services import comment_create
 from core.letters.models import Letter
 from core.users.models import User
 
-from .models import Participant
+from .models import BaseParticipant
 from .utils import get_enum_value, verify_owners_role
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
@@ -30,7 +30,7 @@ def participant_instance_create(
     if user_instance_classes == User:
         user = user_instance_classes.objects.get(pk=target_user_id)
 
-        if role == Participant.Roles.ADMINISTRATOR and not user.is_staff:
+        if role == BaseParticipant.Roles.ADMINISTRATOR and not user.is_staff:
             raise PermissionDenied("Cannot assign administrator privileges to a non-staff user.")
 
     # elif user_instance_classes == Guest:
@@ -39,7 +39,7 @@ def participant_instance_create(
     else:
         raise ValueError("Invalid user type")
 
-    participant_instance = Participant.objects.create(
+    participant_instance = BaseParticipant.objects.create(
         user=user,
         role=role,
         letter=letter_instance,
@@ -85,7 +85,7 @@ def add_participants(
         participant_instance_create(
             target_user_id=target_user_id,
             user_type="User",
-            role=participants.get("role", Participant.Roles.COLLABORATOR),
+            role=participants.get("role", BaseParticipant.Roles.COLLABORATOR),
             letter_instance=letter_instance,
             current_user=current_user,
             permissions=participants.get("permissions"),

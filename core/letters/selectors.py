@@ -4,7 +4,7 @@ from django_weasyprint.utils import django_url_fetcher
 from weasyprint import HTML
 
 from config.env import BASE_URL
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
 from core.users.models import User
 
 from .filters import BaseLetterFilter
@@ -20,10 +20,10 @@ def letter_list(*, current_user=User, filters=None):
 
 
 def letter_pdf(letter_instance):
-    authors = letter_instance.participants.filter(role=Participant.Roles.AUTHOR)
-    primary_recipients = letter_instance.participants.filter(role=Participant.Roles.PRIMARY_RECIPIENT)
-    cc_participants = letter_instance.participants.filter(role=Participant.Roles.CC)
-    bcc_participants = letter_instance.participants.filter(role=Participant.Roles.BCC)
+    authors = letter_instance.participants.filter(role=BaseParticipant.Roles.AUTHOR)
+    primary_recipients = letter_instance.participants.filter(role=BaseParticipant.Roles.PRIMARY_RECIPIENT)
+    cc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.CC)
+    bcc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.BCC)
 
     context = {
         "letter": letter_instance,

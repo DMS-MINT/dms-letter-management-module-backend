@@ -11,7 +11,7 @@ from weasyprint import HTML
 
 from config.env import BASE_URL
 from core.common.utils import get_object
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
 
 from .models import Incoming, Internal, Letter, Outgoing
 
@@ -25,10 +25,10 @@ def generate_pdf_task(self, letter_id: str) -> Letter:
     try:
         logger.info(f"Starting PDF generation for reference number: {letter_instance.reference_number}")
 
-        authors = letter_instance.participants.filter(role=Participant.Roles.AUTHOR)
-        primary_recipients = letter_instance.participants.filter(role=Participant.Roles.PRIMARY_RECIPIENT)
-        cc_participants = letter_instance.participants.filter(role=Participant.Roles.CC)
-        bcc_participants = letter_instance.participants.filter(role=Participant.Roles.BCC)
+        authors = letter_instance.participants.filter(role=BaseParticipant.Roles.AUTHOR)
+        primary_recipients = letter_instance.participants.filter(role=BaseParticipant.Roles.PRIMARY_RECIPIENT)
+        cc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.CC)
+        bcc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.BCC)
 
         context = {
             "letter": letter_instance,

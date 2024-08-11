@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from core.letters.models import Incoming, Letter
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
 from core.signatures.services import sign_letter
 from core.users.models import User
 
@@ -22,7 +22,7 @@ def letter_submit(*, current_user: User, letter_instance: Letter, signature_meth
     letter_instance.clean()
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant = BaseParticipant.objects.get(letter=letter_instance, user=current_user)
     participant.clean()
 
     return letter_instance
@@ -31,9 +31,9 @@ def letter_submit(*, current_user: User, letter_instance: Letter, signature_meth
 @transaction.atomic
 def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
     participant = letter_instance.participants.get(user=current_user)
-    administrator_participant = letter_instance.participants.filter(role=Participant.Roles.ADMINISTRATOR).first()
+    administrator_participant = letter_instance.participants.filter(role=BaseParticipant.Roles.ADMINISTRATOR).first()
 
-    if participant.role == Participant.Roles.AUTHOR:
+    if participant.role == BaseParticipant.Roles.AUTHOR:
         next_state = Letter.States.DRAFT
         letter_instance.submitted_at = None
         letter_instance.e_signatures.filter(signer=current_user).delete()
@@ -41,7 +41,7 @@ def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
         if administrator_participant is not None:
             administrator_participant.delete()
 
-    elif participant.role == Participant.Roles.ADMINISTRATOR:
+    elif participant.role == BaseParticipant.Roles.ADMINISTRATOR:
         if isinstance(letter_instance, Incoming):
             next_state = Letter.States.DRAFT
         else:
@@ -77,10 +77,10 @@ def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.published_at = timezone.now()
     letter_instance.save()
 
-    participant_instance = Participant.objects.create(
+    participant_instance = BaseParticipant.objects.create(
         user=current_user,
         letter=letter_instance,
-        role=Participant.Roles.ADMINISTRATOR,
+        role=BaseParticipant.Roles.ADMINISTRATOR,
         added_by=current_user,
     )
 
@@ -104,7 +104,7 @@ def letter_close(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.current_state = Letter.States.CLOSED
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant = BaseParticipant.objects.get(letter=letter_instance, user=current_user)
     participant.clean()
 
     return letter_instance
@@ -116,7 +116,7 @@ def letter_reopen(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.current_state = Letter.States.PUBLISHED
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
+    participant = BaseParticipant.objects.get(letter=letter_instance, user=current_user)
     participant.clean()
 
     return letter_instance

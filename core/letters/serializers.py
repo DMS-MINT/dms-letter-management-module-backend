@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from core.common.utils import inline_serializer
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
 from core.users.apis import UserListApi
 from core.users.serializers import MemberListSerializer, UserCreateSerializer
 
@@ -18,7 +18,7 @@ class LetterListSerializer(serializers.Serializer):
         fields={
             "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
+            "role": serializers.ChoiceField(choices=BaseParticipant.Roles.choices, source="get_role_display"),
         },
     )
     has_read: serializers.SerializerMethodField()
@@ -50,7 +50,7 @@ class LetterDetailSerializer(serializers.Serializer):
         fields={
             "id": serializers.UUIDField(),
             "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
+            "role": serializers.ChoiceField(choices=BaseParticipant.Roles.choices, source="get_role_display"),
         },
     )
     comments = inline_serializer(
