@@ -5,13 +5,13 @@ from weasyprint import HTML
 
 from config.env import BASE_URL
 from core.participants.models import Participant
-from core.users.models import Member
+from core.users.models import User
 
 from .filters import BaseLetterFilter
 from .models import Incoming, Internal, Letter, Outgoing
 
 
-def letter_list(*, current_user=Member, filters=None):
+def letter_list(*, current_user=User, filters=None):
     filters = filters or {}
 
     qs = Letter.objects.filter(hidden=False)

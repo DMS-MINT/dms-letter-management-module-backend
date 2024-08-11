@@ -25,7 +25,7 @@ class Letter(PolymorphicModel, BaseModel):
 
     subject = models.CharField(blank=True, null=True, max_length=255)
     body = models.TextField(blank=True, null=True)
-    owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
+    owner = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="owned_letters")
 
     reference_number = models.SlugField(unique=True)
     reference_number_am = models.SlugField(unique=True)

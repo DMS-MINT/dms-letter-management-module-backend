@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
-from core.users.models import BaseUser, Guest, Member
+from core.users.models import User
 
 from .selectors import user_get_users
 from .serializers import (
@@ -20,8 +20,8 @@ class UserListApi(ApiAuthMixin, APIView):
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
-            Member: MemberListSerializer,
-            Guest: GustListSerializer,
+            User: MemberListSerializer,
+            # Guest: GustListSerializer,
         }
 
         def to_resource_type(self, model_or_instance):
@@ -50,8 +50,8 @@ class UserDetailAPI(ApiAuthMixin, APIView):
     class OutputSerializer(PolymorphicSerializer):
         resource_type_field_name = "user_type"
         model_serializer_mapping = {
-            Member: MemberDetailSerializer,
-            Guest: GuestDetailSerializer,
+            User: MemberDetailSerializer,
+            # Guest: GuestDetailSerializer,
         }
 
         def to_resource_type(self, model_or_instance):
@@ -61,7 +61,7 @@ class UserDetailAPI(ApiAuthMixin, APIView):
 
     def get(self, request, user_id):
         try:
-            user_instance = get_object_or_404(BaseUser, id=user_id)
+            user_instance = get_object_or_404(User, id=user_id)
 
             serializer = self.OutputSerializer(user_instance)
 

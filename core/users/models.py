@@ -3,12 +3,11 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.contrib.auth.models import BaseUserManager as BUM  # noqa: N817
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from polymorphic.models import PolymorphicManager, PolymorphicModel
 
 from core.common.models import BaseModel
 
 
-class BaseUserManager(BUM, PolymorphicManager):
+class BaseUserManager(BUM):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Users must have an email address")
@@ -40,13 +39,7 @@ class BaseUserManager(BUM, PolymorphicManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class BaseUser(PolymorphicModel, BaseModel):
-    class Meta:
-        verbose_name: str = "User"
-        verbose_name_plural: str = "Users"
-
-
-class Member(BaseUser, AbstractUser, PermissionsMixin):
+class User(BaseModel, AbstractUser, PermissionsMixin):
     username = None
     job_title = models.CharField(max_length=254, unique=True, verbose_name=_("Job title"))
     department = models.ForeignKey("departments.Department", on_delete=models.CASCADE)
@@ -67,8 +60,8 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     REQUIRED_FIELDS = ["first_name", "last_name", "job_title", "department", "phone_number"]
 
     class Meta:
-        verbose_name: str = "Member"
-        verbose_name_plural: str = "Members"
+        verbose_name: str = "User"
+        verbose_name_plural: str = "Users"
 
     def __str__(self) -> str:
         return f"{self.full_name} - {self.job_title}"
@@ -76,47 +69,3 @@ class Member(BaseUser, AbstractUser, PermissionsMixin):
     @property
     def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}"
-
-
-class Guest(BaseUser):
-    name = models.CharField(
-        _("Name"),
-        max_length=255,
-        unique=True,
-        help_text=_("Enter the name of the guest."),
-    )
-
-    email = models.EmailField(
-        _("Email Address"),
-        blank=True,
-        null=True,
-        help_text=_("Enter the email address of the guest."),
-    )
-    phone_number = models.CharField(
-        _("Phone Number"),
-        blank=True,
-        null=True,
-        max_length=20,
-        help_text=_("Enter the phone number of the guest."),
-    )
-
-    address = models.CharField(
-        _("Address"),
-        max_length=255,
-        blank=True,
-        default="Addis Ababa, Ethiopia",
-        help_text=_("Enter the address of the guest."),
-    )
-    postal_code = models.PositiveIntegerField(
-        _("Postal Code"),
-        blank=True,
-        null=True,
-        help_text=_("Enter the postal code of the guest."),
-    )
-
-    class Meta:
-        verbose_name: str = "Guest"
-        verbose_name_plural: str = "Guests"
-
-    def __str__(self) -> str:
-        return self.name

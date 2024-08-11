@@ -7,7 +7,7 @@ from rest_framework.exceptions import PermissionDenied
 
 from core.comments.services import comment_create
 from core.letters.models import Letter
-from core.users.models import Guest, Member
+from core.users.models import User
 
 from .models import Participant
 from .utils import get_enum_value, verify_owners_role
@@ -17,23 +17,24 @@ type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
 @transaction.atomic
 def participant_instance_create(
-    current_user: Member,
+    current_user: User,
     target_user_id: str,
     user_type: str,
     letter_instance: Letter,
     role: int,
     permissions: list[str] = None,
 ):
-    user_instance_classes = {"member": Member, "guest": Guest}.get(user_type)
+    # user_instance_classes = {"User": User, "guest": Guest}.get(user_type)
+    user_instance_classes = {"User": User}.get(user_type)
 
-    if user_instance_classes == Member:
+    if user_instance_classes == User:
         user = user_instance_classes.objects.get(pk=target_user_id)
 
         if role == Participant.Roles.ADMINISTRATOR and not user.is_staff:
             raise PermissionDenied("Cannot assign administrator privileges to a non-staff user.")
 
-    elif user_instance_classes == Guest:
-        user, _ = user_instance_classes.objects.get_or_create(name=target_user_id)
+    # elif user_instance_classes == Guest:
+    #     user, _ = user_instance_classes.objects.get_or_create(name=target_user_id)
 
     else:
         raise ValueError("Invalid user type")
@@ -52,7 +53,7 @@ def participant_instance_create(
 @transaction.atomic
 def participants_create(
     *,
-    current_user: Member,
+    current_user: User,
     letter_instance: Letter,
     participants,
 ):
@@ -74,7 +75,7 @@ def participants_create(
 
 def add_participants(
     *,
-    current_user: Member,
+    current_user: User,
     letter_instance: Letter,
     participants: dict[str, Union[str, list[str]]],
 ):
@@ -83,7 +84,7 @@ def add_participants(
     for target_user_id in target_users_ids:
         participant_instance_create(
             target_user_id=target_user_id,
-            user_type="member",
+            user_type="User",
             role=participants.get("role", Participant.Roles.COLLABORATOR),
             letter_instance=letter_instance,
             current_user=current_user,
@@ -101,7 +102,7 @@ def add_participants(
 
 def remove_participants(
     *,
-    current_user: Member,
+    current_user: User,
     letter_instance: Letter,
     participants: list[LetterParticipant],
 ):
@@ -110,7 +111,7 @@ def remove_participants(
 
     for target_user_id in target_users_ids:
         try:
-            target_user = get_object_or_404(Member, pk=target_user_id)
+            target_user = get_object_or_404(User, pk=target_user_id)
             participant_instance = letter_instance.participants.get(role=role_value, user=target_user)
         except ObjectDoesNotExist:
             continue

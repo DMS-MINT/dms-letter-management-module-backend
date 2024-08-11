@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from core.common.models import BaseModel
 from core.letters.models import Letter
 from core.permissions.service import assign_permissions, remove_permissions
-from core.users.models import BaseUser, Member
+from core.users.models import User
 
 
 class Participant(BaseModel):
@@ -17,24 +17,10 @@ class Participant(BaseModel):
         COLLABORATOR = 5, _("Collaborator")
         ADMINISTRATOR = 6, _("Administrator")
 
-    role = models.IntegerField(
-        _("Roles"),
-        choices=Roles.choices,
-        help_text=_("Select the role of this participant."),
-    )
-    user = models.ForeignKey(
-        BaseUser,
-        on_delete=models.CASCADE,
-        related_name="participates_in",
-        help_text=_("Select the user associated with this participant."),
-    )
-    letter = models.ForeignKey(
-        Letter,
-        on_delete=models.CASCADE,
-        related_name="participants",
-        help_text=_("Select the letter associated with this participant."),
-    )
-    added_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="added_participants")
+    role = models.IntegerField(choices=Roles.choices, verbose_name=_("Roles"))
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="participates_in")
+    letter = models.ForeignKey(Letter, on_delete=models.CASCADE, related_name="participants")
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="added_participants")
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
     received_at = models.DateTimeField(blank=True, null=True, editable=False)
 
@@ -70,7 +56,7 @@ class Participant(BaseModel):
         permissions = kwargs.pop("permissions", None)
 
         super().save(*args, **kwargs)
-        if isinstance(self.user, Member):
+        if isinstance(self.user, User):
             assign_permissions(
                 letter_instance=self.letter,
                 participant_user=self.user,
@@ -79,7 +65,7 @@ class Participant(BaseModel):
             )
 
     def delete(self, *args, **kwargs):
-        if isinstance(self.user, Member):
+        if isinstance(self.user, User):
             remove_permissions(
                 letter_instance=self.letter,
                 participant_user=self.user,

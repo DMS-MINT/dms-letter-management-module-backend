@@ -5,11 +5,11 @@ from rest_framework.exceptions import PermissionDenied
 from core.letters.models import Incoming, Letter
 from core.participants.models import Participant
 from core.signatures.services import sign_letter
-from core.users.models import Member
+from core.users.models import User
 
 
 @transaction.atomic
-def letter_submit(*, current_user: Member, letter_instance: Letter, signature_method: str) -> Letter:
+def letter_submit(*, current_user: User, letter_instance: Letter, signature_method: str) -> Letter:
     letter_instance.current_state = Letter.States.SUBMITTED
     letter_instance.submitted_at = timezone.now()
 
@@ -29,7 +29,7 @@ def letter_submit(*, current_user: Member, letter_instance: Letter, signature_me
 
 
 @transaction.atomic
-def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
+def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
     participant = letter_instance.participants.get(user=current_user)
     administrator_participant = letter_instance.participants.filter(role=Participant.Roles.ADMINISTRATOR).first()
 
@@ -60,7 +60,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
+def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
     current_state = Letter.States.SUBMITTED.value
     next_state = Letter.States.PUBLISHED.value
 
@@ -90,7 +90,7 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
+def letter_reject(current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.published_at = None
     letter_instance.current_state = Letter.States.REJECTED
     letter_instance.save()
@@ -99,7 +99,7 @@ def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_close(*, current_user: Member, letter_instance: Letter) -> Letter:
+def letter_close(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.CLOSED
     letter_instance.save()
@@ -111,7 +111,7 @@ def letter_close(*, current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_reopen(*, current_user: Member, letter_instance: Letter) -> Letter:
+def letter_reopen(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.PUBLISHED
     letter_instance.save()

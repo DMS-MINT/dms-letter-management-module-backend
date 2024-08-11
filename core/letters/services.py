@@ -5,7 +5,7 @@ from django.db import transaction
 
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
-from core.users.models import Member
+from core.users.models import User
 from core.workflows.services import letter_publish
 
 from .models import Incoming, Internal, Letter, Outgoing
@@ -30,7 +30,7 @@ def create_letter_instance(letter_category: str, **kwargs) -> Letter:
 @transaction.atomic
 def letter_create(
     *,
-    current_user: Member,
+    current_user: User,
     subject: Optional[str] = None,
     body: Optional[str] = None,
     letter_category: str,
@@ -53,7 +53,7 @@ def letter_create(
             "id": "",
             "user": OrderedDict({
                 "id": current_user.id,
-                "user_type": "member",
+                "user_type": "User",
             }),
             "role": "Author",
         })
@@ -71,7 +71,7 @@ def letter_create(
 @transaction.atomic
 def letter_create_and_publish(
     *,
-    current_user: Member,
+    current_user: User,
     subject: Optional[str] = None,
     body: Optional[str] = None,
     letter_category: str,
@@ -105,7 +105,7 @@ def letter_create_and_publish(
 
 @transaction.atomic
 def letter_update(
-    current_user: Member,
+    current_user: User,
     letter_instance: Letter,
     subject: Optional[str] = None,
     body: Optional[str] = None,

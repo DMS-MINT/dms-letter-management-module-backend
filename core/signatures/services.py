@@ -3,7 +3,7 @@ from django.db import transaction
 from core.common.utils import get_object
 from core.letters.models import Letter
 from core.signatures.models import LetterSignature, Signature, UserDefaultSignature
-from core.users.models import Member
+from core.users.models import User
 
 
 def get_enum_value(key: str) -> int:
@@ -14,7 +14,7 @@ def get_enum_value(key: str) -> int:
 
 
 @transaction.atomic
-def sign_letter(*, letter_instance: Letter, current_user: Member, signature_method: str):
+def sign_letter(*, letter_instance: Letter, current_user: User, signature_method: str):
     user_default_signature = get_object(UserDefaultSignature, user=current_user)
     signature_method_value = get_enum_value(signature_method)
 

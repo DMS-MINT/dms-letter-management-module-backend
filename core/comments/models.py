@@ -3,28 +3,17 @@ from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
 from core.letters.models import Letter
-from core.users.models import Member
 
 
 class Comment(BaseModel):
     author = models.ForeignKey(
-        Member,
+        "users.User",
         on_delete=models.CASCADE,
         related_name="comments",
         verbose_name=_("Author"),
-        help_text=_("Select the user who made this comment."),
     )
-    message = models.TextField(
-        verbose_name=_("Content"),
-        help_text=_("Enter the message of the comment."),
-    )
-    letter = models.ForeignKey(
-        Letter,
-        on_delete=models.CASCADE,
-        related_name="comments",
-        verbose_name=_("Letter"),
-        help_text=_("Select the letter associated with this comment."),
-    )
+    message = models.TextField(verbose_name=_("Content"))
+    letter = models.ForeignKey(Letter, on_delete=models.CASCADE, related_name="comments", verbose_name=_("Letter"))
 
     class Meta:
         verbose_name = _("Comment")

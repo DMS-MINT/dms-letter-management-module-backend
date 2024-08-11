@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from rest_polymorphic.serializers import PolymorphicSerializer
 
-from .models import Guest, Member
+from .models import User
 
 
 class GustListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    name = serializers.CharField()
+    # name = serializers.CharField()
 
 
 class MemberListSerializer(serializers.Serializer):
@@ -52,8 +52,8 @@ class GuestCreateSerializer(serializers.Serializer):
 class UserCreateSerializer(PolymorphicSerializer):
     resource_type_field_name = "user_type"
     model_serializer_mapping = {
-        Member: MemberCreateSerializer,
-        Guest: GuestCreateSerializer,
+        User: MemberCreateSerializer,
+        # User: GuestCreateSerializer,
     }
 
     def to_resource_type(self, instance):

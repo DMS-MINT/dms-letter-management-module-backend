@@ -1,35 +1,13 @@
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
-from polymorphic.admin import (
-    PolymorphicChildModelAdmin,
-    PolymorphicChildModelFilter,
-    PolymorphicParentModelAdmin,
-)
 
-from .models import BaseUser, Guest, Member
+from .models import User
 from .services import user_create
 
 
-class BaseUserChildAdmin(PolymorphicChildModelAdmin):
-    base_model = BaseUser
-
-
-@admin.register(Guest)
-class GuestAdmin(BaseUserChildAdmin):
-    base_model = Guest
-    list_display: list[str] = [
-        "name",
-        "address",
-        "email",
-        "phone_number",
-        "postal_code",
-    ]
-    show_in_index = True
-
-
-@admin.register(Member)
-class MemberAdmin(BaseUserChildAdmin):
-    base_model = Member
+@admin.register(User)
+class MemberAdmin(admin.ModelAdmin):
+    base_model = User
     list_display: list[str] = [
         "email",
         "full_name",
@@ -108,16 +86,3 @@ class MemberAdmin(BaseUserChildAdmin):
             user_create(**form.cleaned_data)
         except ValidationError as exc:
             self.message_user(request, str(exc), messages.ERROR)
-
-
-@admin.register(BaseUser)
-class BaseUserParentAdmin(PolymorphicParentModelAdmin):
-    base_model = BaseUser
-    list_display: list[str] = [
-        "id",
-        "polymorphic_ctype_id",
-        "created_at",
-        "updated_at",
-    ]
-    child_models = (Guest, Member)
-    list_filter = (PolymorphicChildModelFilter,)
