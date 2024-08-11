@@ -11,8 +11,8 @@ def profile_picture_directory_path(instance, filename):
 
 class Contact(BaseModel):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="contacts")
-    full_name_en = models.CharField(max_length=500, verbose_name=_("Full Name"))
-    full_name_am = models.CharField(max_length=500, verbose_name=_("Full Name"))
+    full_name_en = models.CharField(max_length=500, verbose_name=_("Full Name In English"))
+    full_name_am = models.CharField(max_length=500, verbose_name=_("Full Name In Amharic"))
     email = models.EmailField(blank=True, null=True, verbose_name=_("Email Address"))
     phone_number = models.CharField(blank=True, null=True, max_length=20, verbose_name=_("Phone Number"))
     address = models.CharField(max_length=255, verbose_name=_("Address"))
