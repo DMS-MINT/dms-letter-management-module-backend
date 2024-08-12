@@ -32,14 +32,20 @@
         <span>ቁጥር</span>
         <span>Ref.No.</span>
       </p>
-      <hr class="metadata-divider" />
+      <div class="metadata-value-container">
+        <span class="metadata-value">{{letter.reference_number}}</span>
+        <hr class="metadata-divider" />
+      </div>
     </div>
     <div class="metadata-item">
       <p class="metadata-label">
         <span>ቀን</span>
         <span>Date</span>
       </p>
-      <hr class="metadata-divider" />
+      <div class="metadata-value-container">
+        <span class="metadata-value"></span>
+        <hr class="metadata-divider" />
+      </div>
     </div>
   </section>
 {% endblock %}
@@ -48,16 +54,40 @@
 
 {% block primary_recipients %}
   <section class="pr-participant-section">
-    {% for participant in primary_recipients %}
-      <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-    {% endfor %}
+    {% if letter.language == "EN" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">To {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">To {{participant.contact.full_name_en}}</p>
+        {% endif %}
+      {% endfor %}
+    {% elif letter.language == "AM" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">ለ {{participant.contact.full_name_am}}</p>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </section>
 {% endblock %}
 
 {% block letter_body %}
   <section class="letter-body">
     <p class="letter-subject">
-      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+      <span class="subject-label">
+        {% if letter.language == "EN" %}
+          Subject
+        {% elif letter.language == "AM" %}
+          ጉዳዩ
+        {% endif %}
+        :-</span>{{letter.subject}}
     </p>
 
     <div class="letter-body">{{ letter.body|safe }}</div>
@@ -74,6 +104,11 @@
           class="signature-image"
         />
         <p class="signer-info">
+          {% if letter.language == "EN" %}
+            <span>{{ e_signature.signer.full_name }}</span>
+            <span>{{ e_signature.signer.job_title }}</span>
+          {% elif letter.language == "AM" %}
+          {% endif %}
           <span>{{ e_signature.signer.full_name }}</span>
           <span>{{ e_signature.signer.job_title }}</span>
         </p>

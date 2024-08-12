@@ -23,23 +23,63 @@
     {% block e_signatures %} {% endblock %}
 
     <section class="bcc-participants-section">
-      <p class="bcc-header">እንዲያውቁት:-</p>
-      <ul class="bcc-participants-list">
-        {% for participant in bcc_participants %}
-          <li class="bcc-participant-item">ለ {{ participant.user.job_title }}</li>
+      {% if letter.language == "EN" %}
+        <p class="bcc-header">BCC:-</p>
+        <ul class="bcc-participants-list">
+          {% for participant in bcc_participants %}
+            {% if participant.user %}
+              <li class="cc-participant-item">To {{ participant.user.job_title }}</li>
+            {% elif participant.enterprise %}
+              <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
+            {% elif participant.contact %}
+              <li class="cc-participant-item">To {{ participant.contact.full_name_en }}</li>
+            {% endif %}
+          {% endfor %}
+      {% elif letter.language == "AM" %}
+        <p class="bcc-header">እንዲያውቁት:-</p>
+        <ul class="bcc-participants-list">
+          {% for participant in bcc_participants %}
+            {% if participant.user %}
+              <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+            {% elif participant.enterprise %}
+              <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>
+            {% elif participant.contact %}
+              <li class="cc-participant-item">ለ {{ participant.contact.full_name_am }}</li>
+            {% endif %}
+          {% endfor %}
+      {% endif %}
+    </ul>
+  </section>
+  <section class="cc-participants-section">
+    {% if letter.language == "EN" %}
+      <p class="cc-header">CC:-</p>
+      <ul class="cc-participants-list">
+        {% for participant in cc_participants %}
+          {% if participant.user %}
+            <li class="cc-participant-item">To {{ participant.user.job_title }}</li>
+          {% elif participant.enterprise %}
+            <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
+          {% elif participant.contact %}
+            <li class="cc-participant-item">To {{ participant.contact.full_name_en }}</li>
+          {% endif %}
         {% endfor %}
       </ul>
-    </section>
-
-    <section class="cc-participants-section">
+    {% elif letter.language == "AM" %}
       <p class="cc-header">ግልባጭ:-</p>
       <ul class="cc-participants-list">
         {% for participant in cc_participants %}
-          <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+          {% if participant.user %}
+            <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+          {% elif participant.enterprise %}
+            <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>
+          {% elif participant.contact %}
+            <li class="cc-participant-item">ለ {{ participant.contact.full_name_am }}</li>
+          {% endif %}
         {% endfor %}
-      </ul>
-    </section>
+    {% endif %}
+  </ul>
+</section>
 
-    {% block footer %} {% endblock %}
-  </body>
+{% block footer %} {% endblock %}
+</body>
 </html>
