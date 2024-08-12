@@ -39,6 +39,30 @@ class Letter(PolymorphicModel, BaseModel):
 
     pdf_version = models.URLField(blank=True, null=True, editable=False)
 
+    class Meta:
+        verbose_name: str = "Letter"
+        verbose_name_plural: str = "Letters"
+        permissions = (
+            # Basic Permissions
+            ("can_view_letter", "Can view letter"),
+            ("can_update_letter", "Can update letter"),
+            ("can_archive_letter", "Can archive letter"),
+            # Workflow Permissions
+            ("can_share_letter", "Can share letter"),
+            ("can_submit_letter", "Can submit letter"),
+            ("can_publish_letter", "Can publish letter"),
+            ("can_reject_letter", "Can reopen letter"),
+            ("can_retract_letter", "Can retract letter"),
+            ("can_close_letter", "Can close letter"),
+            ("can_reopen_letter", "Can reopen letter"),
+            # Interaction Permissions
+            ("can_comment_letter", "Can comment letter"),
+            # Trash and Recover Permissions
+            ("can_trash_letter", "Can trash letter"),
+            ("can_restore_letter", "Can restore letter"),
+            ("can_permanently_delete_letter", "Can permanently delete letter"),
+        )
+
     def clean(self):
         if not self.subject or not self.subject.strip():
             raise ValidationError(_("The subject of the letter cannot be empty."))
@@ -75,30 +99,6 @@ class Letter(PolymorphicModel, BaseModel):
 
     def __str__(self) -> str:
         return f"{self.subject} - {self.reference_number}"
-
-    class Meta:
-        verbose_name: str = "Letter"
-        verbose_name_plural: str = "Letters"
-        permissions = (
-            # Basic Permissions
-            ("can_view_letter", "Can view letter"),
-            ("can_update_letter", "Can update letter"),
-            ("can_archive_letter", "Can archive letter"),
-            # Workflow Permissions
-            ("can_share_letter", "Can share letter"),
-            ("can_submit_letter", "Can submit letter"),
-            ("can_publish_letter", "Can publish letter"),
-            ("can_reject_letter", "Can reopen letter"),
-            ("can_retract_letter", "Can retract letter"),
-            ("can_close_letter", "Can close letter"),
-            ("can_reopen_letter", "Can reopen letter"),
-            # Interaction Permissions
-            ("can_comment_letter", "Can comment letter"),
-            # Trash and Recover Permissions
-            ("can_trash_letter", "Can trash letter"),
-            ("can_restore_letter", "Can restore letter"),
-            ("can_permanently_delete_letter", "Can permanently delete letter"),
-        )
 
 
 class Internal(Letter):
