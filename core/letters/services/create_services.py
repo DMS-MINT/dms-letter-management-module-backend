@@ -4,7 +4,6 @@ from typing import Optional, Union
 from django.db import transaction
 
 from core.participants.services import participants_create
-from core.participants.utils import identify_participants_changes
 from core.users.models import User
 from core.workflows.services import letter_publish
 
@@ -65,36 +64,38 @@ def letter_create(
     return letter_instance
 
 
-# @transaction.atomic
-# def letter_create_and_publish(
-#     *,
-#     current_user: User,
-#     subject: Optional[str] = None,
-#     body: Optional[str] = None,
-#     letter_category: str,
-#     language: str,
-#     participants,
-# ) -> Letter:
-#     letter_data = {
-#         "letter_category": letter_category,
-#         "subject": subject,
-#         "body": body,
-#         "current_state": Letter.States.DRAFT,
-#         "owner": current_user,
-#         "language": language,
-#     }
+@transaction.atomic
+def letter_create_and_publish(
+    *,
+    current_user: User,
+    subject: Optional[str] = None,
+    body: Optional[str] = None,
+    letter_category: str,
+    language: str,
+    participants,
+) -> Letter:
+    letter_data = {
+        "letter_category": letter_category,
+        "subject": subject,
+        "body": body,
+        "current_state": Letter.States.DRAFT,
+        "owner": current_user,
+        "language": language,
+    }
 
-#     letter_instance = create_letter_instance(**letter_data)
+    letter_instance = create_letter_instance(**letter_data)
 
-#     letter_instance.current_state = Letter.States.SUBMITTED
-#     letter_instance.save()
+    letter_instance.current_state = Letter.States.SUBMITTED
+    letter_instance.save()
 
-#     participants_create(
-#         current_user=current_user,
-#         letter_instance=letter_instance,
-#         participants=participants,
-#     )
+    participants_create(
+        current_user=current_user,
+        letter_instance=letter_instance,
+        participants=participants,
+    )
 
-#     letter_publish(current_user=current_user, letter_instance=letter_instance)
+    letter_publish(current_user=current_user, letter_instance=letter_instance)
 
-#     return letter_instance
+    generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
+
+    return letter_instance
