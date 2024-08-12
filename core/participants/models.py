@@ -88,22 +88,26 @@ class InternalUserParticipant(BaseParticipant):
         super().delete(*args, **kwargs)
 
 
-class PublicEnterpriseParticipant(BaseParticipant):
-    user = models.ForeignKey(
-        "enterprises.PublicEnterprise",
+class EnterpriseParticipant(BaseParticipant):
+    enterprise = models.ForeignKey(
+        "enterprises.Enterprise",
         on_delete=models.CASCADE,
-        related_name="pub_referenced_in_letters",
+        related_name="enterprise_referenced_in_letters",
     )
 
     def save(self, *args, **kwargs):
         if isinstance(self.letter, Internal):
-            raise ValidationError("Public enterprises cannot participate in internal letters.")
+            raise ValidationError("Public enterprise cannot participate in internal letters.")
 
         super().save(*args, **kwargs)
 
 
 class ExternalUserParticipant(BaseParticipant):
-    user = models.ForeignKey("contacts.Contact", on_delete=models.CASCADE, related_name="contact_referenced_in_letters")
+    contact = models.ForeignKey(
+        "contacts.Contact",
+        on_delete=models.CASCADE,
+        related_name="contact_referenced_in_letters",
+    )
 
     def save(self, *args, **kwargs):
         if isinstance(self.letter, Internal):
