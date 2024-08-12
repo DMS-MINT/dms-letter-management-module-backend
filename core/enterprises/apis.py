@@ -6,11 +6,12 @@ from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
 
-from .models import PublicEnterprise
+from .models import Enterprise
 
 
 class EnterpriseListApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
+        id = serializers.UUIDField()
         name_en = serializers.CharField()
         name_am = serializers.CharField()
         email = serializers.EmailField()
@@ -20,7 +21,7 @@ class EnterpriseListApi(ApiAuthMixin, APIView):
         logo = serializers.ImageField()
 
     def get(self, request) -> Response:
-        contacts = PublicEnterprise.objects.all()
+        contacts = Enterprise.objects.all()
         try:
             output_serializer = self.OutputSerializer(contacts, many=True)
 

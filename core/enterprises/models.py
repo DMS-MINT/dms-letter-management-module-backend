@@ -8,7 +8,7 @@ def enterprise_directory_path(instance, filename):
     return f"enterprises/{instance.name_en}/logo.png"
 
 
-class PublicEnterprise(BaseModel):
+class Enterprise(BaseModel):
     name_en = models.CharField(max_length=255, unique=True, verbose_name="Name in English")
     name_am = models.CharField(max_length=255, unique=True, verbose_name="Name in Amharic")
     email = models.EmailField(blank=True, null=True, verbose_name=_("Email Address"))
