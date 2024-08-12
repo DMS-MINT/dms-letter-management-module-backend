@@ -1,9 +1,8 @@
 from rest_framework import serializers
 
 from core.common.utils import inline_serializer
-from core.participants.models import BaseParticipant
-from core.users.apis import UserListApi
-from core.users.serializers import MemberListSerializer, UserCreateSerializer
+from core.participants.serializers import ParticipantInputSerializer, ParticipantOutputSerializer
+from core.users.serializers import MemberListSerializer
 
 
 class LetterListSerializer(serializers.Serializer):
@@ -13,14 +12,7 @@ class LetterListSerializer(serializers.Serializer):
     owner = MemberListSerializer()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(),
-            "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=BaseParticipant.Roles.choices, source="get_role_display"),
-        },
-    )
+    participants = ParticipantInputSerializer(many=True)
     has_read: serializers.SerializerMethodField()
     submitted_at = serializers.DateTimeField()
     published_at = serializers.DateTimeField()
@@ -45,14 +37,7 @@ class LetterDetailSerializer(serializers.Serializer):
     owner = MemberListSerializer()
     language = serializers.CharField(source="get_language_display")
     pdf_version = serializers.URLField()
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(),
-            "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=BaseParticipant.Roles.choices, source="get_role_display"),
-        },
-    )
+    participants = ParticipantOutputSerializer(many=True)
     comments = inline_serializer(
         many=True,
         fields={
@@ -79,11 +64,4 @@ class LetterCreateSerializer(serializers.Serializer):
     body = serializers.CharField(required=False, allow_blank=True)
     letter_category = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
     language = serializers.ChoiceField(choices=["EN", "AM"])
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(required=False),
-            "user": UserCreateSerializer(),
-            "role": serializers.CharField(),
-        },
-    )
+    participants = ParticipantInputSerializer(many=True)
