@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,23 +10,15 @@ from core.users.models import User
 
 from .selectors import user_get_users
 from .serializers import (
-    GuestDetailSerializer,
-    GustListSerializer,
     MemberDetailSerializer,
-    MemberListSerializer,
 )
 
 
 class UserListApi(ApiAuthMixin, APIView):
-    class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "user_type"
-        model_serializer_mapping = {
-            User: MemberListSerializer,
-            # Guest: GustListSerializer,
-        }
-
-        def to_resource_type(self, model_or_instance):
-            return model_or_instance._meta.object_name.lower()
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.UUIDField()
+        full_name = serializers.CharField()
+        job_title = serializers.CharField()
 
     serializer_class = OutputSerializer
 
