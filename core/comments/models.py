@@ -2,7 +2,6 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
-from core.letters.models import Letter
 
 
 class Comment(BaseModel):
@@ -13,7 +12,12 @@ class Comment(BaseModel):
         verbose_name=_("Author"),
     )
     message = models.TextField(verbose_name=_("Content"))
-    letter = models.ForeignKey(Letter, on_delete=models.CASCADE, related_name="comments", verbose_name=_("Letter"))
+    letter = models.ForeignKey(
+        "letters.Letter",
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name=_("Letter"),
+    )
 
     class Meta:
         verbose_name = _("Comment")
