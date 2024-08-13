@@ -13,13 +13,13 @@ from ..tasks import generate_pdf_task
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
 
-# Create a letter instance based on the provided letter_category and keyword arguments.
-def create_letter_instance(letter_category: str, **kwargs) -> Letter:
+# Create a letter instance based on the provided letter_type and keyword arguments.
+def create_letter_instance(letter_type: str, **kwargs) -> Letter:
     letter_instance_class = {
         "internal": Internal,
         "incoming": Incoming,
         "outgoing": Outgoing,
-    }.get(letter_category)
+    }.get(letter_type)
 
     if letter_instance_class:
         return letter_instance_class.objects.create(**kwargs)
@@ -33,12 +33,12 @@ def letter_create(
     current_user: User,
     subject: Optional[str] = None,
     body: Optional[str] = None,
-    letter_category: str,
+    letter_type: str,
     language: str,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
-        "letter_category": letter_category,
+        "letter_type": letter_type,
         "subject": subject,
         "body": body,
         "current_state": Letter.States.DRAFT,
@@ -48,7 +48,7 @@ def letter_create(
 
     letter_instance = create_letter_instance(**letter_data)
 
-    if letter_category in ["internal", "outgoing"]:
+    if letter_type in ["internal", "outgoing"]:
         author_participant = OrderedDict({
             "id": "",
             "user_id": current_user.id,
@@ -70,12 +70,12 @@ def letter_create_and_publish(
     current_user: User,
     subject: Optional[str] = None,
     body: Optional[str] = None,
-    letter_category: str,
+    letter_type: str,
     language: str,
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
-        "letter_category": letter_category,
+        "letter_type": letter_type,
         "subject": subject,
         "body": body,
         "current_state": Letter.States.DRAFT,

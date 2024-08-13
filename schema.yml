@@ -51,9 +51,17 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/auth/retrieve-signature/:
+  /api/auth/qr-code/:
     post:
-      operationId: api_auth_retrieve_signature_create
+      operationId: api_auth_qr_code_create
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/auth/validate-otp/:
+    post:
+      operationId: api_auth_validate_otp_create
       tags:
       - api
       responses:
@@ -135,39 +143,86 @@ paths:
               schema:
                 $ref: '#/components/schemas/Input'
           description: ''
-  /api/letters/:
+  /api/contacts/:
     get:
-      operationId: api_letters_retrieve
+      operationId: api_contacts_retrieve
       tags:
       - api
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Filter'
-          description: ''
-  /api/letters/{reference_number}/:
+          description: No response body
+  /api/contacts/{contact_id}/:
     get:
-      operationId: api_letters_retrieve_2
+      operationId: api_contacts_retrieve_2
       parameters:
       - in: path
-        name: reference_number
+        name: contact_id
         schema:
           type: string
+          format: uuid
         required: true
       tags:
       - api
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Output'
-          description: ''
-  /api/letters/{reference_number}/close/:
+          description: No response body
+  /api/contacts/{contact_id}/delete/:
+    delete:
+      operationId: api_contacts_delete_destroy
+      parameters:
+      - in: path
+        name: contact_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/contacts/{contact_id}/update/:
     post:
-      operationId: api_letters_close_create
+      operationId: api_contacts_update_create
+      parameters:
+      - in: path
+        name: contact_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/contacts/bulk/delete/:
+    delete:
+      operationId: api_contacts_bulk_delete_destroy
+      tags:
+      - api
+      responses:
+        '204':
+          description: No response body
+  /api/contacts/create/:
+    post:
+      operationId: api_contacts_create_create
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/enterprises/:
+    get:
+      operationId: api_enterprises_retrieve
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
+  /api/letters/{reference_number}/close/:
+    put:
+      operationId: api_letters_close_update
       parameters:
       - in: path
         name: reference_number
@@ -180,8 +235,8 @@ paths:
         '200':
           description: No response body
   /api/letters/{reference_number}/publish/:
-    post:
-      operationId: api_letters_publish_create
+    put:
+      operationId: api_letters_publish_update
       parameters:
       - in: path
         name: reference_number
@@ -194,8 +249,8 @@ paths:
         '200':
           description: No response body
   /api/letters/{reference_number}/reject/:
-    post:
-      operationId: api_letters_reject_create
+    put:
+      operationId: api_letters_reject_update
       parameters:
       - in: path
         name: reference_number
@@ -206,38 +261,10 @@ paths:
       - api
       responses:
         '200':
-          description: No response body
-  /api/letters/{reference_number}/remove_from_trash/:
-    delete:
-      operationId: api_letters_remove_from_trash_destroy
-      parameters:
-      - in: path
-        name: reference_number
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      responses:
-        '204':
           description: No response body
   /api/letters/{reference_number}/reopen/:
-    post:
-      operationId: api_letters_reopen_create
-      parameters:
-      - in: path
-        name: reference_number
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          description: No response body
-  /api/letters/{reference_number}/restore/:
     put:
-      operationId: api_letters_restore_update
+      operationId: api_letters_reopen_update
       parameters:
       - in: path
         name: reference_number
@@ -250,8 +277,8 @@ paths:
         '200':
           description: No response body
   /api/letters/{reference_number}/retract/:
-    post:
-      operationId: api_letters_retract_create
+    put:
+      operationId: api_letters_retract_update
       parameters:
       - in: path
         name: reference_number
@@ -294,8 +321,8 @@ paths:
                 $ref: '#/components/schemas/Input'
           description: ''
   /api/letters/{reference_number}/submit/:
-    post:
-      operationId: api_letters_submit_create
+    put:
+      operationId: api_letters_submit_update
       parameters:
       - in: path
         name: reference_number
@@ -307,47 +334,6 @@ paths:
       responses:
         '200':
           description: No response body
-  /api/letters/{reference_number}/trash/:
-    put:
-      operationId: api_letters_trash_update
-      parameters:
-      - in: path
-        name: reference_number
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      responses:
-        '200':
-          description: No response body
-  /api/letters/{reference_number}/update/:
-    put:
-      operationId: api_letters_update_update
-      parameters:
-      - in: path
-        name: reference_number
-        schema:
-          type: string
-        required: true
-      tags:
-      - api
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Input'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Input'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Input'
-          description: ''
   /api/letters/create/:
     post:
       operationId: api_letters_create_create
@@ -355,65 +341,35 @@ paths:
       - api
       requestBody:
         content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Input'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Input'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Input'
-          description: ''
-  /api/letters/create_and_publish/:
-    post:
-      operationId: api_letters_create_and_publish_create
-      tags:
-      - api
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/Input'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Input'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Input'
-          description: ''
-  /api/letters/create_and_submit/:
-    post:
-      operationId: api_letters_create_and_submit_create
-      tags:
-      - api
-      requestBody:
-        content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Input'
+              $ref: '#/components/schemas/LetterCreate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/Input'
+              $ref: '#/components/schemas/LetterCreate'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/Input'
+              $ref: '#/components/schemas/LetterCreate'
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Input'
+                $ref: '#/components/schemas/LetterCreate'
           description: ''
+  /api/letters/participants/:
+    get:
+      operationId: api_letters_participants_retrieve
+      tags:
+      - api
+      security:
+      - basicAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
   /api/schema/:
     get:
       operationId: api_schema_retrieve
@@ -560,6 +516,14 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/signatures/retrieve-signature/:
+    post:
+      operationId: api_signatures_retrieve_signature_create
+      tags:
+      - api
+      responses:
+        '200':
+          description: No response body
   /api/users/:
     get:
       operationId: api_users_retrieve
@@ -593,29 +557,44 @@ paths:
           description: ''
 components:
   schemas:
-    CategoryEnum:
-      enum:
-      - inbox
-      - outbox
-      - draft
-      - trash
-      - pending
-      - published
-      type: string
-      description: |-
-        * `inbox` - inbox
-        * `outbox` - outbox
-        * `draft` - draft
-        * `trash` - trash
-        * `pending` - pending
-        * `published` - published
-    Filter:
+    EnterpriseParticipantInput:
       type: object
       properties:
-        category:
-          $ref: '#/components/schemas/CategoryEnum'
+        id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
       required:
-      - category
+      - role
+    EnterpriseParticipantInputTyped:
+      allOf:
+      - type: object
+        properties:
+          participant_type:
+            type: string
+        required:
+        - participant_type
+      - $ref: '#/components/schemas/EnterpriseParticipantInput'
+    ExternalParticipantInput:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+      required:
+      - role
+    ExternalParticipantInputTyped:
+      allOf:
+      - type: object
+        properties:
+          participant_type:
+            type: string
+        required:
+        - participant_type
+      - $ref: '#/components/schemas/ExternalParticipantInput'
     Input:
       type: object
       properties:
@@ -627,75 +606,63 @@ components:
       required:
       - email
       - password
-    LetterDetail:
+    InternalParticipantInput:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        reference_number:
-          type: string
-          pattern: ^[-a-zA-Z0-9_]+$
-        owner:
-          $ref: '#/components/schemas/MemberList'
-        signature:
-          type: string
-          format: uri
-        current_state:
-          type: string
-        subject:
-          type: string
-        content:
-          type: string
-        participants:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        comments:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        submitted_at:
-          type: string
-          format: date-time
-        published_at:
-          type: string
-          format: date-time
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
+        role:
+          $ref: '#/components/schemas/RoleEnum'
       required:
-      - attachments
-      - comments
-      - content
-      - created_at
-      - current_state
-      - id
-      - owner
-      - participants
-      - published_at
-      - reference_number
-      - signature
-      - subject
-      - submitted_at
-      - updated_at
-    LetterDetailTyped:
+      - role
+    InternalParticipantInputTyped:
       allOf:
       - type: object
         properties:
-          letter_type:
+          participant_type:
             type: string
         required:
-        - letter_type
-      - $ref: '#/components/schemas/LetterDetail'
-    MemberList:
+        - participant_type
+      - $ref: '#/components/schemas/InternalParticipantInput'
+    LanguageEnum:
+      enum:
+      - EN
+      - AM
+      type: string
+      description: |-
+        * `EN` - EN
+        * `AM` - AM
+    LetterCategoryEnum:
+      enum:
+      - internal
+      - incoming
+      - outgoing
+      type: string
+      description: |-
+        * `internal` - internal
+        * `incoming` - incoming
+        * `outgoing` - outgoing
+    LetterCreate:
+      type: object
+      properties:
+        subject:
+          type: string
+        body:
+          type: string
+        letter_category:
+          $ref: '#/components/schemas/LetterCategoryEnum'
+        language:
+          $ref: '#/components/schemas/LanguageEnum'
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParticipantInput'
+      required:
+      - language
+      - letter_category
+      - participants
+    Output:
       type: object
       properties:
         id:
@@ -709,96 +676,17 @@ components:
       - full_name
       - id
       - job_title
-    OutgoingLetterDetail:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        reference_number:
-          type: string
-          pattern: ^[-a-zA-Z0-9_]+$
-        owner:
-          $ref: '#/components/schemas/MemberList'
-        signature:
-          type: string
-          format: uri
-        current_state:
-          type: string
-        subject:
-          type: string
-        content:
-          type: string
-        participants:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        attachments:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        comments:
-          type: array
-          items:
-            $ref: '#/components/schemas/inline_serializer'
-        submitted_at:
-          type: string
-          format: date-time
-        published_at:
-          type: string
-          format: date-time
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        delivery_person_name:
-          type: string
-        delivery_person_phone:
-          type: string
-          format: date-time
-        shipment_id:
-          type: string
-          format: date-time
-      required:
-      - attachments
-      - comments
-      - content
-      - created_at
-      - current_state
-      - delivery_person_name
-      - delivery_person_phone
-      - id
-      - owner
-      - participants
-      - published_at
-      - reference_number
-      - shipment_id
-      - signature
-      - subject
-      - submitted_at
-      - updated_at
-    OutgoingLetterDetailTyped:
-      allOf:
-      - type: object
-        properties:
-          letter_type:
-            type: string
-        required:
-        - letter_type
-      - $ref: '#/components/schemas/OutgoingLetterDetail'
-    Output:
+    ParticipantInput:
       oneOf:
-      - $ref: '#/components/schemas/LetterDetailTyped'
-      - $ref: '#/components/schemas/LetterDetailTyped'
-      - $ref: '#/components/schemas/OutgoingLetterDetailTyped'
+      - $ref: '#/components/schemas/InternalParticipantInputTyped'
+      - $ref: '#/components/schemas/EnterpriseParticipantInputTyped'
+      - $ref: '#/components/schemas/ExternalParticipantInputTyped'
       discriminator:
-        propertyName: letter_type
+        propertyName: participant_type
         mapping:
-          internal: '#/components/schemas/LetterDetailTyped'
-          incoming: '#/components/schemas/LetterDetailTyped'
-          outgoing: '#/components/schemas/OutgoingLetterDetailTyped'
+          user: '#/components/schemas/InternalParticipantInputTyped'
+          publicenterprise: '#/components/schemas/EnterpriseParticipantInputTyped'
+          contact: '#/components/schemas/ExternalParticipantInputTyped'
     RoleEnum:
       enum:
       - 1
@@ -815,20 +703,6 @@ components:
         * `4` - Blind Carbon Copy Recipient
         * `5` - Collaborator
         * `6` - Administrator
-    inline_serializer:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        user:
-          $ref: '#/components/schemas/Output'
-        role:
-          $ref: '#/components/schemas/RoleEnum'
-      required:
-      - id
-      - role
-      - user
   securitySchemes:
     basicAuth:
       type: http

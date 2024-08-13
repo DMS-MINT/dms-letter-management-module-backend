@@ -12,7 +12,17 @@ from .models import EnterpriseParticipant, ExternalUserParticipant, InternalUser
 
 class BaseParticipantInputSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=False)
-    role = serializers.ChoiceField(choices=BaseParticipant.Roles.choices)
+    role = serializers.CharField()
+
+    def to_internal_value(self, data):
+        role = data.pop("role")
+        role = self.get_role_from_string(role)
+        data["role"] = role
+        return super().to_internal_value(data)
+
+    def get_role_from_string(self, role: str):
+        role_map = {choice[1]: choice[0] for choice in BaseParticipant.Roles.choices}
+        return role_map.get(role, None)
 
 
 class InternalParticipantInputSerializer(BaseParticipantInputSerializer):

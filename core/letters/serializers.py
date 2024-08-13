@@ -12,7 +12,7 @@ class LetterListSerializer(serializers.Serializer):
     owner = MemberListSerializer()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
-    participants = ParticipantInputSerializer(many=True)
+    participants = ParticipantOutputSerializer(many=True)
     has_read: serializers.SerializerMethodField()
     submitted_at = serializers.DateTimeField()
     published_at = serializers.DateTimeField()
@@ -62,6 +62,6 @@ class OutgoingLetterDetailSerializer(LetterDetailSerializer):
 class LetterCreateSerializer(serializers.Serializer):
     subject = serializers.CharField(required=False, allow_blank=True)
     body = serializers.CharField(required=False, allow_blank=True)
-    letter_category = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
+    letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
     language = serializers.ChoiceField(choices=["EN", "AM"])
     participants = ParticipantInputSerializer(many=True)

@@ -8,7 +8,7 @@ def process_request_data(request):
     request_data = {
         "subject": request.POST.get("subject", ""),
         "body": request.POST.get("body", ""),
-        "letter_category": request.POST.get("letter_category", ""),
+        "letter_type": request.POST.get("letter_type", ""),
         "participants": participants,
     }
 

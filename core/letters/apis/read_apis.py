@@ -46,7 +46,7 @@ class LetterListApi(ApiAuthMixin, APIView):
         )
 
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "letter_category"
+        resource_type_field_name = "letter_type"
         model_serializer_mapping = {
             Internal: LetterListSerializer,
             Incoming: LetterListSerializer,
@@ -59,23 +59,30 @@ class LetterListApi(ApiAuthMixin, APIView):
     serializer_class = FilterSerializer
 
     def get(self, request) -> Response:
-        filter_serializer = self.FilterSerializer(data=request.query_params)
-        filter_serializer.is_valid(raise_exception=True)
+        try:
+            filter_serializer = self.FilterSerializer(data=request.query_params)
+            filter_serializer.is_valid(raise_exception=True)
 
-        letter_instances = letter_list(current_user=request.user, filters=filter_serializer.validated_data)
+            letter_instances = letter_list(current_user=request.user, filters=filter_serializer.validated_data)
 
-        serializer = self.OutputSerializer(letter_instances, many=True)
+            serializer = self.OutputSerializer(letter_instances, many=True)
 
-        response_data = {"letters": serializer.data}
+            response_data = {"letters": serializer.data}
 
-        return Response(data=response_data, status=http_status.HTTP_200_OK)
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
 
 
 class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter"]
 
     class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "letter_category"
+        resource_type_field_name = "letter_type"
         model_serializer_mapping = {
             Internal: LetterDetailSerializer,
             Incoming: LetterDetailSerializer,
