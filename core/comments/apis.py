@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
-from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
+from core.letters.serializers import LetterDetailSerializer
 from core.permissions.mixins import ApiPermMixin
 
 from .models import Comment
@@ -38,7 +38,7 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 **input_instance.validated_data,
             )
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -89,7 +89,7 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             comment_update(comment_instance=comment_instance, **input_instance.validated_data)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -127,7 +127,7 @@ class CommentDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             comment_instance.delete()
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             channel_layer = get_channel_layer()
