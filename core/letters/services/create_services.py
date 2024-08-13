@@ -35,7 +35,7 @@ def letter_create(
     body: Optional[str] = None,
     letter_category: str,
     language: str,
-    participants,
+    participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
         "letter_category": letter_category,
@@ -72,7 +72,7 @@ def letter_create_and_publish(
     body: Optional[str] = None,
     letter_category: str,
     language: str,
-    participants,
+    participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
         "letter_category": letter_category,
