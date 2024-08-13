@@ -64,6 +64,7 @@ def contact_update(
     )
 
     if existing_contact:
+        # Check if the contact is referenced in any letter if not delete it outre wise don't delete it
         contact_delete(current_user=current_user, contact_instance=contact_instance)
         existing_contact.user.add(current_user)
         return existing_contact
