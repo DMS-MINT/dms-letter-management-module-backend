@@ -18,7 +18,7 @@ from .models import Incoming, Internal, Letter, Outgoing
 logger = get_task_logger(__name__)
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, soft_time_limit=60, time_limit=120)
 def generate_pdf_task(self, letter_id: str) -> Letter:
     letter_instance = get_object(Letter, id=letter_id)
 
