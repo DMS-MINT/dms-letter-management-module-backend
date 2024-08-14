@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
-from core.letters.serializers import LetterCreateSerializer, LetterDetailSerializer
+from core.letters.serializers import LetterCreateSerializer, LetterDetailPolymorphicSerializer
 from core.letters.services.create_services import letter_create, letter_create_and_publish
 from core.permissions.mixins import ApiPermMixin
 from core.workflows.services import letter_submit
@@ -25,7 +25,7 @@ class LetterCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
             letter_instance = letter_create(current_user=request.user, **input_serializer.validated_data)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             response_data = {"letter": output_serializer.data, "permissions": permissions}
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)
@@ -73,7 +73,7 @@ class LetterCreateAndSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
             except Exception as e:
                 raise e
 
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -115,7 +115,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
             letter_instance = letter_create_and_publish(current_user=request.user, **letter_data)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
 
             response_data = {
                 "message": "The letter has been successfully created and distributed to all recipients.",

@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 from core.letters.models import Letter
-from core.letters.serializers import LetterCreateSerializer, LetterDetailSerializer
+from core.letters.serializers import LetterCreateSerializer, LetterDetailPolymorphicSerializer
 from core.letters.services.update_services import letter_update
 from core.participants.serializers import ParticipantInputSerializer
 from core.permissions.mixins import ApiPermMixin
@@ -36,10 +36,10 @@ class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
                 letter_instance=letter_instance,
                 **input_serializer.validated_data,
             )
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            response_data = {"data": output_serializer.data, "permissions": permissions}
+            response_data = {"letter": output_serializer.data, "permissions": permissions}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(

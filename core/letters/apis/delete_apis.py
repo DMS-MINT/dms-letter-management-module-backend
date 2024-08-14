@@ -11,13 +11,15 @@ from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
 from core.common.utils import get_object
 from core.letters.models import Letter
-from core.letters.serializers import LetterDetailSerializer
+from core.letters.serializers import LetterDetailPolymorphicSerializer
 from core.letters.services.delete_services import letter_hide, letter_move_to_trash, letter_restore_from_trash
 from core.permissions.mixins import ApiPermMixin
 
 
 class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_trash_letter"]
+
+    serializer_class = LetterDetailPolymorphicSerializer
 
     def put(self, request, reference_number) -> Response:
         try:
@@ -26,7 +28,7 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             letter_instance = letter_move_to_trash(letter_instance=letter_instance)
 
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {"message": "The Letter has been moved to the trash."}
@@ -55,6 +57,8 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_restore_letter"]
 
+    serializer_class = LetterDetailPolymorphicSerializer
+
     def put(self, request, reference_number) -> Response:
         try:
             letter_instance = get_object(Letter, reference_number=reference_number)
@@ -62,7 +66,7 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             letter_instance = letter_restore_from_trash(letter_instance=letter_instance)
 
-            output_serializer = LetterDetailSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {"message": "The Letter has been restored from the trash."}
@@ -93,6 +97,8 @@ class LetterDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
+
+    serializer_class = InputSerializer
 
     def put(self, request, reference_number) -> Response:
         try:

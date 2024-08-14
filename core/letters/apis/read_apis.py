@@ -11,11 +11,7 @@ from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 from core.letters.models import Incoming, Internal, Letter, Outgoing
 from core.letters.selectors import letter_list, letter_pdf
-from core.letters.serializers import (
-    LetterDetailSerializer,
-    LetterListSerializer,
-    OutgoingLetterDetailSerializer,
-)
+from core.letters.serializers import LetterDetailPolymorphicSerializer, LetterListSerializer
 from core.permissions.mixins import ApiPermMixin
 
 
@@ -81,18 +77,7 @@ class LetterListApi(ApiAuthMixin, APIView):
 class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter"]
 
-    class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "letter_type"
-        model_serializer_mapping = {
-            Internal: LetterDetailSerializer,
-            Incoming: LetterDetailSerializer,
-            Outgoing: OutgoingLetterDetailSerializer,
-        }
-
-        def to_resource_type(self, instance):
-            return instance._meta.object_name.lower()
-
-    serializer_class = OutputSerializer
+    serializer_class = LetterDetailPolymorphicSerializer
 
     def get(self, request, reference_number) -> Response:
         current_user = request.user
@@ -116,7 +101,7 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             self.check_object_permissions(request, letter_instance)
 
-            output_serializer = self.OutputSerializer(letter_instance, many=False)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance, many=False)
             permissions = self.get_object_permissions_details(letter_instance, current_user)
 
             response_data = {"letter": output_serializer.data, "permissions": permissions}
