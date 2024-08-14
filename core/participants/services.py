@@ -79,7 +79,7 @@ def participants_create(
     *,
     current_user: User,
     letter_instance: Letter,
-    participants,
+    participants: list[LetterParticipant],
 ):
     # participants = verify_owners_role(letter_instance=letter_instance, participants=participants)
 
