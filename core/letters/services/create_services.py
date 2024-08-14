@@ -3,12 +3,11 @@ from typing import Optional, Union
 
 from django.db import transaction
 
+from core.letters.models import Incoming, Internal, Letter, Outgoing
+from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
 from core.users.models import User
 from core.workflows.services import letter_publish
-
-from ..models import Incoming, Internal, Letter, Outgoing
-from ..tasks import generate_pdf_task
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
@@ -86,6 +85,7 @@ def letter_create_and_publish(
     letter_instance = create_letter_instance(**letter_data)
 
     letter_instance.current_state = Letter.States.SUBMITTED
+
     letter_instance.save()
 
     participants_create(
