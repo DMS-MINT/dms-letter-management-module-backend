@@ -16,13 +16,12 @@ from core.permissions.mixins import ApiPermMixin
 
 
 class LetterUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
-    class LetterCreateSerializer(serializers.Serializer):
+    class InputSerializer(serializers.Serializer):
         subject = serializers.CharField(required=False, allow_blank=True)
         body = serializers.CharField(required=False, allow_blank=True)
-        language = serializers.ChoiceField(choices=["EN", "AM"])
         participants = ParticipantInputSerializer(many=True)
 
-    serializer_class = LetterCreateSerializer
+    serializer_class = InputSerializer
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
