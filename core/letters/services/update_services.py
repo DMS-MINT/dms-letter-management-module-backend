@@ -18,7 +18,6 @@ def letter_update(
     letter_instance: Letter,
     subject: Optional[str] = None,
     body: Optional[str] = None,
-    language: Optional[str],
     participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     if subject is not None:
@@ -26,8 +25,6 @@ def letter_update(
 
     if body is not None:
         letter_instance.body = body
-
-    letter_instance.language = language
 
     letter_instance.save()
 
