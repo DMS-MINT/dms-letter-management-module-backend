@@ -41,7 +41,7 @@ class ExternalParticipantInputSerializer(BaseParticipantInputSerializer):
             "email": serializers.EmailField(allow_blank=True, required=False),
             "phone_number": serializers.CharField(max_length=20, allow_blank=True, required=False),
             "address": serializers.CharField(max_length=255),
-        }
+        },
     )
 
 
@@ -90,6 +90,7 @@ class EnterpriseParticipantOutputSerializer(BaseParticipantOutputSerializer):
 class ExternalParticipantOutputSerializer(BaseParticipantOutputSerializer):
     contact = inline_serializer(
         fields={
+            "id": serializers.UUIDField(),
             "full_name_en": serializers.CharField(max_length=500),
             "full_name_am": serializers.CharField(max_length=500),
             "email": serializers.EmailField(allow_blank=True, required=False),
