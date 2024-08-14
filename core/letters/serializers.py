@@ -1,8 +1,11 @@
 from rest_framework import serializers
+from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.common.utils import inline_serializer
 from core.participants.serializers import ParticipantInputSerializer, ParticipantOutputSerializer
 from core.users.serializers import MemberListSerializer
+
+from .models import Incoming, Internal, Outgoing
 
 
 class LetterListSerializer(serializers.Serializer):
@@ -57,6 +60,18 @@ class OutgoingLetterDetailSerializer(LetterDetailSerializer):
     delivery_person_name = serializers.CharField()
     delivery_person_phone = serializers.DateTimeField()
     shipment_id = serializers.DateTimeField()
+
+
+class LetterDetailPolymorphicSerializer(PolymorphicSerializer):
+    resource_type_field_name = "letter_type"
+    model_serializer_mapping = {
+        Internal: LetterDetailSerializer,
+        Incoming: LetterDetailSerializer,
+        Outgoing: OutgoingLetterDetailSerializer,
+    }
+
+    def to_resource_type(self, instance):
+        return instance._meta.object_name.lower()
 
 
 class LetterCreateSerializer(serializers.Serializer):
