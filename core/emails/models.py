@@ -1,9 +1,9 @@
 from django.db import models
 
-from core.notifications.models import Notification
+from core.notifications.models import BaseNotification
 
 
-class Email(Notification):
+class Email(BaseNotification):
     subject = models.CharField(max_length=255)
 
     html = models.TextField()

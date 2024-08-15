@@ -11,7 +11,7 @@ class Tag(BaseModel):
         return self.name
 
 
-class Notification(BaseModel):
+class BaseNotification(BaseModel):
     class Status(models.TextChoices):
         READY = "ready", _("Ready")
         SENDING = "sending", _("Sending")
@@ -20,7 +20,7 @@ class Notification(BaseModel):
 
     status = models.CharField(db_index=True, max_length=50, choices=Status.choices, default=Status.READY)
 
-    to = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="%(class)s_received")
+    to = models.ManyToManyField("users.User", related_name="%(class)s_received")
     sender = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -35,12 +35,3 @@ class Notification(BaseModel):
 
     class Meta:
         abstract = True
-
-
-class InApp(Notification):
-    message = models.CharField(max_length=255)
-    is_read = models.BooleanField(default=False)
-    is_notified = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.message
