@@ -1,35 +1,24 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.api.mixins import ApiAuthMixin
 from core.users.models import User
 
 from .selectors import user_get_users
-from .serializers import (
-    MemberDetailSerializer,
-)
+from .serializers import UserDetailSerializer, UserListSerializer
 
 
 class UserListApi(ApiAuthMixin, APIView):
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.UUIDField()
-        full_name = serializers.CharField()
-        job_title = serializers.CharField()
-
-    serializer_class = OutputSerializer
+    serializer_class = UserListSerializer
 
     def get(self, request) -> Response:
         try:
             user = user_get_users(current_user=request.user)
-            serializer = self.OutputSerializer(user, many=True)
+            out_serializer = UserListSerializer(user, many=True)
 
-            response_data = {
-                "users": serializer.data,
-            }
+            response_data = {"users": out_serializer.data}
 
             return Response(data=response_data)
 
@@ -40,27 +29,15 @@ class UserListApi(ApiAuthMixin, APIView):
 
 
 class UserDetailAPI(ApiAuthMixin, APIView):
-    class OutputSerializer(PolymorphicSerializer):
-        resource_type_field_name = "user_type"
-        model_serializer_mapping = {
-            User: MemberDetailSerializer,
-            # Guest: GuestDetailSerializer,
-        }
-
-        def to_resource_type(self, model_or_instance):
-            return model_or_instance._meta.object_name.lower()
-
-    serializer_class = OutputSerializer
+    serializer_class = UserDetailSerializer
 
     def get(self, request, user_id):
         try:
             user_instance = get_object_or_404(User, id=user_id)
 
-            serializer = self.OutputSerializer(user_instance)
+            output_serializer = UserDetailSerializer(user_instance)
 
-            response_data = {
-                "user": serializer.data,
-            }
+            response_data = {"user": output_serializer.data}
 
             return Response(data=response_data)
 
