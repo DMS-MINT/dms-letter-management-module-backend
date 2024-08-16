@@ -10,7 +10,7 @@ from core.comments.models import BaseModel
 def signature_directory_path(instance, filename):
     if hasattr(instance, "user"):
         # For UserDefaultSignature
-        department = instance.user.department.name_en
+        department = instance.user.department_name_en.name_en
         user_id = instance.user.id
         return f"users/{department}/user_{user_id}/default_signature.png"
 
@@ -53,7 +53,7 @@ class Signature(BaseModel):
         return ""
 
     def __str__(self):
-        return f"{self.signer.full_name}'s signature"
+        return f"{self.signer.full_name_en}'s signature"
 
     class Meta:
         abstract = True
@@ -89,4 +89,4 @@ class UserDefaultSignature(BaseModel):
         return ""
 
     def __str__(self):
-        return f"{self.user.full_name}'s signature"
+        return f"{self.user.full_name_en}'s signature"

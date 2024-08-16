@@ -6,7 +6,7 @@ mypy==1.10.0
 
 django-stubs==5.0.0
 
-ruff==0.2.2
+ruff==0.6.1
 pre-commit==3.6.2
 
 coloredlogs==15.0.1

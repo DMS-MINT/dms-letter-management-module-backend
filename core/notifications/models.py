@@ -56,4 +56,4 @@ class NotificationRecipient(BaseModel):
         unique_together = ("notification", "user")
 
     def __str__(self):
-        return f"{self.user.full_name} notifications"
+        return f"{self.user.full_name_en} notifications"

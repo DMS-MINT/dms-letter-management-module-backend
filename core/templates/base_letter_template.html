@@ -28,7 +28,7 @@
         <ul class="bcc-participants-list">
           {% for participant in bcc_participants %}
             {% if participant.user %}
-              <li class="cc-participant-item">To {{ participant.user.job_title }}</li>
+              <li class="cc-participant-item">To {{ participant.user.job_title.title_en }}</li>
             {% elif participant.enterprise %}
               <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
             {% elif participant.contact %}
@@ -40,7 +40,7 @@
         <ul class="bcc-participants-list">
           {% for participant in bcc_participants %}
             {% if participant.user %}
-              <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+              <li class="cc-participant-item">ለ {{ participant.user.job_title.title_am }}</li>
             {% elif participant.enterprise %}
               <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>
             {% elif participant.contact %}
@@ -56,7 +56,7 @@
       <ul class="cc-participants-list">
         {% for participant in cc_participants %}
           {% if participant.user %}
-            <li class="cc-participant-item">To {{ participant.user.job_title }}</li>
+            <li class="cc-participant-item">To {{ participant.user.job_title.title_en }}</li>
           {% elif participant.enterprise %}
             <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
           {% elif participant.contact %}
@@ -69,7 +69,7 @@
       <ul class="cc-participants-list">
         {% for participant in cc_participants %}
           {% if participant.user %}
-            <li class="cc-participant-item">ለ {{ participant.user.job_title }}</li>
+            <li class="cc-participant-item">ለ {{ participant.user.job_title.title_am }}</li>
           {% elif participant.enterprise %}
             <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>
           {% elif participant.contact %}

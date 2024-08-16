@@ -27,7 +27,7 @@
     {% if letter.language == "EN" %}
       {% for author in authors %}
         {% if author.user %}
-          <p class="author-participant-item">From {{author.user.job_title}}</p>
+          <p class="author-participant-item">From {{author.user.job_title.title_en}}</p>
         {% elif author.enterprise %}
           <p class="author-participant-item">From {{author.enterprise.name_en}}</p>
         {% elif author.contact %}
@@ -37,7 +37,7 @@
     {% elif letter.language == "AM" %}
       {% for author in authors %}
         {% if author.user %}
-          <p class="author-participant-item">ከ {{author.user.job_title}}</p>
+          <p class="author-participant-item">ከ {{author.user.job_title.title_am}}</p>
         {% elif author.enterprise %}
           <p class="author-participant-item">ከ {{author.enterprise.name_am}}</p>
         {% elif author.contact %}
@@ -53,7 +53,7 @@
     {% if letter.language == "EN" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">To {{participant.user.job_title}}</p>
+          <p class="pr-participant-item">To {{participant.user.job_title.title_en}}</p>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
         {% elif participant.contact %}
@@ -63,7 +63,7 @@
     {% elif letter.language == "AM" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+          <p class="pr-participant-item">ለ {{participant.user.job_title.title_am}}</p>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
         {% elif participant.contact %}
