@@ -8,8 +8,8 @@ from rest_framework.views import APIView
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import setup_2fa, verify_otp
-
-from .selectors import user_get_login_data
+from core.users.models import User
+from core.users.serializers import CurrentUserSerializer
 
 
 class LoginApi(APIView):
@@ -51,13 +51,14 @@ class LogoutApi(ApiAuthMixin, APIView):
 
 
 class MeApi(ApiAuthMixin, APIView):
+    serializer_class = CurrentUserSerializer
+
     def get(self, request):
         try:
-            data = user_get_login_data(current_user=request.user)
+            user_instance = User.objects.get(id=request.user.id)
+            output_serializer = CurrentUserSerializer(user_instance)
 
-            response_data = {
-                "my_profile": data,
-            }
+            response_data = {"my_profile": output_serializer.data}
 
             return Response(data=response_data)
 
