@@ -38,7 +38,6 @@ class UserAdmin(admin.ModelAdmin):
                 "fields": (
                     "email",
                     "password",
-                    "otp_secret",
                 ),
             },
         ),
@@ -99,7 +98,6 @@ class UserAdmin(admin.ModelAdmin):
         "last_login",
         "date_joined",
         "updated_at",
-        "otp_secret",
     ]
 
     show_in_index = True

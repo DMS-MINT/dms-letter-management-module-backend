@@ -18,7 +18,7 @@ def setup_2fa(current_user: User):
         current_user.save()
 
     totp = pyotp.TOTP(secret_key)
-    provisioning_uri = totp.provisioning_uri(name=current_user.full_name, issuer_name="DMS-MINT")
+    provisioning_uri = totp.provisioning_uri(name=current_user.full_name_am, issuer_name="DMS-MINT")
 
     qr = qrcode.make(provisioning_uri)
     buffer = BytesIO()

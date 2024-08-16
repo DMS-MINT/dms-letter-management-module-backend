@@ -13,6 +13,12 @@ body {
   height: 120px;
 }
 
+.address{
+  display: inline-block;
+  margin-bottom: 7px;
+  text-decoration: underline;
+}
+
 .outgoing_letter_header {
   display: flex;
   justify-content: space-between;
@@ -116,7 +122,6 @@ body {
 
   .pr-participant-item {
     margin: 0px;
-    padding-bottom: 5px;
 
     &:last-child {
       padding: 0;
@@ -148,10 +153,15 @@ body {
   align-items: flex-end;
   page-break-inside: avoid;
 
+  .closing-phrase{
+    white-space: nowrap;
+  }
+
   .signature-item {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+
 
     .signature-image {
       width: 150px;
@@ -172,12 +182,13 @@ body {
   padding-left: 5mm;
   padding-right: 5mm;
   page-break-inside: avoid;
+
   .bcc-header {
   }
 
   .bcc-participants-list {
     .bcc-participant-item {
-      padding-bottom: 5px;
+
       &:last-child {
         padding: 0;
       }
@@ -194,7 +205,6 @@ body {
 
   .cc-participants-list {
     .cc-participant-item {
-      padding-bottom: 5px;
       &:last-child {
         padding: 0;
       }

@@ -9,7 +9,7 @@ from core.letters.models import Letter
 def attachment_directory_path(instance, filename):
     if hasattr(instance, "letter"):
         # For LetterAttachment
-        department = instance.uploaded_by.department.name_en
+        department = instance.uploaded_by.department.department_name_en
         letter_ref_no = instance.letter.reference_number
         return f"letters/{department}/letter_{letter_ref_no}/attachments/{filename}"
 

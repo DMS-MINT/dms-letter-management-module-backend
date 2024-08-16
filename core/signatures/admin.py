@@ -6,7 +6,7 @@ from .models import LetterSignature, UserDefaultSignature
 class SignatureAdmin(admin.ModelAdmin):
     list_display = ("signer", "signature_method", "signature_image")
     search_fields = ("signer__full_name",)
-    readonly_fields = ("signature_url",)
+    readonly_fields = ("signature_url", "signer", "signature_method")
     list_filter = ("signature_method",)
 
     def get_readonly_fields(self, request, obj=None):

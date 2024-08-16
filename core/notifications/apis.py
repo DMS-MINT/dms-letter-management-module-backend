@@ -1,5 +1,3 @@
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -12,7 +10,6 @@ from core.api.mixins import ApiAuthMixin
 from .models import Notification, NotificationRecipient, Tag
 from .serializers import NotificationSerializer
 from .services import notification_create, notification_send
-from .tasks import send_notifications_task
 
 
 class NotificationListApi(ApiAuthMixin, APIView):
@@ -136,7 +133,7 @@ class SendReminderApi(ApiAuthMixin, APIView):
             letter_tag, _ = Tag.objects.get_or_create(name="Letter")
 
             tags = [reminder_tag, letter_tag]
-            subject = f"Reminder Notification from {request.user.full_name}"
+            subject = f"Reminder Notification from {request.user.full_name_en}"
 
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 
