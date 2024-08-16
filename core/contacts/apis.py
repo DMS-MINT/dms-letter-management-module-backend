@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
-from core.common.utils import get_object
+from core.common.utils import get_object, inline_serializer
 
 from .models import Contact
 from .services import contact_create, contact_delete, contact_update
@@ -19,7 +19,14 @@ class ContactListApi(ApiAuthMixin, APIView):
         full_name_am = serializers.CharField()
         email = serializers.EmailField()
         phone_number = serializers.IntegerField()
-        address = serializers.CharField()
+        address = inline_serializer(
+            fields={
+                "city_en": serializers.CharField(),
+                "city_am": serializers.CharField(),
+            },
+        )
+
+    serializer_class = OutputSerializer
 
     def get(self, request):
         try:
@@ -44,7 +51,14 @@ class ContactDetailApi(ApiAuthMixin, APIView):
         full_name_am = serializers.CharField()
         email = serializers.EmailField()
         phone_number = serializers.IntegerField()
-        address = serializers.CharField()
+        address = inline_serializer(
+            fields={
+                "city_en": serializers.CharField(),
+                "city_am": serializers.CharField(),
+            },
+        )
+
+    serializer_class = OutputSerializer
 
     def get(self, request, contact_id):
         contact_instance = get_object(Contact, id=contact_id)
@@ -69,7 +83,14 @@ class ContactCreateApi(ApiAuthMixin, APIView):
         full_name_am = serializers.CharField()
         email = serializers.EmailField()
         phone_number = serializers.IntegerField()
-        address = serializers.CharField()
+        address = inline_serializer(
+            fields={
+                "city_en": serializers.CharField(),
+                "city_am": serializers.CharField(),
+            },
+        )
+
+    serializer_class = InputSerializer
 
     def post(self, request) -> Response:
         input_serializer = self.InputSerializer(data=request.data)
@@ -96,7 +117,14 @@ class ContactUpdateApi(ApiAuthMixin, APIView):
         full_name_am = serializers.CharField()
         email = serializers.EmailField()
         phone_number = serializers.IntegerField()
-        address = serializers.CharField()
+        address = inline_serializer(
+            fields={
+                "city_en": serializers.CharField(),
+                "city_am": serializers.CharField(),
+            },
+        )
+
+    serializer_class = InputSerializer
 
     def post(self, request, contact_id):
         contact_instance = get_object(Contact, id=contact_id)
@@ -143,6 +171,8 @@ class ContactDeleteApi(ApiAuthMixin, APIView):
 class ContactBulkDeleteApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         contact_ids = serializers.ListSerializer(child=serializers.UUIDField())
+
+    serializer_class = InputSerializer
 
     def delete(self, request):
         input_serializer = self.InputSerializer(data=request.data)

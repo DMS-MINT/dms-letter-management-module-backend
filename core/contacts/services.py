@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from core.common.models import Address
 from core.users.models import User
 
 from .models import Contact
@@ -13,14 +14,18 @@ def contact_create(
     full_name_am: str,
     email: str,
     phone_number: str,
-    address: str,
+    address: dict,
 ):
+    address_instance, _ = Address.objects.get_or_create(
+        city_en=address.get("city_en"),
+        city_am=address.get("city_am"),
+    )
     contact_instance, created = Contact.objects.get_or_create(
         full_name_en=full_name_en,
         full_name_am=full_name_am,
         email=email,
         phone_number=phone_number,
-        address=address,
+        address=address_instance,
     )
 
     if created:
@@ -38,7 +43,7 @@ def contact_update(
     full_name_am: str,
     email: str,
     phone_number: str,
-    address: str,
+    address: dict,
 ):
     number_of_related_users = contact_instance.user.count()
 
