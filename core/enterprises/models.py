@@ -13,7 +13,12 @@ class Enterprise(BaseModel):
     name_am = models.CharField(max_length=255, unique=True, verbose_name="Name in Amharic")
     email = models.EmailField(blank=True, null=True, verbose_name=_("Email Address"))
     phone_number = models.PositiveBigIntegerField(blank=True, null=True, verbose_name=_("Phone Number"))
-    address = models.CharField(max_length=255, blank=True, default="Addis Ababa, Ethiopia", verbose_name=_("Address"))
+    address = models.ForeignKey(
+        "common.Address",
+        on_delete=models.CASCADE,
+        related_name="enterprise_address",
+        verbose_name=_("Address"),
+    )
     postal_code = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Postal Code"))
     logo = models.ImageField(upload_to=enterprise_directory_path, blank=True, null=True, verbose_name="Logo")
 

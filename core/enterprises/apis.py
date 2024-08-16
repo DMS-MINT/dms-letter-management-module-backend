@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
+from core.common.utils import inline_serializer
 
 from .models import Enterprise
 
@@ -16,9 +17,16 @@ class EnterpriseListApi(ApiAuthMixin, APIView):
         name_am = serializers.CharField()
         email = serializers.EmailField()
         phone_number = serializers.IntegerField()
-        address = serializers.CharField()
+        address = inline_serializer(
+            fields={
+                "city_en": serializers.CharField(),
+                "city_am": serializers.CharField(),
+            },
+        )
         postal_code = serializers.IntegerField()
         logo = serializers.ImageField()
+
+    serializer_class = OutputSerializer
 
     def get(self, request) -> Response:
         contacts = Enterprise.objects.all()
