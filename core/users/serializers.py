@@ -1,60 +1,72 @@
 from rest_framework import serializers
-from rest_polymorphic.serializers import PolymorphicSerializer
 
-from .models import User
+from core.common.utils import inline_serializer
 
 
-class GustListSerializer(serializers.Serializer):
+class UserListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    # name = serializers.CharField()
+    full_name_en = serializers.CharField()
+    full_name_am = serializers.CharField()
+    job_title = inline_serializer(
+        fields={
+            "title_en": serializers.CharField(),
+            "title_am": serializers.CharField(),
+        },
+    )
 
 
-class MemberListSerializer(serializers.Serializer):
+class UserDetailSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-    full_name = serializers.CharField()
-    job_title = serializers.CharField()
-
-
-class GuestDetailSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    name = serializers.CharField()
-    email = serializers.CharField()
-    phone_number = serializers.CharField()
-    address = serializers.CharField()
-    postal_code = serializers.CharField()
-
-
-class MemberDetailSerializer(serializers.Serializer):
-    id = serializers.UUIDField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    full_name = serializers.CharField()
-    job_title = serializers.CharField()
-    department = serializers.CharField()
+    full_name_en = serializers.CharField()
+    full_name_am = serializers.CharField()
+    job_title = inline_serializer(
+        fields={
+            "id": serializers.UUIDField(),
+            "title_en": serializers.CharField(),
+            "title_am": serializers.CharField(),
+        },
+    )
+    department = inline_serializer(
+        fields={
+            "id": serializers.UUIDField(),
+            "department_name_en": serializers.CharField(),
+            "department_name_am": serializers.CharField(),
+        },
+    )
+    phone_number = serializers.IntegerField()
     email = serializers.EmailField()
-    phone_number = serializers.CharField()
-    updated_at = serializers.DateTimeField()
 
 
-class MemberCreateSerializer(serializers.Serializer):
+class CurrentUserSerializer(serializers.Serializer):
     id = serializers.UUIDField()
-
-
-class GuestCreateSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    name = serializers.CharField()
-    email = serializers.EmailField(required=False)
-    address = serializers.CharField(required=False)
-    phone_number = serializers.CharField(required=False)
-    postal_code = serializers.IntegerField(required=False)
-
-
-class UserCreateSerializer(PolymorphicSerializer):
-    resource_type_field_name = "user_type"
-    model_serializer_mapping = {
-        User: MemberCreateSerializer,
-        # User: GuestCreateSerializer,
-    }
-
-    def to_resource_type(self, instance):
-        return instance._meta.object_name.lower()
+    first_name_en = serializers.CharField()
+    middle_name_en = serializers.CharField()
+    last_name_en = serializers.CharField()
+    first_name_am = serializers.CharField()
+    middle_name_am = serializers.CharField()
+    last_name_am = serializers.CharField()
+    full_name_en = serializers.CharField()
+    full_name_am = serializers.CharField()
+    job_title = inline_serializer(
+        fields={
+            "id": serializers.UUIDField(),
+            "title_en": serializers.CharField(),
+            "title_am": serializers.CharField(),
+        },
+    )
+    department = inline_serializer(
+        fields={
+            "id": serializers.UUIDField(),
+            "department_name_en": serializers.CharField(),
+            "department_name_am": serializers.CharField(),
+            "abbreviation_en": serializers.CharField(),
+            "abbreviation_am": serializers.CharField(),
+            "description": serializers.CharField(),
+            "contact_phone": serializers.IntegerField(),
+            "contact_email": serializers.EmailField(),
+        },
+    )
+    phone_number = serializers.IntegerField()
+    email = serializers.EmailField()
+    is_2fa_enabled = serializers.BooleanField()
+    is_staff = serializers.BooleanField()
