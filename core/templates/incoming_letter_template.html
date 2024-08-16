@@ -28,20 +28,26 @@
       {% for author in authors %}
         {% if author.user %}
           <p class="author-participant-item">From {{author.user.job_title.title_en}}</p>
+          <span class="address">M.I.N.T</span>
         {% elif author.enterprise %}
           <p class="author-participant-item">From {{author.enterprise.name_en}}</p>
+          <span class="address">{{participant.enterprise.address.city_en}}</span>
         {% elif author.contact %}
           <p class="author-participant-item">From {{author.contact.full_name_en}}</p>
+          <span class="address">{{participant.contact.address.city_en}}</span>
         {% endif %}
       {% endfor %}
     {% elif letter.language == "AM" %}
       {% for author in authors %}
         {% if author.user %}
           <p class="author-participant-item">ከ {{author.user.job_title.title_am}}</p>
+          <span class="address">ኢ.ቴ.ሚ</span>
         {% elif author.enterprise %}
           <p class="author-participant-item">ከ {{author.enterprise.name_am}}</p>
+          <span class="address">{{participant.enterprise.address.city_am}}</span>
         {% elif author.contact %}
           <p class="author-participant-item">ከ {{author.contact.full_name_am}}</p>
+          <span class="address">{{participant.contact.address.city_am}}</span>
         {% endif %}
       {% endfor %}
     {% endif %}
@@ -54,20 +60,26 @@
       {% for participant in primary_recipients %}
         {% if participant.user %}
           <p class="pr-participant-item">To {{participant.user.job_title.title_en}}</p>
+          <span class="address">M.I.N.T</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
+          <span class="address">{{participant.enterprise.address.city_en}}</span>
         {% elif participant.contact %}
           <p class="pr-participant-item">To {{participant.contact.full_name_en}}</p>
+          <span class="address">{{participant.contact.address.city_en}}</span>
         {% endif %}
       {% endfor %}
     {% elif letter.language == "AM" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
           <p class="pr-participant-item">ለ {{participant.user.job_title.title_am}}</p>
+          <span class="address">ኢ.ቴ.ሚ</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
+          <span class="address">{{participant.enterprise.address.city_am}}</span>
         {% elif participant.contact %}
           <p class="pr-participant-item">ለ {{participant.contact.full_name_am}}</p>
+          <span class="address">{{participant.contact.address.city_am}}</span>
         {% endif %}
       {% endfor %}
     {% endif %}

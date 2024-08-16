@@ -26,7 +26,12 @@ class LetterChildAdmin(PolymorphicChildModelAdmin):
     ]
     # inlines = [ParticipantInline]
     ordering = ["-updated_at"]
-    readonly_fields = ["reference_number", "pdf_version"]
+    readonly_fields = [
+        "reference_number",
+        "reference_number_am",
+        "language",
+        "pdf_version",
+    ]
 
     def pdf_view_link(self, obj):
         if obj.pdf_version:
@@ -67,7 +72,12 @@ class LetterParentAdmin(PolymorphicParentModelAdmin):
     child_models = (Internal, Incoming, Outgoing)
     list_filter = (PolymorphicChildModelFilter,)
     ordering = ["-updated_at"]
-    readonly_fields = ["reference_number", "pdf_version"]
+    readonly_fields = [
+        "reference_number",
+        "reference_number_am",
+        "language",
+        "pdf_version",
+    ]
 
     def pdf_view_link(self, obj):
         if obj.pdf_version:

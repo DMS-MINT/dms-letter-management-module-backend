@@ -10,20 +10,20 @@ from core.comments.models import BaseModel
 def signature_directory_path(instance, filename):
     if hasattr(instance, "user"):
         # For UserDefaultSignature
-        department = instance.user.department_name_en.name_en
+        department = instance.user.department.department_name_en
         user_id = instance.user.id
         return f"users/{department}/user_{user_id}/default_signature.png"
 
     if hasattr(instance, "letter"):
         # For LetterSignature
-        department = instance.signer.department.name_en
+        department = instance.signer.department.department_name_en
         letter_ref_no = instance.letter.reference_number
         user_id = instance.signer.id
         return f"letters/{department}/letter_{letter_ref_no}/signatures/user_{user_id}.png"
 
     if hasattr(instance, "document"):
         # For DocumentSignature
-        department = instance.signer.department.name_en
+        department = instance.signer.department.department_name_en
         doc_ref_no = ""  # Set the document reference number here
         user_id = instance.signer.id
         return f"documents/{department}/documents_{doc_ref_no}/signatures/user_{user_id}.png"
@@ -74,7 +74,7 @@ class LetterSignature(Signature):
 
 
 class UserDefaultSignature(BaseModel):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         "users.User",
         on_delete=models.CASCADE,
         related_name="default_signature",

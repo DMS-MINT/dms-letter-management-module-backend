@@ -61,7 +61,7 @@ def generate_pdf_task(self, letter_id: str) -> Letter:
         weasy_html.write_pdf(pdf_io)
         pdf_io.seek(0)
 
-        department = letter_instance.owner.department.name_en
+        department = letter_instance.owner.department.department_name_en
         letter_ref_no = letter_instance.reference_number
 
         letter_pdf_path = f"letters/{department}/letter_{letter_ref_no}/letter_{letter_ref_no}.pdf"

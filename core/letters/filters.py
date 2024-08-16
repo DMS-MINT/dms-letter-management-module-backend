@@ -1,12 +1,11 @@
 from enum import Enum
 
 import django_filters
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
-from core.participants.models import BaseParticipant
-from django.contrib.contenttypes.models import ContentType
+from core.participants.models import BaseParticipant, InternalUserParticipant
 
-from core.participants.models import InternalUserParticipant
 from .models import Letter
 
 
