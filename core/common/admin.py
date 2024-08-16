@@ -7,6 +7,38 @@ from core.departments.models import Department
 from core.signatures.admin import LetterSignatureAdmin
 from core.signatures.models import LetterSignature
 
+from .models import Address
+
+
+@admin.register(Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ("city_en", "city_am", "created_at", "updated_at")
+    search_fields = ["city_en", "city_am"]
+    ordering = ["city_en"]
+    readonly_fields = ("created_at", "updated_at")
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "city_en",
+                    "city_am",
+                ),
+            },
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                ),
+            },
+        ),
+    )
+
+
 # from core.users.admin import BaseUserParentAdmin, GuestAdmin, MemberAdmin
 # from core.users.models import BaseUser, Guest, Member
 
