@@ -3,8 +3,10 @@ from enum import Enum
 import django_filters
 from django.db.models import Q
 
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
+from django.contrib.contenttypes.models import ContentType
 
+from core.participants.models import InternalUserParticipant
 from .models import Letter
 
 
@@ -58,13 +60,16 @@ class BaseLetterFilter(django_filters.FilterSet):
             ],
         )
 
+        internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
+
         participant_filter = Q(
-            participants__user_id=self.current_user.id,
+            participants__polymorphic_ctype=internal_user_ct,
+            participants__internaluserparticipant__user_id=self.current_user.id,
             participants__role__in=[
-                Participant.Roles.PRIMARY_RECIPIENT,
-                Participant.Roles.CC,
-                Participant.Roles.BCC,
-                Participant.Roles.COLLABORATOR,
+                BaseParticipant.Roles.PRIMARY_RECIPIENT,
+                BaseParticipant.Roles.CC,
+                BaseParticipant.Roles.BCC,
+                BaseParticipant.Roles.COLLABORATOR,
             ],
         )
 
@@ -80,12 +85,14 @@ class BaseLetterFilter(django_filters.FilterSet):
                 Letter.States.CLOSED,
             ],
         )
+        internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
 
         participant_filter = Q(
-            participants__user_id=self.current_user.id,
+            participants__polymorphic_ctype=internal_user_ct,
+            participants__internaluserparticipant__user_id=self.current_user.id,
             participants__role__in=[
-                Participant.Roles.AUTHOR,
-                Participant.Roles.COLLABORATOR,
+                BaseParticipant.Roles.AUTHOR,
+                BaseParticipant.Roles.COLLABORATOR,
             ],
         )
 
@@ -101,11 +108,14 @@ class BaseLetterFilter(django_filters.FilterSet):
             ],
         )
 
+        internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
+
         participant_filter = Q(
-            participants__user_id=self.current_user.id,
+            participants__polymorphic_ctype=internal_user_ct,
+            participants__internaluserparticipant__user_id=self.current_user.id,
             participants__role__in=[
-                Participant.Roles.AUTHOR,
-                Participant.Roles.COLLABORATOR,
+                BaseParticipant.Roles.AUTHOR,
+                BaseParticipant.Roles.COLLABORATOR,
             ],
         )
 
@@ -116,9 +126,12 @@ class BaseLetterFilter(django_filters.FilterSet):
     def filter_trash(self, queryset):
         current_state_filter = Q(current_state__in=[Letter.States.TRASHED])
 
+        internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
+
         participant_filter = Q(
-            participants__user_id=self.current_user.id,
-            participants__role__in=[Participant.Roles.AUTHOR],
+            participants__polymorphic_ctype=internal_user_ct,
+            participants__internaluserparticipant__user_id=self.current_user.id,
+            participants__role__in=[BaseParticipant.Roles.AUTHOR],
         )
 
         combined_filter = current_state_filter & participant_filter
@@ -130,14 +143,17 @@ class BaseLetterFilter(django_filters.FilterSet):
             current_state__in=[Letter.States.SUBMITTED],
         )
 
+        internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
+
         participant_filter = ~Q(
-            participants__user_id=self.current_user.id,
+            participants__polymorphic_ctype=internal_user_ct,
+            participants__internaluserparticipant__user_id=self.current_user.id,
             participants__role__in=[
-                Participant.Roles.AUTHOR,
-                Participant.Roles.PRIMARY_RECIPIENT,
-                Participant.Roles.BCC,
-                Participant.Roles.CC,
-                Participant.Roles.COLLABORATOR,
+                BaseParticipant.Roles.AUTHOR,
+                BaseParticipant.Roles.PRIMARY_RECIPIENT,
+                BaseParticipant.Roles.BCC,
+                BaseParticipant.Roles.CC,
+                BaseParticipant.Roles.COLLABORATOR,
             ],
         )
 

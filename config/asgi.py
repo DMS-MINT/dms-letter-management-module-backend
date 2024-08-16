@@ -2,10 +2,11 @@ import os
 
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
 from django.core.asgi import get_asgi_application
-from django.urls import path
 
-from core.letters.consumers import LetterConsumer
+from core.letters.routing import letter_websocket_urlpatterns
+from core.notifications.routing import notification_websocket_urlpatterns
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.base")
 
@@ -13,12 +14,9 @@ django_asgi_app = get_asgi_application()
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
-    "websocket": AuthMiddlewareStack(
-        URLRouter([
-            path(
-                "ws/letters/<slug:reference_number>/",
-                LetterConsumer.as_asgi(),
-            ),
-        ]),
+    "websocket": AllowedHostsOriginValidator(
+        AuthMiddlewareStack(
+            URLRouter(letter_websocket_urlpatterns + notification_websocket_urlpatterns),
+        ),
     ),
 })

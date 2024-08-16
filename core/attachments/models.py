@@ -4,7 +4,6 @@ from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
 from core.letters.models import Letter
-from core.users.models import Member
 
 
 def attachment_directory_path(instance, filename):
@@ -25,7 +24,7 @@ class Attachment(BaseModel):
     remote_file_url = models.URLField(max_length=200)
     uploaded_file = models.FileField(upload_to=attachment_directory_path, verbose_name=_("File"))
     uploaded_by = models.ForeignKey(
-        Member,
+        "users.User",
         on_delete=models.CASCADE,
         related_name="%(class)s_attachment",
         verbose_name=_("Uploaded By"),

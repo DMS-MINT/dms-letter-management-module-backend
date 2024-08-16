@@ -1,14 +1,14 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.letters.models import Letter
+from core.letters.models import Internal, Outgoing
 from core.permissions.service import assign_permissions, remove_permissions
-from core.users.models import BaseUser, Member
 
 
-class Participant(BaseModel):
+class BaseParticipant(PolymorphicModel, BaseModel):
     class Roles(models.IntegerChoices):
         AUTHOR = 1, _("Author")
         PRIMARY_RECIPIENT = 2, _("Primary Recipient")
@@ -17,38 +17,26 @@ class Participant(BaseModel):
         COLLABORATOR = 5, _("Collaborator")
         ADMINISTRATOR = 6, _("Administrator")
 
-    role = models.IntegerField(
-        _("Roles"),
-        choices=Roles.choices,
-        help_text=_("Select the role of this participant."),
-    )
-    user = models.ForeignKey(
-        BaseUser,
-        on_delete=models.CASCADE,
-        related_name="participates_in",
-        help_text=_("Select the user associated with this participant."),
-    )
-    letter = models.ForeignKey(
-        Letter,
-        on_delete=models.CASCADE,
-        related_name="participants",
-        help_text=_("Select the letter associated with this participant."),
-    )
-    added_by = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="added_participants")
+    role = models.IntegerField(choices=Roles.choices, verbose_name=_("Roles"))
+    letter = models.ForeignKey("letters.Letter", on_delete=models.CASCADE, related_name="participants")
+    added_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="added_participants")
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
     received_at = models.DateTimeField(blank=True, null=True, editable=False)
+
+    class Meta:
+        indexes = [models.Index(fields=["role", "letter"])]
 
     @property
     def has_read(self) -> bool:
         return True if self.last_read_at else False
 
     def clean(self):
-        author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+        author_count = BaseParticipant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
 
         if author_count != 1:
             raise ValidationError(_("The letter must have exactly one designated author."))
 
-        primary_recipient_count = Participant.objects.filter(
+        primary_recipient_count = BaseParticipant.objects.filter(
             letter=self.letter,
             role=self.Roles.PRIMARY_RECIPIENT,
         ).count()
@@ -58,37 +46,71 @@ class Participant(BaseModel):
 
     def save(self, *args, **kwargs):
         if self.role == self.Roles.AUTHOR:
-            existing_author_count = Participant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+            existing_author_count = BaseParticipant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
             if existing_author_count > 1:
                 raise ValidationError({"role": _("There can only be one author per letter.")})
 
         if self.role == self.Roles.ADMINISTRATOR:
-            existing_admin_count = Participant.objects.filter(letter=self.letter, role=self.Roles.ADMINISTRATOR).count()
+            existing_admin_count = BaseParticipant.objects.filter(
+                letter=self.letter,
+                role=self.Roles.ADMINISTRATOR,
+            ).count()
             if existing_admin_count > 0:
                 raise ValidationError({"role": _("There can only be one administrator per letter.")})
+
+        super().save(*args, **kwargs)
+
+
+class InternalUserParticipant(BaseParticipant):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="participated_in_letters")
+
+    def save(self, *args, **kwargs):
+        if isinstance(self.letter, Outgoing) and self.role == BaseParticipant.Roles.PRIMARY_RECIPIENT:
+            raise ValidationError("Internal users cannot be primary recipients of outgoing letters.")
 
         permissions = kwargs.pop("permissions", None)
 
         super().save(*args, **kwargs)
-        if isinstance(self.user, Member):
-            assign_permissions(
-                letter_instance=self.letter,
-                participant_user=self.user,
-                participant_role=self.role,
-                permissions=permissions,
-            )
+        assign_permissions(
+            letter_instance=self.letter,
+            participant_user=self.user,
+            participant_role=self.role,
+            permissions=permissions,
+        )
 
     def delete(self, *args, **kwargs):
-        if isinstance(self.user, Member):
-            remove_permissions(
-                letter_instance=self.letter,
-                participant_user=self.user,
-                participant_role=self.role,
-            )
+        remove_permissions(
+            letter_instance=self.letter,
+            participant_user=self.user,
+            participant_role=self.role,
+        )
 
         super().delete(*args, **kwargs)
 
-    class Meta:
-        verbose_name: str = _("Participant")
-        verbose_name_plural: str = _("Participants")
-        unique_together = [["user", "letter"]]
+
+class EnterpriseParticipant(BaseParticipant):
+    enterprise = models.ForeignKey(
+        "enterprises.Enterprise",
+        on_delete=models.CASCADE,
+        related_name="enterprise_referenced_in_letters",
+    )
+
+    def save(self, *args, **kwargs):
+        if isinstance(self.letter, Internal):
+            raise ValidationError("Public enterprise cannot participate in internal letters.")
+
+        super().save(*args, **kwargs)
+
+
+class ExternalUserParticipant(BaseParticipant):
+    contact = models.ForeignKey(
+        "contacts.Contact",
+        on_delete=models.CASCADE,
+        related_name="contact_referenced_in_letters",
+    )
+
+    def save(self, *args, **kwargs):
+        if isinstance(self.letter, Internal):
+            raise ValidationError("External users cannot participate in internal letters.")
+
+        super().save(*args, **kwargs)

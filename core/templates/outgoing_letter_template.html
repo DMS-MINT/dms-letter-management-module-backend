@@ -1,32 +1,29 @@
 {% extends "base_letter_template.html" %}
-{% load static %}
 
-{% block title %}Letter_{{ letter.reference_number }}{% endblock %}
+{% load static %} {% block title%}Letter_{{ letter.reference_number }}{% endblock %}
 
-{% block header %} 
+{% block header %}
   <header class="outgoing_letter_header">
-      <img
-        src="{% static 'images/pentagram.png' %}"
-        alt="Ethiopian flag pentagon star symbol"
-        class="pentagram"
-      />
-      <div class="header-info">
-        <p class="header-title">በኢትዮጵያ ፌደራላዊ ዲሞክራሲያዊ ሪፐብሊክ</p>
-        <p class="header-title">የኢኖቬሽንና ቴከኖሎጂ ሚኒስቴር</p>
-        <p class="header-subtitle">
-          The Federal Democratic Republic of Ethiopia
-        </p>
-        <p class="header-subtitle">Minister of Innovation and Technology</p>
-      </div>
-      <img
-        src="{% static 'images/mint.png' %}"
-        alt="Ministry of Innovation and Technology logo"
-        class="logo"
-      />
-  </header> 
-{% endblock %} 
+    <img
+      src="{% static 'images/pentagram.png' %}"
+      alt="Ethiopian flag pentagon star symbol"
+      class="pentagram"
+    />
+    <div class="header-info">
+      <p class="header-title">በኢትዮጵያ ፌደራላዊ ዲሞክራሲያዊ ሪፐብሊክ</p>
+      <p class="header-title">የኢኖቬሽንና ቴከኖሎጂ ሚኒስቴር</p>
+      <p class="header-subtitle">The Federal Democratic Republic of Ethiopia</p>
+      <p class="header-subtitle">Minister of Innovation and Technology</p>
+    </div>
+    <img
+      src="{% static 'images/mint.png' %}"
+      alt="Ministry of Innovation and Technology logo"
+      class="logo"
+    />
+  </header>
+{% endblock %}
 
-{% block separator %} <hr class="separator" /> {% endblock %} 
+{% block separator %}<hr class="separator" />{% endblock %}
 
 {% block letter_metadata %}
   <section class="letter-metadata">
@@ -35,57 +32,92 @@
         <span>ቁጥር</span>
         <span>Ref.No.</span>
       </p>
-      <hr class="metadata-divider" />
+      <div class="metadata-value-container">
+        <span class="metadata-value">{{letter.reference_number}}</span>
+        <hr class="metadata-divider" />
+      </div>
     </div>
     <div class="metadata-item">
       <p class="metadata-label">
         <span>ቀን</span>
         <span>Date</span>
       </p>
-      <hr class="metadata-divider" />
+      <div class="metadata-value-container">
+        <span class="metadata-value"></span>
+        <hr class="metadata-divider" />
+      </div>
     </div>
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block authors %} {% endblock %} 
+{% block authors %} {% endblock %}
 
-{% block primary_recipients %} 
+{% block primary_recipients %}
   <section class="pr-participant-section">
-    {% for participant in primary_recipients %}
-    <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-    {% empty %} {% endfor %}
+    {% if letter.language == "EN" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">To {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">To {{participant.contact.full_name_en}}</p>
+        {% endif %}
+      {% endfor %}
+    {% elif letter.language == "AM" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">ለ {{participant.contact.full_name_am}}</p>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block letter_body %} 
+{% block letter_body %}
   <section class="letter-body">
     <p class="letter-subject">
-      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+      <span class="subject-label">
+        {% if letter.language == "EN" %}
+          Subject
+        {% elif letter.language == "AM" %}
+          ጉዳዩ
+        {% endif %}
+        :-</span>{{letter.subject}}
     </p>
 
-    <div class="letter-content">{{ letter.content|safe }}</div>
+    <div class="letter-body">{{ letter.body|safe }}</div>
   </section>
 {% endblock %}
 
-{% block e_signatures %} 
+{% block e_signatures %}
   <section class="e-signatures">
     {% for e_signature in e_signatures %}
-    <div class="signature-item">
-      <img
-        src="{{ base_url }}{{ e_signature.signature_image.url }}"
-        alt="{{ e_signature.signer.full_name }}'s signature"
-        class="signature-image"
-      />
-      <p class="signer-info">
-        <span>{{ e_signature.signer.full_name }}</span>
-        <span>{{ e_signature.signer.job_title }}</span>
-      </p>
-    </div>
-    {% empty %} {% endfor %}
+      <div class="signature-item">
+        <img
+          src="{{ base_url }}{{ e_signature.signature_image.url }}"
+          alt="{{ e_signature.signer.full_name }}'s signature"
+          class="signature-image"
+        />
+        <p class="signer-info">
+          {% if letter.language == "EN" %}
+            <span>{{ e_signature.signer.full_name }}</span>
+            <span>{{ e_signature.signer.job_title }}</span>
+          {% elif letter.language == "AM" %}
+          {% endif %}
+          <span>{{ e_signature.signer.full_name }}</span>
+          <span>{{ e_signature.signer.job_title }}</span>
+        </p>
+      </div>
+    {% endfor %}
   </section>
 {% endblock %}
 
-{% block footer %} 
+{% block footer %}
   <section class="footer-wrapper">
     <hr class="separator" />
     <footer>

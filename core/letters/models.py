@@ -24,8 +24,8 @@ class Letter(PolymorphicModel, BaseModel):
         AMHARIC = "AM", _("Amharic")
 
     subject = models.CharField(blank=True, null=True, max_length=255)
-    content = models.TextField(blank=True, null=True)
-    owner = models.ForeignKey("users.Member", on_delete=models.CASCADE, related_name="owned_letters")
+    body = models.TextField(blank=True, null=True)
+    owner = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="owned_letters")
 
     reference_number = models.SlugField(unique=True)
     reference_number_am = models.SlugField(unique=True)
@@ -38,43 +38,6 @@ class Letter(PolymorphicModel, BaseModel):
     hidden = models.BooleanField(default=False)
 
     pdf_version = models.URLField(blank=True, null=True, editable=False)
-
-    def clean(self):
-        if not self.subject or not self.subject.strip():
-            raise ValidationError(_("The subject of the letter cannot be empty."))
-
-        # Skip content validation if the letter is an Incoming letter
-        if not isinstance(self, Incoming):
-            stripped_content = re.sub("<[^<]+?>", "", self.content or "")
-            if not stripped_content.strip():
-                raise APIError(
-                    error_code="EMPTY_CONTENT",
-                    status_code=http_status.HTTP_400_BAD_REQUEST,
-                    message="Validation error",
-                    extra={"content": "The content of the letter cannot be empty."},
-                )
-
-        # Check Attachment validation if the letter is an Incoming letter
-        if isinstance(self, Incoming):
-            if not self.letter_attachments.exists():
-                raise APIError(
-                    error_code="MISSING_ATTACHMENT",
-                    status_code=http_status.HTTP_400_BAD_REQUEST,
-                    message="Validation error",
-                    extra={"attachment": "The letter must have at least one attachment."},
-                )
-
-        if not isinstance(self, Incoming):
-            if not self.e_signatures.exists():
-                raise APIError(
-                    error_code="UNSIGNED_LETTER",
-                    status_code=http_status.HTTP_400_BAD_REQUEST,
-                    message="Validation error",
-                    extra={"e_signature": "The letter must be signed before proceeding."},
-                )
-
-    def __str__(self) -> str:
-        return f"{self.subject} - {self.reference_number}"
 
     class Meta:
         verbose_name: str = "Letter"
@@ -99,6 +62,43 @@ class Letter(PolymorphicModel, BaseModel):
             ("can_restore_letter", "Can restore letter"),
             ("can_permanently_delete_letter", "Can permanently delete letter"),
         )
+
+    def clean(self):
+        if not self.subject or not self.subject.strip():
+            raise ValidationError(_("The subject of the letter cannot be empty."))
+
+        # Skip body validation if the letter is an Incoming letter
+        if not isinstance(self, Incoming):
+            stripped_body = re.sub("<[^<]+?>", "", self.body or "")
+            if not stripped_body.strip():
+                raise APIError(
+                    error_code="EMPTY_body",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"body": "The body of the letter cannot be empty."},
+                )
+
+        # Check Attachment validation if the letter is an Incoming letter
+        if isinstance(self, Incoming):
+            if not self.letter_attachments.exists():
+                raise APIError(
+                    error_code="MISSING_ATTACHMENT",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"attachment": "The letter must have at least one attachment."},
+                )
+
+        if not isinstance(self, Incoming):
+            if not self.e_signatures.exists():
+                raise APIError(
+                    error_code="UNSIGNED_LETTER",
+                    status_code=http_status.HTTP_400_BAD_REQUEST,
+                    message="Validation error",
+                    extra={"e_signature": "The letter must be signed before proceeding."},
+                )
+
+    def __str__(self) -> str:
+        return f"{self.subject} - {self.reference_number}"
 
 
 class Internal(Letter):

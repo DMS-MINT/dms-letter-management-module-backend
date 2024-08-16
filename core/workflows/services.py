@@ -3,13 +3,14 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
 from core.letters.models import Incoming, Letter
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant, InternalUserParticipant
+from core.participants.services import participants_create
 from core.signatures.services import sign_letter
-from core.users.models import Member
+from core.users.models import User
 
 
 @transaction.atomic
-def letter_submit(*, current_user: Member, letter_instance: Letter, signature_method: str) -> Letter:
+def letter_submit(*, current_user: User, letter_instance: Letter, signature_method: str) -> Letter:
     letter_instance.current_state = Letter.States.SUBMITTED
     letter_instance.submitted_at = timezone.now()
 
@@ -22,18 +23,19 @@ def letter_submit(*, current_user: Member, letter_instance: Letter, signature_me
     letter_instance.clean()
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
-    participant.clean()
+    participant = BaseParticipant.objects.filter(letter=letter_instance).first()
+    if participant:
+        participant.clean()
 
     return letter_instance
 
 
 @transaction.atomic
-def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
-    participant = letter_instance.participants.get(user=current_user)
-    administrator_participant = letter_instance.participants.filter(role=Participant.Roles.ADMINISTRATOR).first()
+def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
+    internal_participant = InternalUserParticipant.objects.filter(letter=letter_instance, user=current_user).first()
+    administrator_participant = letter_instance.participants.filter(role=BaseParticipant.Roles.ADMINISTRATOR).first()
 
-    if participant.role == Participant.Roles.AUTHOR:
+    if internal_participant.role == BaseParticipant.Roles.AUTHOR:
         next_state = Letter.States.DRAFT
         letter_instance.submitted_at = None
         letter_instance.e_signatures.filter(signer=current_user).delete()
@@ -41,7 +43,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
         if administrator_participant is not None:
             administrator_participant.delete()
 
-    elif participant.role == Participant.Roles.ADMINISTRATOR:
+    elif internal_participant.role == BaseParticipant.Roles.ADMINISTRATOR:
         if isinstance(letter_instance, Incoming):
             next_state = Letter.States.DRAFT
         else:
@@ -60,7 +62,7 @@ def letter_retract(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
+def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
     current_state = Letter.States.SUBMITTED.value
     next_state = Letter.States.PUBLISHED.value
 
@@ -69,7 +71,7 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
             raise PermissionDenied("You can not perform this action on this letter in its current state.")
 
     for participant in letter_instance.participants.all():
-        if participant.user == current_user:
+        if hasattr(participant, "user") and participant.user == current_user:
             raise PermissionDenied("You cannot perform publishing actions on letters you are participating in.")
 
     letter_instance.clean()
@@ -77,11 +79,16 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
     letter_instance.published_at = timezone.now()
     letter_instance.save()
 
-    participant_instance = Participant.objects.create(
-        user=current_user,
-        letter=letter_instance,
-        role=Participant.Roles.ADMINISTRATOR,
-        added_by=current_user,
+    admin_participant = {
+        "id": "",
+        "user_id": current_user.id,
+        "role": 6,
+        "participant_type": "user",
+    }
+    participant_instance = participants_create(
+        current_user=current_state,
+        letter_instance=letter_instance,
+        participants=[admin_participant],
     )
 
     participant_instance.clean()
@@ -90,7 +97,7 @@ def letter_publish(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
+def letter_reject(current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.published_at = None
     letter_instance.current_state = Letter.States.REJECTED
     letter_instance.save()
@@ -99,24 +106,26 @@ def letter_reject(current_user: Member, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_close(*, current_user: Member, letter_instance: Letter) -> Letter:
+def letter_close(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.CLOSED
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
-    participant.clean()
+    participant = BaseParticipant.objects.filter(letter=letter_instance).first()
+    if participant:
+        participant.clean()
 
     return letter_instance
 
 
 @transaction.atomic
-def letter_reopen(*, current_user: Member, letter_instance: Letter) -> Letter:
+def letter_reopen(*, current_user: User, letter_instance: Letter) -> Letter:
     letter_instance.clean()
     letter_instance.current_state = Letter.States.PUBLISHED
     letter_instance.save()
 
-    participant = Participant.objects.get(letter=letter_instance, user=current_user)
-    participant.clean()
+    participant = BaseParticipant.objects.filter(letter=letter_instance).first()
+    if participant:
+        participant.clean()
 
     return letter_instance

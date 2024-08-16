@@ -11,24 +11,24 @@ from weasyprint import HTML
 
 from config.env import BASE_URL
 from core.common.utils import get_object
-from core.participants.models import Participant
+from core.participants.models import BaseParticipant
 
 from .models import Incoming, Internal, Letter, Outgoing
 
 logger = get_task_logger(__name__)
 
 
-@shared_task(bind=True)
+@shared_task(bind=True, soft_time_limit=60, time_limit=120)
 def generate_pdf_task(self, letter_id: str) -> Letter:
     letter_instance = get_object(Letter, id=letter_id)
 
     try:
         logger.info(f"Starting PDF generation for reference number: {letter_instance.reference_number}")
 
-        authors = letter_instance.participants.filter(role=Participant.Roles.AUTHOR)
-        primary_recipients = letter_instance.participants.filter(role=Participant.Roles.PRIMARY_RECIPIENT)
-        cc_participants = letter_instance.participants.filter(role=Participant.Roles.CC)
-        bcc_participants = letter_instance.participants.filter(role=Participant.Roles.BCC)
+        authors = letter_instance.participants.filter(role=BaseParticipant.Roles.AUTHOR)
+        primary_recipients = letter_instance.participants.filter(role=BaseParticipant.Roles.PRIMARY_RECIPIENT)
+        cc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.CC)
+        bcc_participants = letter_instance.participants.filter(role=BaseParticipant.Roles.BCC)
 
         context = {
             "letter": letter_instance,

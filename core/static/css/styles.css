@@ -66,15 +66,27 @@ body {
       margin: 0px;
     }
 
-    .metadata-divider {
-      flex: 1 1 0%;
-      height: 0.1px;
-      background-color: black;
-      align-self: flex-end;
-      margin: 0px;
-      margin-left: 3px;
-      margin-bottom: 4px;
+    .metadata-value-container{
+      display: grid;
+      grid-template-rows: auto 1px;
+      width: 100%;
+      margin-left: 15px;
+
+      .metadata-value{
+        text-align: center;
+        align-self: end;
+        margin-bottom: 10px;
+      }
+
+      .metadata-divider {
+        height: 0.1px;
+        background-color: black;
+        align-self: flex-end;
+        margin: 0px;
+        margin-bottom: 4px;
+      }
     }
+
   }
 }
 
@@ -124,7 +136,7 @@ body {
     }
   }
 
-  .letter-content {
+  .letter-body {
   }
 }
 

@@ -38,7 +38,7 @@ class Signature(BaseModel):
         Canvas = 2, _("Canvas")
 
     signer = models.ForeignKey(
-        "users.Member",
+        "users.User",
         on_delete=models.CASCADE,
         related_name="signed_%(class)s",
         verbose_name=_("Signer"),
@@ -75,7 +75,7 @@ class LetterSignature(Signature):
 
 class UserDefaultSignature(BaseModel):
     user = models.ForeignKey(
-        "users.Member",
+        "users.User",
         on_delete=models.CASCADE,
         related_name="default_signature",
         verbose_name=_("User"),

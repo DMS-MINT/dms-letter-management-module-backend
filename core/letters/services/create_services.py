@@ -3,12 +3,11 @@ from typing import Optional, Union
 
 from django.db import transaction
 
+from core.letters.models import Incoming, Internal, Letter, Outgoing
+from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
-from core.participants.utils import identify_participants_changes
-from core.users.models import Member
+from core.users.models import User
 from core.workflows.services import letter_publish
-
-from .models import Incoming, Internal, Letter, Outgoing
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
@@ -30,17 +29,17 @@ def create_letter_instance(letter_type: str, **kwargs) -> Letter:
 @transaction.atomic
 def letter_create(
     *,
-    current_user: Member,
+    current_user: User,
     subject: Optional[str] = None,
-    content: Optional[str] = None,
+    body: Optional[str] = None,
     letter_type: str,
     language: str,
-    participants,
+    participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
         "subject": subject,
-        "content": content,
+        "body": body,
         "current_state": Letter.States.DRAFT,
         "owner": current_user,
         "language": language,
@@ -51,19 +50,15 @@ def letter_create(
     if letter_type in ["internal", "outgoing"]:
         author_participant = OrderedDict({
             "id": "",
-            "user": OrderedDict({
-                "id": current_user.id,
-                "user_type": "member",
-            }),
-            "role": "Author",
+            "user_id": current_user.id,
+            "role": 1,
+            "participant_type": "user",
         })
         participants.append(author_participant)
 
-    participants_create(
-        current_user=current_user,
-        letter_instance=letter_instance,
-        participants=participants,
-    )
+    participants_create(current_user=current_user, letter_instance=letter_instance, participants=participants)
+
+    generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
     return letter_instance
 
@@ -71,17 +66,17 @@ def letter_create(
 @transaction.atomic
 def letter_create_and_publish(
     *,
-    current_user: Member,
+    current_user: User,
     subject: Optional[str] = None,
-    content: Optional[str] = None,
+    body: Optional[str] = None,
     letter_type: str,
     language: str,
-    participants,
+    participants: Optional[list[LetterParticipant]] = None,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
         "subject": subject,
-        "content": content,
+        "body": body,
         "current_state": Letter.States.DRAFT,
         "owner": current_user,
         "language": language,
@@ -90,6 +85,7 @@ def letter_create_and_publish(
     letter_instance = create_letter_instance(**letter_data)
 
     letter_instance.current_state = Letter.States.SUBMITTED
+
     letter_instance.save()
 
     participants_create(
@@ -100,61 +96,6 @@ def letter_create_and_publish(
 
     letter_publish(current_user=current_user, letter_instance=letter_instance)
 
-    return letter_instance
-
-
-@transaction.atomic
-def letter_update(
-    current_user: Member,
-    letter_instance: Letter,
-    subject: Optional[str] = None,
-    content: Optional[str] = None,
-    letter_type: str = "internal",
-    participants: Optional[list[LetterParticipant]] = None,
-) -> Letter:
-    if subject is not None:
-        letter_instance.subject = subject
-
-    if content is not None:
-        letter_instance.content = content
-
-    letter_instance.save()
-
-    participants_to_add, participants_to_remove = identify_participants_changes(
-        letter_instance=letter_instance,
-        new_participants=participants,
-    )
-
-    participants_to_remove.delete()
-
-    participants_create(
-        current_user=current_user,
-        participants=participants_to_add,
-        letter_instance=letter_instance,
-    )
-
-    return letter_instance
-
-
-@transaction.atomic
-def letter_move_to_trash(*, letter_instance=Letter):
-    letter_instance.current_state = Letter.States.TRASHED
-    letter_instance.save()
-
-    return letter_instance
-
-
-@transaction.atomic
-def letter_restore_from_trash(*, letter_instance=Letter):
-    letter_instance.current_state = Letter.States.DRAFT
-    letter_instance.save()
-
-    return letter_instance
-
-
-@transaction.atomic
-def letter_hide(*, letter_instance=Letter):
-    letter_instance.hidden = True
-    letter_instance.save()
+    generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
     return letter_instance

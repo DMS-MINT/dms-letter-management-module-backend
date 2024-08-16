@@ -6,14 +6,12 @@ from polymorphic.admin import (
     PolymorphicParentModelAdmin,
 )
 
-from core.participants.models import Participant
-
+# from core.participants.models import Participant
 from .models import Incoming, Internal, Letter, Outgoing
 
-
-class ParticipantInline(admin.StackedInline):
-    model = Participant
-    extra = 1
+# class ParticipantInline(admin.StackedInline):
+#     model = Participant
+#     extra = 1
 
 
 class LetterChildAdmin(PolymorphicChildModelAdmin):
@@ -26,7 +24,7 @@ class LetterChildAdmin(PolymorphicChildModelAdmin):
         "pdf_view_link",
         "hidden",
     ]
-    inlines = [ParticipantInline]
+    # inlines = [ParticipantInline]
     ordering = ["-updated_at"]
     readonly_fields = ["reference_number", "pdf_version"]
 

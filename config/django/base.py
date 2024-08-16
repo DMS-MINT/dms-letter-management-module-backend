@@ -19,9 +19,11 @@ LOCAL_APPS: list[str] = [
     "core.authentication.apps.AuthenticationConfig",
     "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",
+    "core.contacts.apps.ContactsConfig",
     "core.departments.apps.DepartmentsConfig",
-    "core.emails.apps.EmailsConfig",
+    "core.enterprises.apps.EnterprisesConfig",
     "core.letters.apps.LettersConfig",
+    "core.notifications.apps.NotificationsConfig",
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
@@ -105,14 +107,21 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     },
 }
+
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.postgresql_psycopg2",
+#         "NAME": env.str("DB_NAME"),
+#         "USER": env.str("DB_USER"),
+#         "PASSWORD": env.str("DB_PASSWORD"),
+#         "HOST": env.str("DB_HOST"),
+#         "PORT": env.str("DB_PORT"),
+#     },
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -132,7 +141,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTH_USER_MODEL = "users.Member"
+AUTH_USER_MODEL = "users.User"
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/

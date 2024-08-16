@@ -6,10 +6,10 @@ import qrcode
 from rest_framework import status as http_status
 
 from core.api.exceptions import APIError
-from core.users.models import Member
+from core.users.models import User
 
 
-def setup_2fa(current_user: Member):
+def setup_2fa(current_user: User):
     if current_user.otp_secret:
         secret_key = current_user.otp_secret
     else:
@@ -27,7 +27,7 @@ def setup_2fa(current_user: Member):
     return base64.b64encode(buffer.getvalue()).decode()
 
 
-def verify_otp(current_user: Member, otp: int):
+def verify_otp(current_user: User, otp: str):
     totp = pyotp.TOTP(current_user.otp_secret)
 
     if not totp.verify(otp, valid_window=1):

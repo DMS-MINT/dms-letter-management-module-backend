@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 
 from core.departments.models import Department
 
-from .models import Guest, Member
+from .models import User
 
 
 def user_create(
@@ -19,11 +19,11 @@ def user_create(
     is_staff: bool = False,
     is_superuser: bool = False,
     password: Optional[str] = None,
-) -> Member:
+) -> User:
     department_instance = Department.objects.get(name_en=department)
 
     return (
-        Member.objects.create_user(
+        User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             job_title=job_title,
@@ -45,18 +45,19 @@ def guest_create(*, validated_data):
     phone_number = validated_data.get("phone_number", "")
     postal_code = validated_data.get("postal_code")
 
-    existing_guest = Guest.objects.filter(name=name).first()
-    if existing_guest:
-        return existing_guest
+    # existing_guest = Guest.objects.filter(name=name).first()
+    # if existing_guest:
+    #     return existing_guest
 
     try:
-        new_guest = Guest.objects.create(
-            name=name,
-            email=email,
-            phone_number=phone_number,
-            address=address,
-            postal_code=postal_code,
-        )
+        new_guest = ""
+        # Guest.objects.create(
+        #     name=name,
+        #     email=email,
+        #     phone_number=phone_number,
+        #     address=address,
+        #     postal_code=postal_code,
+        # )
 
     except ValidationError as e:
         raise ValueError(f"Unable to create guest: {e}")

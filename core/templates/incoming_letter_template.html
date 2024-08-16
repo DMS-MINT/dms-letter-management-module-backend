@@ -1,35 +1,79 @@
 {% extends "base_letter_template.html" %}
+
 {% load static %}
 
 {% block title %}Letter_{{ letter.reference_number }}{% endblock %}
 
-{% block header %} 
+{% block header %}
   <section class="letter-body">
     <p class="letter-subject">
-      <span class="subject-label">ጉዳዩ:-</span>{{letter.subject}}
+      <span class="subject-label">
+        {% if letter.language == "EN" %}
+          Subject
+        {% elif letter.language == "AM" %}
+          ጉዳዩ
+        {% endif %}
+        :-</span>{{letter.subject}}
     </p>
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block separator %} {% endblock %} 
+{% block separator %} {% endblock %}
 
-{% block letter_metadata %} {% endblock %} 
+{% block letter_metadata %} {% endblock %}
 
-{% block authors %} 
+{% block authors %}
   <section class="author-participant-section">
-    {% for author in authors %}
-    <p class="author-participant-item">ከ {{author.user.job_title}}</p>
-    {% empty %} {% endfor %}
+    {% if letter.language == "EN" %}
+      {% for author in authors %}
+        {% if author.user %}
+          <p class="author-participant-item">From {{author.user.job_title}}</p>
+        {% elif author.enterprise %}
+          <p class="author-participant-item">From {{author.enterprise.name_en}}</p>
+        {% elif author.contact %}
+          <p class="author-participant-item">From {{author.contact.full_name_en}}</p>
+        {% endif %}
+      {% endfor %}
+    {% elif letter.language == "AM" %}
+      {% for author in authors %}
+        {% if author.user %}
+          <p class="author-participant-item">ከ {{author.user.job_title}}</p>
+        {% elif author.enterprise %}
+          <p class="author-participant-item">ከ {{author.enterprise.name_am}}</p>
+        {% elif author.contact %}
+          <p class="author-participant-item">ከ {{author.contact.full_name_am}}</p>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </section>
-{% endblock %} 
+{% endblock %}
 
-{% block primary_recipients %} 
+{% block primary_recipients %}
   <section class="pr-participant-section">
-    {% for participant in primary_recipients %}
-    <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
-    {% empty %} {% endfor %}
+    {% if letter.language == "EN" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">To {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">To {{participant.contact.full_name_en}}</p>
+        {% endif %}
+      {% endfor %}
+    {% elif letter.language == "AM" %}
+      {% for participant in primary_recipients %}
+        {% if participant.user %}
+          <p class="pr-participant-item">ለ {{participant.user.job_title}}</p>
+        {% elif participant.enterprise %}
+          <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
+        {% elif participant.contact %}
+          <p class="pr-participant-item">ለ {{participant.contact.full_name_am}}</p>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
   </section>
-{% endblock %} 
+{% endblock %}
+
 
 {% block e_signatures %} {% endblock %}
 

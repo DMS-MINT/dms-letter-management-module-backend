@@ -1,9 +1,9 @@
 import json
 
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
-class LetterConsumer(AsyncWebsocketConsumer):
+class LetterConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.reference_number = self.scope["url_route"]["kwargs"]["reference_number"]
         self.room_group_name = f"letter_{self.reference_number}"
@@ -29,5 +29,4 @@ class LetterConsumer(AsyncWebsocketConsumer):
         )
 
     async def letter_update(self, event):
-        message = event["message"]
-        await self.send(text_data=json.dumps({"message": message}))
+        await self.send_json({"message": event["message"]})

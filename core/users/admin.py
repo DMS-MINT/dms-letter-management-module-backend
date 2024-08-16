@@ -1,44 +1,36 @@
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
-from polymorphic.admin import (
-    PolymorphicChildModelAdmin,
-    PolymorphicChildModelFilter,
-    PolymorphicParentModelAdmin,
-)
 
-from .models import BaseUser, Guest, Member
+from .models import User
 from .services import user_create
 
 
-class BaseUserChildAdmin(PolymorphicChildModelAdmin):
-    base_model = BaseUser
-
-
-@admin.register(Guest)
-class GuestAdmin(BaseUserChildAdmin):
-    base_model = Guest
-    list_display: list[str] = [
-        "name",
-        "address",
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    base_model = User
+    list_display = [
         "email",
-        "phone_number",
-        "postal_code",
-    ]
-    show_in_index = True
-
-
-@admin.register(Member)
-class MemberAdmin(BaseUserChildAdmin):
-    base_model = Member
-    list_display: list[str] = [
-        "email",
-        "full_name",
+        "full_name_en",
+        "full_name_am",
         "job_title",
         "department",
         "is_staff",
         "is_2fa_enabled",
     ]
-    search_fields: list[str] = ["email", "job_title", "department"]
+    search_fields = [
+        "email",
+        "first_name_en",
+        "middle_name_en",
+        "last_name_en",
+        "first_name_am",
+        "middle_name_am",
+        "last_name_am",
+        "job_title__title_en",
+        "job_title__title_am",
+        "department__department_name_en",
+        "department__department_name_am",
+    ]
+
     fieldsets = (
         (
             "Authentication Info",
@@ -51,12 +43,23 @@ class MemberAdmin(BaseUserChildAdmin):
             },
         ),
         (
-            "Personal Info",
+            "Personal Info (English)",
             {
                 "fields": (
-                    "first_name",
-                    "last_name",
+                    "first_name_en",
+                    "middle_name_en",
+                    "last_name_en",
                     "phone_number",
+                ),
+            },
+        ),
+        (
+            "Personal Info (Amharic)",
+            {
+                "fields": (
+                    "first_name_am",
+                    "middle_name_am",
+                    "last_name_am",
                 ),
             },
         ),
@@ -92,12 +95,13 @@ class MemberAdmin(BaseUserChildAdmin):
         ),
     )
 
-    readonly_fields: list[str] = [
+    readonly_fields = [
         "last_login",
         "date_joined",
         "updated_at",
         "otp_secret",
     ]
+
     show_in_index = True
 
     def save_model(self, request, obj, form, change):
@@ -108,16 +112,3 @@ class MemberAdmin(BaseUserChildAdmin):
             user_create(**form.cleaned_data)
         except ValidationError as exc:
             self.message_user(request, str(exc), messages.ERROR)
-
-
-@admin.register(BaseUser)
-class BaseUserParentAdmin(PolymorphicParentModelAdmin):
-    base_model = BaseUser
-    list_display: list[str] = [
-        "id",
-        "polymorphic_ctype_id",
-        "created_at",
-        "updated_at",
-    ]
-    child_models = (Guest, Member)
-    list_filter = (PolymorphicChildModelFilter,)

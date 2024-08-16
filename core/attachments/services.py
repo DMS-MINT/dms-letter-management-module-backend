@@ -1,14 +1,14 @@
 from django.db import transaction
 
 from core.letters.models import Letter
-from core.users.models import Member
+from core.users.models import User
 
 from .models import Attachment
 
 
 @transaction.atomic
 def attachment_create(
-    current_user: Member,
+    current_user: User,
     letter_instance: Letter,
     attachments,
 ):

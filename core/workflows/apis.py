@@ -12,8 +12,8 @@ from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
 from core.comments.services import comment_create
 from core.common.utils import get_object
-from core.letters.apis import LetterDetailApi
 from core.letters.models import Letter
+from core.letters.serializers import LetterDetailPolymorphicSerializer
 from core.letters.tasks import generate_pdf_task
 from core.participants.services import add_participants
 from core.permissions.mixins import ApiPermMixin
@@ -55,7 +55,7 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
                 participants=input_serializer.validated_data,
             )
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -91,7 +91,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         signature_method = serializers.ChoiceField(required=False, choices=["Default", "Canvas"])
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -100,7 +100,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
-        signature_method = input_serializer.validated_data.get("signature_method")
+        _signature_method = input_serializer.validated_data.get("signature_method")
         otp = input_serializer.validated_data.get("otp")
 
         try:
@@ -111,7 +111,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 signature_method="Default",
             )
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {"message": "Letter has been submitted to the record office."}
@@ -128,7 +128,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 },
             )
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -146,7 +146,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_retract_letter"]
 
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -160,7 +160,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
             verify_otp(current_user=request.user, **input_serializer.validated_data)
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -179,7 +179,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
                 },
             )
 
-            generate_pdf_task.delay(letter_id=letter_instance.id)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
@@ -198,7 +198,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
     permission_classes = [IsAdminUser]
 
     class InputSerializer(serializers.Serializer):
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -209,7 +209,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             letter_publish(current_user=request.user, letter_instance=letter_instance)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -246,7 +246,7 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         message = serializers.CharField()
-        otp = serializers.IntegerField()
+        otp = serializers.CharField()
 
     def put(self, request, reference_number) -> Response:
         letter_instance = get_object(Letter, reference_number=reference_number)
@@ -263,7 +263,7 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
             letter_reject(current_user=request.user, letter_instance=letter_instance)
             comment_create(current_user=request.user, letter_instance=letter_instance, content=message)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -305,7 +305,7 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             letter_instance = letter_close(current_user=request.user, letter_instance=letter_instance)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {
@@ -347,7 +347,7 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             letter_instance = letter_reopen(current_user=request.user, letter_instance=letter_instance)
 
-            output_serializer = LetterDetailApi.OutputSerializer(letter_instance)
+            output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
             response_data = {

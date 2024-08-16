@@ -1,26 +1,21 @@
 from rest_framework import serializers
+from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.common.utils import inline_serializer
-from core.participants.models import Participant
-from core.users.apis import UserListApi
-from core.users.serializers import MemberListSerializer, UserCreateSerializer
+from core.participants.serializers import ParticipantInputSerializer, ParticipantOutputSerializer
+from core.users.serializers import UserListSerializer
+
+from .models import Incoming, Internal, Outgoing
 
 
 class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     reference_number_am = serializers.SlugField()
-    owner = MemberListSerializer()
+    owner = UserListSerializer()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(),
-            "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
-        },
-    )
+    participants = ParticipantOutputSerializer(many=True)
     has_read: serializers.SerializerMethodField()
     submitted_at = serializers.DateTimeField()
     published_at = serializers.DateTimeField()
@@ -41,24 +36,17 @@ class LetterDetailSerializer(serializers.Serializer):
     reference_number_am = serializers.SlugField()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
-    content = serializers.CharField()
-    owner = MemberListSerializer()
+    body = serializers.CharField()
+    owner = UserListSerializer()
     language = serializers.CharField(source="get_language_display")
     pdf_version = serializers.URLField()
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(),
-            "user": UserListApi.OutputSerializer(),
-            "role": serializers.ChoiceField(choices=Participant.Roles.choices, source="get_role_display"),
-        },
-    )
+    participants = ParticipantOutputSerializer(many=True)
     comments = inline_serializer(
         many=True,
         fields={
             "id": serializers.UUIDField(),
-            "content": serializers.CharField(),
-            "author": MemberListSerializer(),
+            "body": serializers.CharField(),
+            "author": UserListSerializer(),
             "created_at": serializers.DateTimeField(),
         },
     )
@@ -74,16 +62,21 @@ class OutgoingLetterDetailSerializer(LetterDetailSerializer):
     shipment_id = serializers.DateTimeField()
 
 
+class LetterDetailPolymorphicSerializer(PolymorphicSerializer):
+    resource_type_field_name = "letter_type"
+    model_serializer_mapping = {
+        Internal: LetterDetailSerializer,
+        Incoming: LetterDetailSerializer,
+        Outgoing: OutgoingLetterDetailSerializer,
+    }
+
+    def to_resource_type(self, instance):
+        return instance._meta.object_name.lower()
+
+
 class LetterCreateSerializer(serializers.Serializer):
     subject = serializers.CharField(required=False, allow_blank=True)
-    content = serializers.CharField(required=False, allow_blank=True)
+    body = serializers.CharField(required=False, allow_blank=True)
     letter_type = serializers.ChoiceField(choices=["internal", "incoming", "outgoing"])
     language = serializers.ChoiceField(choices=["EN", "AM"])
-    participants = inline_serializer(
-        many=True,
-        fields={
-            "id": serializers.UUIDField(required=False),
-            "user": UserCreateSerializer(),
-            "role": serializers.CharField(),
-        },
-    )
+    participants = ParticipantInputSerializer(many=True)
