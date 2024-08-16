@@ -6,17 +6,31 @@ from .services import user_create
 
 
 @admin.register(User)
-class MemberAdmin(admin.ModelAdmin):
+class UserAdmin(admin.ModelAdmin):
     base_model = User
-    list_display: list[str] = [
+    list_display = [
         "email",
-        "full_name",
+        "full_name_en",
+        "full_name_am",
         "job_title",
         "department",
         "is_staff",
         "is_2fa_enabled",
     ]
-    search_fields: list[str] = ["email", "job_title", "department"]
+    search_fields = [
+        "email",
+        "first_name_en",
+        "middle_name_en",
+        "last_name_en",
+        "first_name_am",
+        "middle_name_am",
+        "last_name_am",
+        "job_title__title_en",
+        "job_title__title_am",
+        "department__department_name_en",
+        "department__department_name_am",
+    ]
+
     fieldsets = (
         (
             "Authentication Info",
@@ -29,12 +43,23 @@ class MemberAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Personal Info",
+            "Personal Info (English)",
             {
                 "fields": (
-                    "first_name",
-                    "last_name",
+                    "first_name_en",
+                    "middle_name_en",
+                    "last_name_en",
                     "phone_number",
+                ),
+            },
+        ),
+        (
+            "Personal Info (Amharic)",
+            {
+                "fields": (
+                    "first_name_am",
+                    "middle_name_am",
+                    "last_name_am",
                 ),
             },
         ),
@@ -70,12 +95,13 @@ class MemberAdmin(admin.ModelAdmin):
         ),
     )
 
-    readonly_fields: list[str] = [
+    readonly_fields = [
         "last_login",
         "date_joined",
         "updated_at",
         "otp_secret",
     ]
+
     show_in_index = True
 
     def save_model(self, request, obj, form, change):

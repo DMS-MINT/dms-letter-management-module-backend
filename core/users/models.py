@@ -41,7 +41,18 @@ class BaseUserManager(BUM):
 
 class User(BaseModel, AbstractUser, PermissionsMixin):
     username = None
-    job_title = models.CharField(max_length=254, unique=True, verbose_name=_("Job title"))
+    first_name = None
+    last_name = None
+
+    first_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("First Name (English)"))
+    middle_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("Middle Name (English)"))
+    last_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("Last Name (English)"))
+
+    first_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("First Name (Amharic)"))
+    middle_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Middle Name (Amharic)"))
+    last_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Last Name (Amharic)"))
+
+    job_title = models.ForeignKey("departments.JobTitle", on_delete=models.CASCADE)
     department = models.ForeignKey("departments.Department", on_delete=models.CASCADE)
     phone_number = models.PositiveBigIntegerField(_("phone number"), unique=True)
     email = models.EmailField(blank=False, max_length=255, unique=True, verbose_name=_("Email address"))
@@ -57,15 +68,29 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
     objects = BaseUserManager()
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["first_name", "last_name", "job_title", "department", "phone_number"]
+    REQUIRED_FIELDS = [
+        "first_name_en",
+        "middle_name_en",
+        "last_name_en",
+        "first_name_am",
+        "middle_name_am",
+        "last_name_am",
+        "job_title",
+        "department",
+        "phone_number",
+    ]
 
     class Meta:
         verbose_name: str = "User"
         verbose_name_plural: str = "Users"
 
     def __str__(self) -> str:
-        return f"{self.full_name} - {self.job_title}"
+        return f"{self.full_name_en} - {self.job_title}"
 
     @property
-    def full_name(self) -> str:
-        return f"{self.first_name} {self.last_name}"
+    def full_name_en(self) -> str:
+        return f"{self.first_name_en} {self.middle_name_en} {self.last_name_en}"
+
+    @property
+    def full_name_am(self) -> str:
+        return f"{self.first_name_am} {self.middle_name_am} {self.last_name_am}"
