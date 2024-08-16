@@ -6,8 +6,14 @@ from core.contacts.models import Contact
 from core.enterprises.models import Enterprise
 from core.participants.models import BaseParticipant
 from core.users.models import User
+from core.users.serializers import UserListSerializer
 
 from .models import EnterpriseParticipant, ExternalUserParticipant, InternalUserParticipant
+
+
+class AddressSerializer(serializers.Serializer):
+    city_en = serializers.CharField(max_length=100)
+    city_am = serializers.CharField(max_length=100)
 
 
 class BaseParticipantInputSerializer(serializers.Serializer):
@@ -40,7 +46,7 @@ class ExternalParticipantInputSerializer(BaseParticipantInputSerializer):
             "full_name_am": serializers.CharField(max_length=500),
             "email": serializers.EmailField(allow_blank=True, required=False),
             "phone_number": serializers.CharField(max_length=20, allow_blank=True, required=False),
-            "address": serializers.CharField(max_length=255),
+            "address": AddressSerializer(),
         },
     )
 
@@ -63,13 +69,7 @@ class BaseParticipantOutputSerializer(serializers.Serializer):
 
 
 class InternalParticipantOutputSerializer(BaseParticipantOutputSerializer):
-    user = inline_serializer(
-        fields={
-            "id": serializers.UUIDField(),
-            "full_name": serializers.CharField(),
-            "job_title": serializers.CharField(),
-        },
-    )
+    user = UserListSerializer()
 
 
 class EnterpriseParticipantOutputSerializer(BaseParticipantOutputSerializer):
@@ -95,7 +95,7 @@ class ExternalParticipantOutputSerializer(BaseParticipantOutputSerializer):
             "full_name_am": serializers.CharField(max_length=500),
             "email": serializers.EmailField(allow_blank=True, required=False),
             "phone_number": serializers.CharField(max_length=20, allow_blank=True, required=False),
-            "address": serializers.CharField(max_length=255),
+            "address": AddressSerializer(),
         },
     )
 
