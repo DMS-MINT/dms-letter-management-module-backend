@@ -10,14 +10,15 @@ from rest_framework.views import APIView
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
-from core.comments.services import comment_create
 from core.common.utils import get_object
 from core.letters.models import Letter
 from core.letters.serializers import LetterDetailPolymorphicSerializer
 from core.letters.tasks import generate_pdf_task
-from core.participants.services import add_participants
+from core.participants.serializers import ParticipantInputSerializer
+from core.participants.services import participants_create
 from core.permissions.mixins import ApiPermMixin
 
+from .notification_handler import handle_publish_letter_notification, handle_reject_letter_notification
 from .services import letter_close, letter_publish, letter_reject, letter_reopen, letter_retract, letter_submit
 
 
@@ -25,7 +26,7 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_share_letter"]
 
     class InputSerializer(serializers.Serializer):
-        to = serializers.ListField(child=serializers.CharField())
+        participants = serializers.ListSerializer(child=ParticipantInputSerializer())
         message = serializers.CharField()
         permissions = serializers.ListField(
             child=serializers.ChoiceField(
@@ -49,18 +50,18 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            add_participants(
+            message = input_serializer.validated_data.pop("message")
+
+            participants = participants_create(
                 current_user=request.user,
                 letter_instance=letter_instance,
-                participants=input_serializer.validated_data,
+                **input_serializer.validated_data,
             )
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            response_data = {
-                "message": "Letter has been shared with the specified collaborators.",
-            }
+            response_data = {"message": "Letter has been shared with the specified collaborators."}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -212,9 +213,9 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            response_data = {
-                "message": "Letter has been published.",
-            }
+            handle_publish_letter_notification(current_user=request.user, letter_instance=letter_instance)
+
+            response_data = {"message": "Letter has been published."}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
@@ -261,14 +262,17 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
             verify_otp(current_user=request.user, otp=otp)
 
             letter_reject(current_user=request.user, letter_instance=letter_instance)
-            comment_create(current_user=request.user, letter_instance=letter_instance, content=message)
+
+            handle_reject_letter_notification(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                message=message,
+            )
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            response_data = {
-                "message": "Letter has been rejected and sent back to the sender.",
-            }
+            response_data = {"message": "Letter has been rejected and sent back to the sender."}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(

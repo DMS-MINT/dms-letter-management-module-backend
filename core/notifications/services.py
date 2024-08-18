@@ -20,7 +20,11 @@ def notification_create(
     details: dict,
     message: str,
 ):
+    if "in-app" not in channels:
+        channels.append(ChannelType.Channels.IN_APP)
+
     channels = ChannelType.objects.filter(channel_type__in=channels)
+
     notification_instance = Notification.objects.create(
         status=Notification.Status.READY,
         details=details,
@@ -39,6 +43,9 @@ def notification_create(
 @transaction.atomic()
 def notification_recipient_create(*, notification_instance: Notification, to: list[str]):
     users = User.objects.filter(id__in=to)
+
+    if not users.exists():
+        raise ValueError("No users found for the provided IDs.")
 
     NotificationRecipient.objects.bulk_create(
         NotificationRecipient(

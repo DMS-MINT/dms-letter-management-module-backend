@@ -131,8 +131,8 @@ body {
 
 .letter-body {
   margin-top: 20px;
-  padding-left: 5mm;
-  padding-right: 5mm;
+  /* padding-left: 5mm;
+  padding-right: 5mm; */
   .letter-subject {
     text-align: center;
 
@@ -179,8 +179,8 @@ body {
 .bcc-participants-section {
   margin-top: 20px;
   margin-bottom: 20px;
-  padding-left: 5mm;
-  padding-right: 5mm;
+  /* padding-left: 5mm;
+  padding-right: 5mm; */
   page-break-inside: avoid;
 
   .bcc-header {

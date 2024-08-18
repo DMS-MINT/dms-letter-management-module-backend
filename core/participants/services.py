@@ -80,6 +80,7 @@ def participants_create(
     current_user: User,
     letter_instance: Letter,
     participants: list[LetterParticipant],
+    permissions: list[str] = None,
 ):
     # participants = verify_owners_role(letter_instance=letter_instance, participants=participants)
 
@@ -89,36 +90,10 @@ def participants_create(
             participant=participant,
             letter_instance=letter_instance,
             current_user=current_user,
+            permissions=permissions,
         )
 
     return participants
-
-
-def add_participants(
-    *,
-    current_user: User,
-    letter_instance: Letter,
-    participants: dict[str, Union[str, list[str]]],
-):
-    target_users_ids = participants["to"]
-
-    for target_user_id in target_users_ids:
-        participant_instance_create(
-            target_user_id=target_user_id,
-            user_type="User",
-            role=participants.get("role", BaseParticipant.Roles.COLLABORATOR),
-            letter_instance=letter_instance,
-            current_user=current_user,
-            permissions=participants.get("permissions"),
-        )
-
-    comment_create(
-        current_user=current_user,
-        letter_instance=letter_instance,
-        body=participants.get("message"),
-    )
-
-    return
 
 
 def remove_participants(

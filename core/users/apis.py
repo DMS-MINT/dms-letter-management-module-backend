@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -11,11 +12,18 @@ from .serializers import UserDetailSerializer, UserListSerializer
 
 
 class UserListApi(ApiAuthMixin, APIView):
+    class FilterSerializer(serializers.Serializer):
+        is_staff = serializers.BooleanField(required=False)
+
     serializer_class = UserListSerializer
+    filter_class = FilterSerializer
 
     def get(self, request) -> Response:
         try:
-            user = user_get_users(current_user=request.user)
+            filter_serializer = self.FilterSerializer(data=request.query_params)
+            filter_serializer.is_valid(raise_exception=True)
+
+            user = user_get_users(current_user=request.user, filters=filter_serializer.validated_data)
             out_serializer = UserListSerializer(user, many=True)
 
             response_data = {"users": out_serializer.data}

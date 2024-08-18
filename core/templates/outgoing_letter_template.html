@@ -127,9 +127,9 @@
             <span>{{ e_signature.signer.full_name_en }}</span>
             <span>{{ e_signature.signer.job_title.title_en }}</span>
           {% elif letter.language == "AM" %}
+            <span>{{ e_signature.signer.full_name_am }}</span>
+            <span>{{ e_signature.signer.job_title.title_am }}</span>
           {% endif %}
-          <span>{{ e_signature.signer.full_name_am }}</span>
-          <span>{{ e_signature.signer.job_title.title_am }}</span>
         </p>
       </div>
     {% endfor %}
