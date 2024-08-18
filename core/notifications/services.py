@@ -44,6 +44,9 @@ def notification_create(
 def notification_recipient_create(*, notification_instance: Notification, to: list[str]):
     users = User.objects.filter(id__in=to)
 
+    if not users.exists():
+        raise ValueError("No users found for the provided IDs.")
+
     NotificationRecipient.objects.bulk_create(
         NotificationRecipient(
             notification=notification_instance,

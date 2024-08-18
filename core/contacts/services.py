@@ -20,7 +20,7 @@ def contact_create(
         city_en=address.get("city_en"),
         city_am=address.get("city_am"),
     )
-    contact_instance, created = Contact.objects.get_or_create(
+    contact_instance, _ = Contact.objects.get_or_create(
         full_name_en=full_name_en,
         full_name_am=full_name_am,
         email=email,
@@ -28,8 +28,7 @@ def contact_create(
         address=address_instance,
     )
 
-    if created:
-        current_user.contacts.add(contact_instance)
+    current_user.contacts.add(contact_instance)
 
     return contact_instance
 

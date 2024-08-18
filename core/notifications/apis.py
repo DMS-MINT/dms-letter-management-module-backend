@@ -21,7 +21,7 @@ class NotificationListApi(ApiAuthMixin, APIView):
             output_serializer = NotificationSerializer(
                 notifications,
                 many=True,
-                context={"request": request},
+                context={"user": request.user},
             )
 
             response_data = {"notifications": output_serializer.data}
@@ -38,7 +38,7 @@ class NotificationListApi(ApiAuthMixin, APIView):
 class MarkNotificationAsRead(ApiAuthMixin, APIView):
     def put(self, request, notification_id) -> Response:
         try:
-            recipient = NotificationRecipient.objects.select_related("notification").filter(
+            recipient = NotificationRecipient.objects.select_related("notification").get(
                 notification_id=notification_id,
                 user=request.user,
             )
@@ -88,7 +88,7 @@ class BulkMarkNotificationAsRead(ApiAuthMixin, APIView):
 class MarkNotificationAsNotified(ApiAuthMixin, APIView):
     def put(self, request, notification_id) -> Response:
         try:
-            recipient = NotificationRecipient.objects.select_related("notification").filter(
+            recipient = NotificationRecipient.objects.select_related("notification").get(
                 notification_id=notification_id,
                 user=request.user,
             )
