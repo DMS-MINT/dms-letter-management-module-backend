@@ -20,7 +20,11 @@ def notification_create(
     details: dict,
     message: str,
 ):
+    if "in-app" not in channels:
+        channels.append(ChannelType.Channels.IN_APP)
+
     channels = ChannelType.objects.filter(channel_type__in=channels)
+
     notification_instance = Notification.objects.create(
         status=Notification.Status.READY,
         details=details,

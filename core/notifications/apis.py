@@ -135,6 +135,10 @@ class SendReminderApi(ApiAuthMixin, APIView):
             tags = [reminder_tag, letter_tag]
             subject = f"Reminder Notification from {request.user.full_name_en}"
 
+            # details = {
+            #     "notification_type":""
+            # }
+
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 
             # transaction.on_commit(lambda: send_notifications_task.delay(notification_id))
