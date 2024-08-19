@@ -55,7 +55,7 @@ class BaseParticipant(PolymorphicModel, BaseModel):
                 letter=self.letter,
                 role=self.Roles.ADMINISTRATOR,
             ).count()
-            if existing_admin_count > 0:
+            if existing_admin_count > 1:
                 raise ValidationError({"role": _("There can only be one administrator per letter.")})
 
         super().save(*args, **kwargs)

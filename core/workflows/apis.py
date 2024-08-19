@@ -207,7 +207,10 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
 
+        otp = input_serializer.validated_data.get("otp")
+
         try:
+            verify_otp(current_user=request.user, otp=otp)
             letter_publish(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
