@@ -70,7 +70,11 @@ def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
         if letter_instance.current_state != current_state:
             raise PermissionDenied("You can not perform this action on this letter in its current state.")
 
-    for participant in letter_instance.participants.all():
+    participants = letter_instance.participants.filter(
+        polymorphic_ctype__model="internaluserparticipant",
+    )
+
+    for participant in participants:
         if hasattr(participant, "user") and participant.user == current_user:
             raise PermissionDenied("You cannot perform publishing actions on letters you are participating in.")
 
@@ -85,12 +89,14 @@ def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
         "role": 6,
         "participant_type": "user",
     }
-    participant_instance = participants_create(
-        current_user=current_state,
+
+    participants_create(
+        current_user=current_user,
         letter_instance=letter_instance,
         participants=[admin_participant],
     )
 
+    participant_instance = BaseParticipant.objects.filter(letter=letter_instance).first()
     participant_instance.clean()
 
     return letter_instance
