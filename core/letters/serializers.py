@@ -45,7 +45,7 @@ class LetterDetailSerializer(serializers.Serializer):
         many=True,
         fields={
             "id": serializers.UUIDField(),
-            "body": serializers.CharField(),
+            "message": serializers.CharField(),
             "author": UserListSerializer(),
             "created_at": serializers.DateTimeField(),
         },

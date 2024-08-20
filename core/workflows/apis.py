@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
+from core.comments.services import comment_create
 from core.common.utils import get_object
 from core.letters.models import Letter
 from core.letters.serializers import LetterDetailPolymorphicSerializer
@@ -52,11 +53,13 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             message = input_serializer.validated_data.pop("message")
 
-            participants = participants_create(
+            participants_create(
                 current_user=request.user,
                 letter_instance=letter_instance,
                 **input_serializer.validated_data,
             )
+
+            comment_create(current_user=request.user, letter_instance=letter_instance, message=message)
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
