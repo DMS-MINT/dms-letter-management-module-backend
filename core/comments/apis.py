@@ -28,14 +28,14 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
         letter_instance = get_object_or_404(Letter, reference_number=reference_number)
         self.check_object_permissions(request, letter_instance)
 
-        input_instance = self.InputSerializer(data=request.data)
-        input_instance.is_valid(raise_exception=True)
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
 
         try:
             comment_create(
                 current_user=request.user,
                 letter_instance=letter_instance,
-                **input_instance.validated_data,
+                **input_serializer.validated_data,
             )
 
             output_serializer = LetterDetailSerializer(letter_instance)

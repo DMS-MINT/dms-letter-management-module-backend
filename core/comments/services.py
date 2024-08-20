@@ -13,5 +13,5 @@ def comment_create(*, current_user=User, letter_instance: Letter, message: str):
 
 @transaction.atomic
 def comment_update(*, comment_instance: Comment, message: str):
-    comment_instance.content = message
+    comment_instance.message = message
     comment_instance.save()
