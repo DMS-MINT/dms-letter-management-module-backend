@@ -78,7 +78,6 @@ class UserAdmin(admin.ModelAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
-                    "is_2fa_enabled",
                 ),
             },
         ),
@@ -98,6 +97,7 @@ class UserAdmin(admin.ModelAdmin):
         "last_login",
         "date_joined",
         "updated_at",
+        "is_2fa_enabled",
     ]
 
     show_in_index = True
