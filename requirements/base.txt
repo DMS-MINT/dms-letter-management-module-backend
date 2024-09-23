@@ -48,3 +48,5 @@ weasyprint==62.3
 django_weasyprint==2.3.0
 django-browser-reload==1.13.0
 django-tailwind==3.8.0
+
+drf-extra-fields==3.7.0

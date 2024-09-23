@@ -4,6 +4,41 @@ from core.notifications.services import notification_create, notification_send
 from core.participants.models import BaseParticipant
 from core.users.models import User
 
+# def handle_mention_notification(
+#     *,
+#     current_user: User,
+#     message: str,
+#     letter_instance: Letter,
+#     participants: BaseParticipant,
+# ):
+#     letter_tag, _ = Tag.objects.get_or_create(name="Letter")
+#     mention_tag, _ = Tag.objects.get_or_create(name="Mention")
+#     collaboration_tag, _ = Tag.objects.get_or_create(name="Collaboration")
+
+#     tags = [letter_tag, mention_tag, collaboration_tag]
+#     subject = f"አዲስ የትብብር ጥያቄ፡ ደብዳቤ {letter_instance.reference_number}"
+
+
+#     # recipient_ids = collaborator_participants.values_list("internaluserparticipant__user__id", flat=True)
+
+#     notification_instance = notification_create(
+#         to=list(recipient_ids),
+#         subject=subject,
+#         message=message,
+#         tags=tags,
+#         channels=[],
+#         details={
+#             "source": "user",
+#             "letter_ref": letter_instance.reference_number,
+#             "sender": {
+#                 "full_name": current_user.full_name_am,
+#                 "job_title": current_user.job_title.title_am,
+#             },
+#         },
+#     )
+
+#     notification_send(notification_instance=notification_instance)
+
 
 def handle_publish_letter_notification(*, current_user: User, letter_instance: Letter):
     letter_tag, _ = Tag.objects.get_or_create(name="Letter")

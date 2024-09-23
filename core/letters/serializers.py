@@ -50,6 +50,19 @@ class LetterDetailSerializer(serializers.Serializer):
             "created_at": serializers.DateTimeField(),
         },
     )
+    letter_attachments = inline_serializer(
+        many=True,
+        fields={
+            "id": serializers.UUIDField(),
+            "file": serializers.CharField(),
+            "file_name": serializers.CharField(),
+            "file_type": serializers.CharField(),
+            "file_size": serializers.CharField(),
+            "uploaded_by": UserListSerializer(),
+            "description": serializers.CharField(),
+            "created_at": serializers.DateTimeField(),
+        },
+    )
     submitted_at = serializers.DateTimeField()
     published_at = serializers.DateTimeField()
     created_at = serializers.DateTimeField()
