@@ -2,7 +2,7 @@
 
 {% load static %} {% block title%}Letter_{{ letter.reference_number }}{% endblock %}
 
-{% block header %}
+{% comment %} {% block header %}
   <header class="outgoing_letter_header">
     <img
       src="{% static 'images/pentagram.png' %}"
@@ -21,9 +21,11 @@
       class="logo"
     />
   </header>
-{% endblock %}
+{% endblock %} {% endcomment %}
 
-{% block separator %}<hr class="separator" />{% endblock %}
+{% block header %}<header class="internal_letter_header"></header>{% endblock %}
+
+{% comment %} {% block separator %}<hr class="separator" />{% endblock %} {% endcomment %}
 
 {% block letter_metadata %}
   <section class="letter-metadata">
@@ -136,7 +138,7 @@
   </section>
 {% endblock %}
 
-{% block footer %}
+{% comment %} {% block footer %}
   <section class="footer-wrapper">
     <hr class="separator" />
     <footer>
@@ -211,4 +213,6 @@
       </div>
     </footer>
   </section>
-{% endblock %}
+{% endblock %} {% endcomment %}
+
+{% block footer %} {% endblock %}

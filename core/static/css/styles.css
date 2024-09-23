@@ -197,8 +197,8 @@ body {
 }
 
 .cc-participants-section {
-  padding-left: 5mm;
-  padding-right: 5mm;
+  /* padding-left: 5mm;
+  padding-right: 5mm; */
   page-break-inside: avoid;
   .cc-header {
   }
