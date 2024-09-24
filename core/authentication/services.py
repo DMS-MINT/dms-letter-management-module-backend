@@ -1,12 +1,13 @@
 import base64
 from io import BytesIO
-
+from venv import logger
 import pyotp
 import qrcode
 from rest_framework import status as http_status
-
+from django.contrib.auth.hashers import make_password
 from core.api.exceptions import APIError
 from core.users.models import User
+from core.emails.tasks import email_send
 
 
 def setup_2fa(current_user: User):
@@ -27,6 +28,34 @@ def setup_2fa(current_user: User):
     return base64.b64encode(buffer.getvalue()).decode()
 
 
+def get_user_by_email(email: str):
+    try:
+        user = User.objects.get(email = email)
+        return user
+    except User.DoesNotExist:
+        return None
+
+
+def generate_reset_otp(user):
+    otp_secret = pyotp.random_base32()
+    user.otp_secret = otp_secret
+    user.save()
+
+    totp = pyotp.TOTP(otp_secret)
+    otp = totp.now()
+
+    try:
+
+        logger.info("OTP %s generated for user %s", otp, user.email)
+        user.email
+        email_send(user.email,otp)
+        logger.info("OTP sent successfully to %s", user.email)
+
+    except Exception as e:
+        logger.error("Failed to send OTP to %s: %s", user.email, str(e))
+        raise  # Re-raise the exception to be caught in the API view
+    
+
 def verify_otp(current_user: User, otp: str):
     totp = pyotp.TOTP(current_user.otp_secret)
 
@@ -39,3 +68,9 @@ def verify_otp(current_user: User, otp: str):
         )
 
     return True
+
+
+def reset_user_password(user: User, new_password: str):
+    user.password = make_password(new_password)
+    user.otp_secret = None  # Reset the OTP secret after password reset
+    user.save()
