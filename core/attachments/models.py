@@ -18,18 +18,17 @@ def attachment_directory_path(instance, filename):
 
 
 class Attachment(BaseModel):
-    name = models.CharField(max_length=255)
+    file = models.FileField(upload_to=attachment_directory_path, verbose_name=_("File"))
+    file_name = models.CharField(max_length=255)
     file_type = models.CharField(max_length=50)
-    size = models.IntegerField()
-    remote_file_url = models.URLField(max_length=200)
-    uploaded_file = models.FileField(upload_to=attachment_directory_path, verbose_name=_("File"))
+    file_size = models.IntegerField()
     uploaded_by = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
         related_name="%(class)s_attachment",
         verbose_name=_("Uploaded By"),
     )
-    description = (models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description")),)
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name=_("Description"))
 
     def clean(self):
         if self.file and self.file_url:
