@@ -1,3 +1,4 @@
+from venv import logger
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import serializers
 from rest_framework import status as http_status
@@ -7,7 +8,7 @@ from rest_framework.views import APIView
 
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
-from core.authentication.services import setup_2fa, verify_otp
+from core.authentication.services import generate_reset_otp, get_user_by_email, reset_user_password, setup_2fa, verify_otp
 from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
 
@@ -117,3 +118,73 @@ class ValidateOneTimePassword(ApiAuthMixin, APIView):
 
         except Exception as e:
             raise ValidationError(e)
+        
+
+class ForgotPasswordAPI(APIView):
+    class InputSerializer(serializers.Serializer):
+        email = serializers.EmailField()
+
+    def post(self, request):
+        logger.info("Received request for forgot password.")
+        try:
+            serializer = self.InputSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+
+            email = serializer.validated_data['email']
+            logger.info("Processing password reset for email: %s", email)
+            user = get_user_by_email(email)
+
+            if user is None:
+                logger.warning("No user found with email: %s", email)
+                return Response({"message": "No user found with this email."}, status=http_status.HTTP_404_NOT_FOUND)
+
+            try:
+                # Generate and send OTP
+                generate_reset_otp(user)
+                logger.info("OTP successfully sent to email: %s", email)
+                return Response({"message": "OTP has been sent to your email."}, status=http_status.HTTP_200_OK)
+            except Exception as otp_error:
+                logger.error("Error sending OTP: %s", str(otp_error))
+                return Response({"error_code": "INTERNAL_SERVER_ERROR", "message": "Failed to send OTP."}, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            logger.error("Unexpected error in ForgotPasswordAPI: %s", str(e), exc_info=True)
+            return Response({"error_code": "INTERNAL_SERVER_ERROR", "message": "An unexpected error occurred"}, status=http_status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+class VerifyOtpAPI(APIView):
+    class InputSerializer(serializers.Serializer):
+        email = serializers.EmailField()
+        otp = serializers.CharField()
+
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        otp = serializer.validated_data['otp']
+        user = get_user_by_email(email)
+
+        # Verify the OTP
+        verify_otp(user, otp)
+
+        return Response({"message": "OTP verified successfully."}, status=http_status.HTTP_200_OK)
+
+
+class ResetPasswordAPI(APIView):
+    class InputSerializer(serializers.Serializer):
+        email = serializers.EmailField()
+        new_password = serializers.CharField()
+
+    def post(self, request):
+        serializer = self.InputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        new_password = serializer.validated_data['new_password']
+        user = get_user_by_email(email)
+
+        # Reset the user's password
+        reset_user_password(user, new_password)
+
+        return Response({"message": "Password reset successful."}, status=http_status.HTTP_200_OK)

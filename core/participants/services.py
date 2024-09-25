@@ -5,7 +5,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import PermissionDenied
 
-from core.comments.services import comment_create
 from core.contacts.services import contact_create
 from core.enterprises.models import Enterprise
 from core.letters.models import Letter

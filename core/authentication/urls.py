@@ -1,7 +1,7 @@
 from django.urls import path
 from django.urls.resolvers import URLPattern
 
-from .apis import LoginApi, LogoutApi, MeApi, RequestQRCodeApi, ValidateOneTimePassword
+from .apis import LoginApi, LogoutApi, MeApi, RequestQRCodeApi, ValidateOneTimePassword, ForgotPasswordAPI, VerifyOtpAPI, ResetPasswordAPI
 
 app_name = "authentication"
 
@@ -11,4 +11,7 @@ urlpatterns: list[URLPattern] = [
     path("me/", MeApi.as_view(), name="user-details"),
     path("qr-code/", RequestQRCodeApi.as_view(), name="auth-qr-code"),
     path("validate-otp/", ValidateOneTimePassword.as_view(), name="auth-validate-otp"),
+    path('forgot-password/', ForgotPasswordAPI.as_view(), name='forgot-password'),
+    path('verify-otp/', VerifyOtpAPI.as_view(), name='verify-otp'),
+    path('reset-password/', ResetPasswordAPI.as_view(), name='reset-password'),
 ]

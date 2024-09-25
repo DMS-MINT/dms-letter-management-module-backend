@@ -2,6 +2,8 @@ from typing import Optional, Union
 
 from django.db import transaction
 
+from core.attachments.models import LetterAttachment
+from core.attachments.services import letter_attachment_create
 from core.letters.models import Letter
 from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
@@ -19,6 +21,8 @@ def letter_update(
     subject: Optional[str] = None,
     body: Optional[str] = None,
     participants: Optional[list[LetterParticipant]] = None,
+    removedAttachmentsIds: list[str],  # noqa: N803
+    attachments,
 ) -> Letter:
     if subject is not None:
         letter_instance.subject = subject
@@ -40,6 +44,10 @@ def letter_update(
         letter_instance=letter_instance,
         participants=participants_to_add,
     )
+
+    letter_attachment_create(current_user=current_user, letter_instance=letter_instance, attachments=attachments)
+
+    LetterAttachment.objects.filter(id__in=removedAttachmentsIds).delete()
 
     generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 

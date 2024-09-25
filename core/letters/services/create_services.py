@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 from django.db import transaction
 
+from core.attachments.services import letter_attachment_create
 from core.letters.models import Incoming, Internal, Letter, Outgoing
 from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
@@ -35,6 +36,7 @@ def letter_create(
     letter_type: str,
     language: str,
     participants: Optional[list[LetterParticipant]] = None,
+    attachments,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
@@ -58,7 +60,7 @@ def letter_create(
 
     participants_create(current_user=current_user, letter_instance=letter_instance, participants=participants)
 
-    generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
+    letter_attachment_create(current_user=current_user, letter_instance=letter_instance, attachments=attachments)
 
     return letter_instance
 
@@ -72,6 +74,7 @@ def letter_create_and_publish(
     letter_type: str,
     language: str,
     participants: Optional[list[LetterParticipant]] = None,
+    attachments,
 ) -> Letter:
     letter_data = {
         "letter_type": letter_type,
@@ -94,8 +97,8 @@ def letter_create_and_publish(
         participants=participants,
     )
 
-    letter_publish(current_user=current_user, letter_instance=letter_instance)
+    letter_attachment_create(current_user=current_user, letter_instance=letter_instance, attachments=attachments)
 
-    generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
+    letter_publish(current_user=current_user, letter_instance=letter_instance)
 
     return letter_instance
