@@ -38,14 +38,10 @@ def get_user_by_email(email: str):
 
 def generate_reset_otp(user):
     otp_secret = pyotp.random_base32()
-    user.otp_secret = otp_secret
-    user.save()
-
-    totp = pyotp.TOTP(otp_secret)
+    totp = pyotp.TOTP(user.otp_secret)
     otp = totp.now()
 
     try:
-
         logger.info("OTP %s generated for user %s", otp, user.email)
         user.email
         email_send(user.email,otp)
@@ -71,6 +67,8 @@ def verify_otp(current_user: User, otp: str):
 
 
 def reset_user_password(user: User, new_password: str):
+    otp_secret = pyotp.random_base32()
     user.password = make_password(new_password)
-    user.otp_secret = None  # Reset the OTP secret after password reset
+    user.otp_secret = otp_secret
+    user.is_2fa_enabled = False
     user.save()
