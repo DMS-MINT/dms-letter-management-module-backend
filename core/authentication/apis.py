@@ -8,10 +8,9 @@ from rest_framework.views import APIView
 
 from core.api.exceptions import APIError
 from core.api.mixins import ApiAuthMixin
-from core.authentication.services import generate_reset_otp, get_user_by_email, reset_user_password, setup_2fa, verify_otp
+from core.authentication.services import generate_reset_otp, get_user_by_email, reset_user_password, setup_2fa, verify_otp, verify_otp_reset
 from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
-
 
 class LoginApi(APIView):
     """
@@ -166,7 +165,7 @@ class VerifyOtpAPI(APIView):
         user = get_user_by_email(email)
 
         # Verify the OTP
-        verify_otp(user, otp)
+        verify_otp_reset(user, otp)
 
         return Response({"message": "OTP verified successfully."}, status=http_status.HTTP_200_OK)
 

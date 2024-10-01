@@ -1,0 +1,21 @@
+Subject: Welcome to DMS - Registration Confirmation
+
+Hi {{ first_name }},
+
+Thank you for registering with DMS. We are thrilled to have you on board! Our platform is designed to help you manage your documents and correspondence with ease and efficiency.
+
+Here are some of the amazing things you can start doing:
+1. Effective document management for organizing, storing, and retrieving files
+2. Efficient letter management for streamlined correspondence tracking
+3. Personalize your profile for better accessibility and management
+4. Explore the latest features and updates to enhance your experience
+
+We encourage you to explore DMS and start utilizing these features to their full potential.
+
+If you have any questions or need assistance, our support team is here to help you.
+
+Best regards,
+The DMS Support Team
+
+This email cannot receive replies.
+For more information, visit DMS Support.
