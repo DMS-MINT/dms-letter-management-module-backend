@@ -26,30 +26,7 @@ def user_create(
 ) -> User:
     department_instance = Department.objects.get(department_name_en=department)
     job_title_instance = JobTitle.objects.get(title_en=job_title)
-
-    if password is None:
-        password = get_random_string(length=8)
-
-        email_send_type(
-            email, 
-            "Welcome to Our Service", 
-            "registration", 
-            context={
-                'username': email,
-                'default_password': password,
-                'first_name': first_name_en,
-                }
-            )
         
-    email_send_type(
-        email, 
-        "Welcome to Our Service", 
-        "welcome", 
-        context={
-            'first_name': first_name_en,
-            }
-        )
-    
     return (
         User.objects.create_user(
             first_name_en=first_name_en,

@@ -6,7 +6,7 @@
 
 {% block header %}
 <div class="header" style="text-align: center; margin-bottom: 20px;">
-    <h1 style="font-size: 2em; color: #5f13ec; font-weight: bold; margin: 0;">Prove Your DMS Identity</h1>
+    <h1 style="font-size: 2em; color: #5f13ec; font-weight: bold; margin: 0;">Verify Your Identity</h1>
     <p style="font-size: 1.1em; color: #555;">Dear {{ recipient_name }},</p>
 </div>
 {% endblock %}
@@ -21,8 +21,15 @@
     <h2 class="otp" style="color: #fff; font-size: 2.5em; margin: 0;">{{ otp_code }}</h2>
 </div>
 <p style="font-size: 0.9em; color: #444; line-height: 1.6;">
-    <strong style="color: #e74c3c;">One-Time Password (OTP) is valid for 1 hour</strong>
-    <br /><br />
+    <strong style="color: #e74c3c;">One-Time Password (OTP) is valid for 15 minutes</strong>
+    <br />
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="{{ support_url }}" style="background-color: #5f13ec; color: #fff; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-size: 16px; font-weight: bold; transition: background-color 0.3s;">
+            Verify
+        </a>
+    </div>
+    <br/>
+    <br/>
     If you did not initiate this login request, please disregard this message. Please ensure the confidentiality of your OTP and do not share it with anyone.
     <br />
     <strong style="color: #e74c3c;">Do not forward or give this code to anyone.</strong>
@@ -33,8 +40,12 @@
     <strong style="color: #5f13ec;">DMS</strong>
 </p>
 <hr style="border: none; border-top: 0.5px solid #131111; margin: 20px 0;" />
+
 {% endblock %}
 
 {% block footer %}
-    <!-- The footer defined in the base template will be used here. -->
+<footer class="footer" style="border-top: 1px solid #eaeaea; padding: 15px; text-align: center; background-color: #f9f9f9;">
+    <p style="color: #666; font-size: 0.9em;">This email can't receive replies.</p>
+    <p style="color: #5f13ec; font-size: 0.9em;">For more information, visit <a href="{{ support_url }}" style="color: #5f13ec; text-decoration: none;">DMS Support</a>.</p>
+</footer>
 {% endblock %}

@@ -8,7 +8,7 @@
 
 {% block header %}
     <div class="header" style="text-align: center; margin-bottom: 20px;">
-        <h1 style="font-size: 2.2em; color: #5f13ec; font-weight: bold; margin: 0;">Welcome to DMS!</h1>
+        <h1 style="font-size: 2.2em; color: #5f13ec; font-weight: bold; margin: 0;">Welcome to Document Management System!</h1>
         <p style="font-size: 1.1em; color: #555;">We're excited to have you on board!</p>
     </div>
 {% endblock %}
@@ -22,7 +22,7 @@
 
     <p style="font-size: 1.1em; color: #444; line-height: 1.6;">Here are your login details for your first-time login:</p>
 
-    <div style="background: linear-gradient(to right, #5546db 0%, #5f13ec 50%, #1749d4 100%); border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+    <div style="background: linear-gradient(to right, #5546db 0%, #5f13ec 50%, #1749d4 100%); border-radius: 8px; padding: 20px; margin-bottom: 10px;">
         <table style="width: 100%; text-align: left; border-collapse: collapse;">
             <tr>
                 <td style="padding: 10px; color: white; font-weight: bold; border-bottom: 1px solid rgba(255, 255, 255, 0.2);"><strong>Username:</strong></td>
@@ -31,10 +31,16 @@
                 </td>
             </tr>
             <tr>
-                <td style="padding: 10px; color: white; font-weight: bold; border-bottom: 1px solid rgba(255, 255, 255, 0.2);"><strong>Default Password:</strong></td>
+                <td style="padding: 10px; color: white; font-weight: bold; border-bottom: 1px solid rgba(255, 255, 255, 0.2);"><strong>Password:</strong></td>
                 <td style="padding: 10px; color: white; border-bottom: 1px solid rgba(255, 255, 255, 0.2);">{{ default_password }}</td>
             </tr>
         </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 10px; margin-bottom: 10px;"></div>
+        <a href="{{ support_url }}" style="background-color: #5f13ec; color: #fff; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-size: 16px; font-weight: bold; transition: background-color 0.3s;">
+            Login
+        </a>
     </div>
 
     <p style="font-size: 1.1em; color: #444; line-height: 1.6;">

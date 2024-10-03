@@ -11,6 +11,19 @@
             margin: 0;
             padding: 2;
         }
+        .headerdms{
+            background: linear-gradient(to right, #5546db 0%, #5f13ec 50%, #1749d4 100%); 
+            border-radius: 8px; 
+            align-items: center;
+            text-align: center;
+            padding: 20px; 
+            text-align: center; 
+            margin: 20px 30px;
+
+        }
+        .dms{
+            color: #fff; font-size: 2em; margin: 0;
+        }
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -33,6 +46,9 @@
 </head>
 <body>
     <div class="container">
+        <div class="headerdms">
+            <h2 class="dms">Document Management System</h2>
+        </div>
         {% block header %}{% endblock %}
         
         {% block body %}{% endblock %}
