@@ -12,8 +12,46 @@ DEBUG = env.bool("DJANGO_DEBUG", default=True)  # type: ignore
 
 ALLOWED_HOSTS: list[str] = ["*"]
 
-# Application definition
-LOCAL_APPS: list[str] = [
+SHARED_THIRD_PARTY_APPS: list[str] = [
+    "corsheaders",
+    "django_browser_reload",
+    "django_extensions",
+    "django_filters",
+    "django_tenants",
+    "drf_spectacular",
+    "polymorphic",
+    "rest_framework",
+    "tailwind",
+    "tenant_users.permissions",
+    "tenant_users.tenants",
+    "theme",
+]
+
+SHARED_LOCAL_APPS: list[str] = [
+    "core.departments.apps.DepartmentsConfig",
+    "core.organizations.apps.OrganizationsConfig",
+    "core.common.apps.CommonConfig",
+    "core.users.apps.UsersConfig",
+]
+
+SHARED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "whitenoise.runserver_nostatic",
+    "django.contrib.staticfiles",
+    *SHARED_THIRD_PARTY_APPS,
+    *SHARED_LOCAL_APPS,
+]
+
+TENANT_THIRD_PARTY_APPS: list[str] = [
+    "easyaudit",
+    "guardian",
+    "tenant_users.permissions",
+]
+TENANT_LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
     "core.authentication.apps.AuthenticationConfig",
@@ -28,28 +66,11 @@ LOCAL_APPS: list[str] = [
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
-    "core.users.apps.UsersConfig",
+    # "core.users.apps.UsersConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
 
-THIRD_PARTY_APPS: list[str] = [
-    "corsheaders",
-    "drf_spectacular",
-    "django_celery_beat",
-    "django_celery_results",
-    "django_extensions",
-    "django_filters",
-    "easyaudit",
-    "guardian",
-    "polymorphic",
-    "rest_framework",
-    "tailwind",
-    "theme",
-    "django_browser_reload",
-]
-
-INSTALLED_APPS: list[str] = [
-    "daphne",
+TENANT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -57,9 +78,13 @@ INSTALLED_APPS: list[str] = [
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
-    *THIRD_PARTY_APPS,
-    *LOCAL_APPS,
+    *TENANT_THIRD_PARTY_APPS,
+    *TENANT_LOCAL_APPS,
 ]
+
+
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
 
 MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
@@ -69,6 +94,7 @@ MIDDLEWARE: list[str] = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "tenant_users.tenants.middleware.TenantAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
@@ -106,17 +132,18 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
+        "ENGINE": "django_tenants.postgresql_backend",
+        "NAME": "postgres",
+        "USER": "postgres",
+        "PASSWORD": "postgres",
+        "HOST": "localhost",
+        "PORT": 5432,
     },
 }
+
+DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -157,6 +184,12 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+TENANT_MODEL = "organizations.Organization"
+
+TENANT_DOMAIN_MODEL = "organizations.Organization"
+
+TENANT_USERS_DOMAIN = "localhost.com"
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
@@ -182,7 +215,7 @@ APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")  # type: ignore
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
+    "tenant_users.permissions.backend.UserBackend",
     "guardian.backends.ObjectPermissionBackend",
 )
 

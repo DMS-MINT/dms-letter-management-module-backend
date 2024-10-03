@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser, PermissionsMixin
 from django.contrib.auth.models import BaseUserManager as BUM  # noqa: N817
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from tenant_users.tenants.models import UserProfile
 
 from core.common.models import BaseModel
 
@@ -39,7 +40,7 @@ class BaseUserManager(BUM):
         return self.create_user(email, password, **extra_fields)
 
 
-class User(BaseModel, AbstractUser, PermissionsMixin):
+class User(BaseModel, UserProfile):
     username = None
     first_name = None
     last_name = None
@@ -67,7 +68,7 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
 
     objects = BaseUserManager()
 
-    USERNAME_FIELD = "email"
+    # USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
         "first_name_en",
         "middle_name_en",

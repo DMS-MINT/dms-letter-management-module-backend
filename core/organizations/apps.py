@@ -1,7 +1,6 @@
 from django.apps import AppConfig
 
 
-class PermissionsConfig(AppConfig):
+class OrganizationsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "core.permissions"
-    label = "perms"
+    name = "core.organizations"

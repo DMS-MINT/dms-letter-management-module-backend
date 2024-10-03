@@ -86,7 +86,6 @@ class UserAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "last_login",
-                    "date_joined",
                     "updated_at",
                 ),
             },
@@ -95,7 +94,6 @@ class UserAdmin(admin.ModelAdmin):
 
     readonly_fields = [
         "last_login",
-        "date_joined",
         "updated_at",
         "is_2fa_enabled",
     ]
