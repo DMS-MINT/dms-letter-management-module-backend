@@ -16,7 +16,7 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
-from core.users.models.user import User
+from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
 
 

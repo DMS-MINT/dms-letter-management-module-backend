@@ -5,7 +5,7 @@ from weasyprint import HTML
 
 from config.env import BASE_URL
 from core.participants.models import BaseParticipant
-from core.users.models.user import User
+from core.users.models import User
 
 from .filters import BaseLetterFilter
 from .models import Incoming, Internal, Letter, Outgoing

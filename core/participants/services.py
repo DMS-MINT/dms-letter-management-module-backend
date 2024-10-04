@@ -8,7 +8,7 @@ from rest_framework.exceptions import PermissionDenied
 from core.contacts.services import contact_create
 from core.enterprises.models import Enterprise
 from core.letters.models import Letter
-from core.users.models.user import User
+from core.users.models import User
 
 from .models import BaseParticipant, EnterpriseParticipant, ExternalUserParticipant, InternalUserParticipant
 from .utils import get_enum_value

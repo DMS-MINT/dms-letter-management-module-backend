@@ -10,7 +10,7 @@ from rest_framework import status as http_status
 from core.api.exceptions import APIError
 from core.common.utils import get_object
 from core.emails.tasks import email_send
-from core.users.models.user import User
+from core.users.models import User
 
 
 def setup_2fa(current_user: User):

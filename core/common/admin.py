@@ -10,7 +10,7 @@ from core.signatures.admin import LetterSignatureAdmin, UserDefaultSignatureAdmi
 from core.signatures.models import LetterSignature, UserDefaultSignature
 
 # from core.users.admin import UserAdmin
-# from core.users.models.user import User
+# from core.users.models import User
 from .models import Address
 
 

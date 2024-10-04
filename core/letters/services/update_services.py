@@ -8,7 +8,7 @@ from core.letters.models import Letter
 from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
 from core.participants.utils import identify_participants_changes
-from core.users.models.user import User
+from core.users.models import User
 
 type LetterParticipant = dict[str, Union[str, int, dict[str, str], list[str]]]
 
