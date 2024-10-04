@@ -28,6 +28,7 @@ SHARED_THIRD_PARTY_APPS: list[str] = [
 ]
 
 SHARED_LOCAL_APPS: list[str] = [
+    "core.authentication.apps.AuthenticationConfig",
     "core.departments.apps.DepartmentsConfig",
     "core.organizations.apps.OrganizationsConfig",
     "core.common.apps.CommonConfig",
@@ -47,14 +48,13 @@ SHARED_APPS = [
 ]
 
 TENANT_THIRD_PARTY_APPS: list[str] = [
-    "easyaudit",
+    # "easyaudit",
     "guardian",
     "tenant_users.permissions",
 ]
 TENANT_LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
-    "core.authentication.apps.AuthenticationConfig",
     "core.comments.apps.CommentsConfig",
     "core.common.apps.CommonConfig",
     "core.contacts.apps.ContactsConfig",
@@ -87,6 +87,7 @@ INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in S
 
 
 MIDDLEWARE: list[str] = [
+    "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -97,7 +98,7 @@ MIDDLEWARE: list[str] = [
     "tenant_users.tenants.middleware.TenantAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
+    # "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     # "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
@@ -186,7 +187,7 @@ INTERNAL_IPS = [
 
 TENANT_MODEL = "organizations.Organization"
 
-TENANT_DOMAIN_MODEL = "organizations.Organization"
+TENANT_DOMAIN_MODEL = "organizations.Domain"
 
 TENANT_USERS_DOMAIN = "localhost.com"
 
