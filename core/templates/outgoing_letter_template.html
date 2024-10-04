@@ -65,7 +65,7 @@
     {% if letter.language == "EN" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">To {{participant.user.job_title.title_en}}</p>
+          <p class="pr-participant-item">To {{participant.user.user_profile.job_title.title_en}}</p>
           <span class="address">M.I.N.T</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
@@ -78,7 +78,7 @@
     {% elif letter.language == "AM" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">ለ {{participant.user.job_title.title_am}}</p>
+          <p class="pr-participant-item">ለ {{participant.user.user_profile.job_title.title_am}}</p>
           <span class="address">ኢ.ቴ.ሚ</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>
@@ -126,11 +126,11 @@
         />
         <p class="signer-info">
           {% if letter.language == "EN" %}
-            <span>{{ e_signature.signer.full_name_en }}</span>
-            <span>{{ e_signature.signer.job_title.title_en }}</span>
+            <span>{{ e_signature.signer.user_profile.full_name_en }}</span>
+            <span>{{ e_signature.signe.user_profiler.job_title.title_en }}</span>
           {% elif letter.language == "AM" %}
-            <span>{{ e_signature.signer.full_name_am }}</span>
-            <span>{{ e_signature.signer.job_title.title_am }}</span>
+            <span>{{ e_signature.signer.user_profile.full_name_am }}</span>
+            <span>{{ e_signature.signer.user_profile.job_title.title_am }}</span>
           {% endif %}
         </p>
       </div>

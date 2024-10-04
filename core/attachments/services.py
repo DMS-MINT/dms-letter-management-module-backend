@@ -2,7 +2,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db import transaction
 
 from core.letters.models import Letter
-from core.users.models import User
+from core.users.models.user import User
 
 from .models import LetterAttachment
 

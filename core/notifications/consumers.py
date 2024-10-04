@@ -4,7 +4,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.sessions.models import Session
 
-from core.users.models import User
+from core.users.models.user import User
 
 
 @database_sync_to_async

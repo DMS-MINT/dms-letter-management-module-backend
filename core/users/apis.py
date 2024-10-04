@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
-from core.users.models import User
+from core.users.models.user import User
 
 from .selectors import user_get_users
 from .serializers import UserDetailSerializer, UserListSerializer

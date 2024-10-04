@@ -3,7 +3,7 @@ from django.db import transaction
 from core.common.utils import get_object
 from core.letters.models import Letter
 from core.signatures.models import LetterSignature, Signature, UserDefaultSignature
-from core.users.models import User
+from core.users.models.user import User
 
 
 def get_enum_value(key: str) -> int:

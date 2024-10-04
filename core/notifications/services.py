@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from core.api.exceptions import ApplicationError
 from core.notifications.serializers import NotificationSerializer
-from core.users.models import User
+from core.users.models.user import User
 
 from .models import ChannelType, Notification, NotificationRecipient, Tag
 

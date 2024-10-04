@@ -5,7 +5,7 @@ from core.common.utils import inline_serializer
 from core.contacts.models import Contact
 from core.enterprises.models import Enterprise
 from core.participants.models import BaseParticipant
-from core.users.models import User
+from core.users.models.user import User
 from core.users.serializers import UserListSerializer
 
 from .models import EnterpriseParticipant, ExternalUserParticipant, InternalUserParticipant

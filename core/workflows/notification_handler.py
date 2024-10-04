@@ -2,7 +2,7 @@ from core.letters.models import Letter
 from core.notifications.models import Tag
 from core.notifications.services import notification_create, notification_send
 from core.participants.models import BaseParticipant
-from core.users.models import User
+from core.users.models.user import User
 
 # def handle_mention_notification(
 #     *,

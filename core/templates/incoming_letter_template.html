@@ -27,7 +27,7 @@
     {% if letter.language == "EN" %}
       {% for author in authors %}
         {% if author.user %}
-          <p class="author-participant-item">From {{author.user.job_title.title_en}}</p>
+          <p class="author-participant-item">From {{author.user.user_profile.job_title.title_en}}</p>
           <span class="address">M.I.N.T</span>
         {% elif author.enterprise %}
           <p class="author-participant-item">From {{author.enterprise.name_en}}</p>
@@ -40,7 +40,7 @@
     {% elif letter.language == "AM" %}
       {% for author in authors %}
         {% if author.user %}
-          <p class="author-participant-item">ከ {{author.user.job_title.title_am}}</p>
+          <p class="author-participant-item">ከ {{author.user.user_profile.job_title.title_am}}</p>
           <span class="address">ኢ.ቴ.ሚ</span>
         {% elif author.enterprise %}
           <p class="author-participant-item">ከ {{author.enterprise.name_am}}</p>
@@ -59,7 +59,7 @@
     {% if letter.language == "EN" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">To {{participant.user.job_title.title_en}}</p>
+          <p class="pr-participant-item">To {{participant.user.user_profile.job_title.title_en}}</p>
           <span class="address">M.I.N.T</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">To {{participant.enterprise.name_en}}</p>
@@ -72,7 +72,7 @@
     {% elif letter.language == "AM" %}
       {% for participant in primary_recipients %}
         {% if participant.user %}
-          <p class="pr-participant-item">ለ {{participant.user.job_title.title_am}}</p>
+          <p class="pr-participant-item">ለ {{participant.user.user_profile.job_title.title_am}}</p>
           <span class="address">ኢ.ቴ.ሚ</span>
         {% elif participant.enterprise %}
           <p class="pr-participant-item">ለ {{participant.enterprise.name_am}}</p>

@@ -28,7 +28,7 @@
         <ul class="bcc-participants-list">
           {% for participant in bcc_participants %}
             {% if participant.user %}
-              <li class="cc-participant-item">To {{ participant.user.job_title.title_en }}</li>
+              <li class="cc-participant-item">To {{ participant.user.user_profile.job_title.title_en }}</li>
               <span class="address">M.I.N.T</span>
             {% elif participant.enterprise %}
               <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
@@ -43,7 +43,7 @@
         <ul class="bcc-participants-list">
           {% for participant in bcc_participants %}
             {% if participant.user %}
-              <li class="cc-participant-item">ለ {{ participant.user.job_title.title_am }}</li>
+              <li class="cc-participant-item">ለ {{ participant.user.user_profile.job_title.title_am }}</li>
               <span class="address">ኢ.ቴ.ሚ</span>
             {% elif participant.enterprise %}
               <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>
@@ -62,7 +62,7 @@
       <ul class="cc-participants-list">
         {% for participant in cc_participants %}
           {% if participant.user %}
-            <li class="cc-participant-item">To {{ participant.user.job_title.title_en }}</li>
+            <li class="cc-participant-item">To {{ participant.user.user_profile.job_title.title_en }}</li>
             <span class="address">M.I.N.T</span>
           {% elif participant.enterprise %}
             <li class="cc-participant-item">To {{ participant.enterprise.name_en }}</li>
@@ -78,7 +78,7 @@
       <ul class="cc-participants-list">
         {% for participant in cc_participants %}
           {% if participant.user %}
-            <li class="cc-participant-item">ለ {{ participant.user.job_title.title_am }}</li>
+            <li class="cc-participant-item">ለ {{ participant.user.user_profile.job_title.title_am }}</li>
             <span class="address">ኢ.ቴ.ሚ</span>
           {% elif participant.enterprise %}
             <li class="cc-participant-item">ለ {{ participant.enterprise.name_am }}</li>

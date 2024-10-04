@@ -6,7 +6,7 @@ from core.letters.models import Incoming, Letter
 from core.participants.models import BaseParticipant, InternalUserParticipant
 from core.participants.services import participants_create
 from core.signatures.services import sign_letter
-from core.users.models import User
+from core.users.models.user import User
 
 
 @transaction.atomic
