@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -6,7 +7,7 @@ from core.letters.models import Letter
 
 class WorkflowLog(models.Model):
     actor = models.ForeignKey(
-        "users.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="workflow_logs",
         verbose_name=_("User"),

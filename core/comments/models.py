@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -6,7 +7,7 @@ from core.common.models import BaseModel
 
 class Comment(BaseModel):
     author = models.ForeignKey(
-        "users.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="comments",
         verbose_name=_("Author"),

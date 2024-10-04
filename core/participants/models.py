@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -19,7 +20,7 @@ class BaseParticipant(PolymorphicModel, BaseModel):
 
     role = models.IntegerField(choices=Roles.choices, verbose_name=_("Roles"))
     letter = models.ForeignKey("letters.Letter", on_delete=models.CASCADE, related_name="participants")
-    added_by = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="added_participants")
+    added_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="added_participants")
     last_read_at = models.DateTimeField(blank=True, null=True, editable=False)
     received_at = models.DateTimeField(blank=True, null=True, editable=False)
 
@@ -62,7 +63,7 @@ class BaseParticipant(PolymorphicModel, BaseModel):
 
 
 class InternalUserParticipant(BaseParticipant):
-    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="participated_in_letters")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="participated_in_letters")
 
     def save(self, *args, **kwargs):
         if isinstance(self.letter, Outgoing) and self.role == BaseParticipant.Roles.PRIMARY_RECIPIENT:

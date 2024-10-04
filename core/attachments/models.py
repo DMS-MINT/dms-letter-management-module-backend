@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -23,7 +24,7 @@ class Attachment(BaseModel):
     file_type = models.CharField(max_length=50)
     file_size = models.IntegerField()
     uploaded_by = models.ForeignKey(
-        "users.User",
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="%(class)s_attachment",
         verbose_name=_("Uploaded By"),

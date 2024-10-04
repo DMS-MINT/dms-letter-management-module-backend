@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -48,7 +49,7 @@ class Notification(BaseModel):
 
 class NotificationRecipient(BaseModel):
     notification = models.ForeignKey(Notification, on_delete=models.CASCADE, related_name="notification_recipients")
-    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="notifications_received")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="notifications_received")
     has_read = models.BooleanField(default=False)
     has_notified = models.BooleanField(default=False)
 

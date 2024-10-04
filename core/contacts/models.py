@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -5,7 +6,7 @@ from core.common.models import BaseModel
 
 
 class Contact(BaseModel):
-    user = models.ManyToManyField("users.User", related_name="contacts")
+    user = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="contacts")
     full_name_en = models.CharField(max_length=500, verbose_name=_("Full Name (English)"))
     full_name_am = models.CharField(max_length=500, verbose_name=_("Full Name (Amharic)"))
     email = models.EmailField(blank=True, null=True, verbose_name=_("Email Address"))
