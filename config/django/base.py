@@ -29,7 +29,6 @@ SHARED_THIRD_PARTY_APPS: list[str] = [
 
 SHARED_LOCAL_APPS: list[str] = [
     "core.authentication.apps.AuthenticationConfig",
-    "core.departments.apps.DepartmentsConfig",
     "core.organizations.apps.OrganizationsConfig",
     "core.common.apps.CommonConfig",
     "core.users.apps.UsersConfig",
@@ -66,7 +65,7 @@ TENANT_LOCAL_APPS: list[str] = [
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
-    # "core.users.apps.UsersConfig",
+    "core.user_management.apps.UserManagementConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
 
