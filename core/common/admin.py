@@ -1,16 +1,16 @@
 from django.contrib import admin
-from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
-from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 
+# from easyaudit.admin import CRUDEventAdmin, LoginEventAdmin, RequestEventAdmin
+# from easyaudit.models import CRUDEvent, LoginEvent, RequestEvent
 from core.departments.admin import DepartmentAdmin, JobTitleAdmin
 from core.departments.models import Department, JobTitle
 from core.enterprises.admin import EnterpriseAdmin
 from core.enterprises.models import Enterprise
 from core.signatures.admin import LetterSignatureAdmin, UserDefaultSignatureAdmin
 from core.signatures.models import LetterSignature, UserDefaultSignature
-from core.users.admin import UserAdmin
-from core.users.models import User
 
+# from core.users.admin import UserAdmin
+# from core.users.models.user import User
 from .models import Address
 
 
@@ -52,7 +52,7 @@ class DMSAdminSite(admin.AdminSite):
 dms_admin_site = DMSAdminSite(name="dms_admin")
 
 
-dms_admin_site.register(User, UserAdmin)
+# dms_admin_site.register(User, UserAdmin)
 
 dms_admin_site.register(JobTitle, JobTitleAdmin)
 dms_admin_site.register(Department, DepartmentAdmin)
@@ -62,6 +62,6 @@ dms_admin_site.register(Enterprise, EnterpriseAdmin)
 dms_admin_site.register(LetterSignature, LetterSignatureAdmin)
 dms_admin_site.register(UserDefaultSignature, UserDefaultSignatureAdmin)
 
-dms_admin_site.register(LoginEvent, LoginEventAdmin)
-dms_admin_site.register(RequestEvent, RequestEventAdmin)
-dms_admin_site.register(CRUDEvent, CRUDEventAdmin)
+# dms_admin_site.register(LoginEvent, LoginEventAdmin)
+# dms_admin_site.register(RequestEvent, RequestEventAdmin)
+# dms_admin_site.register(CRUDEvent, CRUDEventAdmin)

@@ -11,12 +11,15 @@ from .models import Email
 @transaction.atomic
 def email_failed(email: Email) -> Email:
     if email.status != Email.Status.SENDING:
-        raise ApplicationError("INVALID_EMAIL_STATUS", f"Cannot fail non-sending emails. Current status is {email.status}")
+        raise ApplicationError(
+            "INVALID_EMAIL_STATUS", f"Cannot fail non-sending emails. Current status is {email.status}"
+        )
 
     # Update the email status to FAILED
     email.status = Email.Status.FAILED
     email.save()
     return email
+
 
 @transaction.atomic
 def email_send(to: str, subject: str) -> None:
@@ -42,7 +45,6 @@ def email_send(to: str, subject: str) -> None:
 
 
 def email_send_all(emails: QuerySet[Email]):
-    
     from .tasks import email_send as email_send_task
 
     for email in emails:
