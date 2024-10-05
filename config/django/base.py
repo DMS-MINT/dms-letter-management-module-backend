@@ -103,6 +103,8 @@ MIDDLEWARE: list[str] = [
 
 ROOT_URLCONF = "config.urls"
 
+TENANT_USERS_ACCESS_ERROR_MESSAGE = "Custom access denied message."
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -188,7 +190,9 @@ TENANT_MODEL = "organizations.Organization"
 
 TENANT_DOMAIN_MODEL = "organizations.Domain"
 
-TENANT_USERS_DOMAIN = "localhost.com"
+TENANT_USERS_DOMAIN = "localhost"
+
+SESSION_COOKIE_DOMAIN = ".localhost"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
