@@ -14,11 +14,6 @@ class User(BaseModel, BaseUserProfile):
 
     otp_secret = models.TextField(editable=False, null=True, blank=True)
 
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    is_admin = models.BooleanField(default=False)
-    is_superuser = models.BooleanField(default=False)
-
     class Meta:
         verbose_name: str = "User"
         verbose_name_plural: str = "Users"

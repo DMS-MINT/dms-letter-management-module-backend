@@ -12,7 +12,7 @@ class UserAdmin(admin.ModelAdmin):
         "email",
         "is_active",
         "is_staff",
-        "is_admin",
+        # "is_admin",
         "is_superuser",
     ]
     search_fields = ["email"]
@@ -23,12 +23,12 @@ class UserAdmin(admin.ModelAdmin):
                 "fields": ("email", "password"),
             },
         ),
-        (
-            "Permissions",
-            {
-                "fields": ("is_active", "is_staff", "is_admin", "is_superuser"),
-            },
-        ),
+        # (
+        #     "Permissions",
+        #     {
+        #         "fields": ("is_active", "is_staff", "is_admin", "is_superuser"),
+        #     },
+        # ),
         (
             "Important Dates",
             {
