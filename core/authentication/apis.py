@@ -1,9 +1,10 @@
 from venv import logger
 
 from django.contrib.auth import authenticate, login, logout
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework import status as http_status
-from rest_framework.exceptions import AuthenticationFailed, NotFound, ValidationError
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -18,6 +19,43 @@ from core.authentication.services import (
 from core.common.utils import get_object
 from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
+
+from .services import create_superuser
+
+
+class SignUpApi(APIView):
+    class InputSerializer(serializers.Serializer):
+        email = serializers.EmailField()
+        password = serializers.CharField()
+
+    serializer_class = InputSerializer
+
+    def post(self, request):
+        try:
+            input_serializer = self.serializer_class(data=request.data)
+            input_serializer.is_valid(raise_exception=True)
+
+            user_instance = create_superuser(**input_serializer.validated_data)
+            login(request, user_instance, backend="tenant_users.permissions.backend.UserBackend")
+
+            session_key = request.session.session_key
+            response_data = {
+                "session": session_key,
+            }
+
+            return Response(data=response_data)
+
+        except ValidationError as e:
+            raise ValidationError(e)
+
+        except AuthenticationFailed as e:
+            raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
+
+        except ObjectDoesNotExist as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
 
 
 class LoginApi(APIView):
@@ -63,20 +101,18 @@ class MeApi(ApiAuthMixin, APIView):
 
     def get(self, request):
         try:
-            user_instance = User.objects.get(id=request.user.id)
+            user_instance = get_object(User, id=request.user.id)
             output_serializer = CurrentUserSerializer(user_instance)
 
             response_data = {"my_profile": output_serializer.data}
 
             return Response(data=response_data)
 
-        except NotFound as e:
-            raise NotFound(e)
+        except ValueError as e:
+            raise ValidationError(e)
+
         except Exception as e:
-            return Response(
-                {"message": "An unexpected error occurred", "extra": {"details": str(e)}},
-                status=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            raise ValidationError(e)
 
 
 class RequestQRCodeApi(ApiAuthMixin, APIView):

@@ -8,6 +8,7 @@ from .apis import (
     MeApi,
     RequestQRCodeApi,
     ResetPasswordAPI,
+    SignUpApi,
     ValidateOneTimePassword,
     VerifyOtpAPI,
 )
@@ -15,6 +16,7 @@ from .apis import (
 app_name = "authentication"
 
 urlpatterns: list[URLPattern] = [
+    path("signup/", SignUpApi.as_view(), name="auth-signup"),
     path("login/", LoginApi.as_view(), name="auth-login"),
     path("logout/", LogoutApi.as_view(), name="auth-logout"),
     path("me/", MeApi.as_view(), name="user-details"),
