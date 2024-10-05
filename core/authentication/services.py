@@ -1,6 +1,5 @@
 import base64
 from io import BytesIO
-from venv import logger
 
 import pyotp
 import qrcode
@@ -8,9 +7,29 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import status as http_status
 
 from core.api.exceptions import APIError
-from core.common.utils import get_object
 from core.emails.tasks import email_send
 from core.users.models import User
+
+
+def create_user(
+    *,
+    email: str,
+    password: str,
+    is_staff: bool = False,
+):
+    return User.objects.create_user(
+        email,
+        password,
+        is_staff=is_staff,
+    )
+
+
+def create_superuser(
+    *,
+    email: str,
+    password: str,
+):
+    return User.objects.create_superuser(password, email)
 
 
 def setup_2fa(current_user: User):
@@ -29,13 +48,6 @@ def setup_2fa(current_user: User):
     qr.save(buffer)
 
     return base64.b64encode(buffer.getvalue()).decode()
-
-
-# def get_user_by_email(email: str):
-#     try:
-#         return User.objects.get(email=email)
-#     except User.DoesNotExist:
-#         return None
 
 
 def generate_reset_otp(user):
