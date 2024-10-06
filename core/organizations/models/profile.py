@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from tenant_users.tenants.models import TenantBase
 
 from core.common.models import BaseModel
 
@@ -9,13 +8,13 @@ def organization_directory_path(instance, filename):
     return f"organizations/{instance.organization_name_en}/logo.png"
 
 
-class OrganizationProfile(TenantBase, BaseModel):
+class OrganizationProfile(BaseModel):
     organization = models.ForeignKey(
         "organizations.Organization",
         on_delete=models.CASCADE,
         related_name="organization_profile",
     )
-    description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
+    bio = models.TextField(blank=True, null=True, verbose_name=_("Description"))
     contact_phone = models.PositiveBigIntegerField(blank=True, null=True, verbose_name=_("Contact Phone"))
     contact_email = models.EmailField(blank=True, null=True, verbose_name=_("Contact Email"))
     address = models.ForeignKey(
@@ -23,6 +22,8 @@ class OrganizationProfile(TenantBase, BaseModel):
         on_delete=models.CASCADE,
         related_name="organization_address",
         verbose_name=_("Address"),
+        null=True,
+        blank=True,
     )
     postal_code = models.PositiveIntegerField(blank=True, null=True, verbose_name=_("Postal Code"))
     logo = models.ImageField(upload_to=organization_directory_path, blank=True, null=True, verbose_name="Logo")
