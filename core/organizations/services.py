@@ -18,6 +18,10 @@ from tenant_users.tenants.utils import (  # noqa: F811
     get_user_model,
 )
 
+from core.common.models import Address
+
+from .models import OrganizationProfile
+
 INACTIVE_USER_ERROR_MESSAGE = "Inactive user can't be used to provision an organization."
 UserModel = get_user_model()
 TenantModel = get_tenant_model()
@@ -97,11 +101,18 @@ def create_public_organization(
 @transaction.atomic()
 def create_organization(  # noqa: PLR0913
     organization_slug: str,
-    owner: UserModel,  # type: ignore
+    current_user: UserModel,  # type: ignore
     *,
+    name_en: str,
+    name_am: str,
     is_staff: bool = False,
     is_superuser: bool = True,
-    organization_extra_data: Optional[dict] = None,
+    bio: str = None,
+    contact_phone: int = None,
+    contact_email: str = None,
+    postal_code: int = None,
+    address: dict = None,
+    logo=None,
 ) -> Tuple[TenantModel, DomainModel]:  # type: ignore
     """Creates and initializes a new organization with specified attributes and default roles.
 
@@ -122,18 +133,14 @@ def create_organization(  # noqa: PLR0913
         ExistsError: If the organization URL already exists.
         SchemaError: If the organization type is not valid.
     """
-    if organization_extra_data is None:
-        organization_extra_data = {}
 
-    if not owner.is_active:
+    if not current_user.is_active:
         raise InactiveError(INACTIVE_USER_ERROR_MESSAGE)
 
-    if hasattr(settings, "TENANT_SUBFOLDER_PREFIX"):
-        organization_domain = organization_slug
-    else:
-        organization_domain = f"{organization_slug}.{settings.TENANT_USERS_DOMAIN}"
+    organization_primary_domain = f"{organization_slug}.{settings.TENANT_USERS_DOMAIN}"
+    organization_admin_domain = f"{organization_slug}.admin.{settings.TENANT_USERS_DOMAIN}"
 
-    if DomainModel.objects.filter(domain=organization_domain).exists():
+    if DomainModel.objects.filter(domain=organization_primary_domain).exists():
         raise ExistsError("Organization domain already exists.")
 
     time_string = str(int(time.time()))
@@ -144,18 +151,77 @@ def create_organization(  # noqa: PLR0913
     # Attempt to create the organization and domain within the schema context
     with schema_context(get_public_schema_name()):
         # Create a new organization instance with provided data
-        organization = TenantModel.objects.create(
+        organization_instance = TenantModel.objects.create(
             slug=organization_slug,
             schema_name=schema_name,
-            owner=owner,
-            **organization_extra_data,
+            owner=current_user,
+            name_en=name_en,
+            name_am=name_am,
         )
 
         # Create a domain associated with the organization and mark as primary
-        domain = DomainModel.objects.create(domain=organization_domain, tenant=organization, is_primary=True)
+        DomainModel.objects.create(domain=organization_primary_domain, tenant=organization_instance, is_primary=True)
+        DomainModel.objects.create(domain=organization_admin_domain, tenant=organization_instance, is_primary=False)
 
         # Add the user to the organization with provided roles
-        organization.add_user(owner, is_superuser=is_superuser, is_staff=is_staff)
+        organization_instance.add_user(current_user, is_superuser=is_superuser, is_staff=is_staff)
 
-    # Return the provision organization created and its associated domain
-    return organization, domain
+        address_instance, _ = Address.objects.get_or_create(
+            city_en=address.get("city_en"),
+            city_am=address.get("city_am"),
+        )
+
+        OrganizationProfile.objects.create(
+            organization=organization_instance,
+            bio=bio,
+            address=address_instance,
+            contact_phone=contact_phone,
+            contact_email=contact_email,
+            postal_code=postal_code,
+            logo=logo,
+        )
+
+    return organization_instance
+
+
+@transaction.atomic
+def update_organization(
+    *,
+    organization_instance: TenantModel,
+    name_en: str = None,
+    name_am: str = None,
+    bio: str = None,
+    address: dict = None,
+    contact_phone: int = None,
+    contact_email: str = None,
+    postal_code: int = None,
+    logo=None,
+):
+    organization_profile = organization_instance.organization_profile.first()
+
+    if name_en is not None:
+        organization_instance.name_en = str(name_en)
+
+    if name_am is not None:
+        organization_instance.name_am = str(name_am)
+
+    organization_instance.save()
+
+    if bio is not None:
+        organization_profile.bio = str(bio)
+
+    if contact_phone is not None:
+        organization_profile.contact_phone = int(contact_phone)
+
+    if contact_email is not None:
+        organization_profile.contact_email = str(contact_email)
+
+    if postal_code is not None:
+        organization_profile.postal_code = str(postal_code)
+
+    if logo is not None:
+        organization_profile.logo = logo
+
+    organization_profile.save()
+
+    return organization_instance
