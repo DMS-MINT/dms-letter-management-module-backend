@@ -181,7 +181,7 @@ def create_organization(  # noqa: PLR0913
             logo=logo,
         )
 
-    return organization_instance
+    return organization_instance.id
 
 
 @transaction.atomic
