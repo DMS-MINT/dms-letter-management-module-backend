@@ -1,7 +1,6 @@
 from venv import logger
 
 from django.contrib.auth import authenticate, login, logout
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
@@ -31,27 +30,20 @@ class SignUpApi(APIView):
     serializer_class = InputSerializer
 
     def post(self, request):
+        input_serializer = self.serializer_class(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
         try:
-            input_serializer = self.serializer_class(data=request.data)
-            input_serializer.is_valid(raise_exception=True)
-
             user_instance = create_superuser(**input_serializer.validated_data)
-            login(request, user_instance, backend="tenant_users.permissions.backend.UserBackend")
 
-            session_key = request.session.session_key
             response_data = {
-                "session": session_key,
+                "message": "Your account has been successfully created.",
+                "email": user_instance.email,
             }
 
             return Response(data=response_data)
 
         except ValidationError as e:
-            raise ValidationError(e)
-
-        except AuthenticationFailed as e:
-            raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
-
-        except ObjectDoesNotExist as e:
             raise ValidationError(e)
 
         except Exception as e:
@@ -78,7 +70,7 @@ class LoginApi(APIView):
         if user is None:
             raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
 
-        login(request, user)
+        login(request, user, backend="tenant_users.permissions.backend.UserBackend")
 
         session_key = request.session.session_key
 
