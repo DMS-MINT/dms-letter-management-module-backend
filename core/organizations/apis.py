@@ -91,12 +91,21 @@ class OrganizationCreateApi(ApiAuthMixin, APIView):
         input_serializer.is_valid(raise_exception=True)
 
         try:
-            organization_instance, _ = create_organization(
+            organization_id = create_organization(
                 current_user=request.user,
                 **input_serializer.validated_data,
             )
 
-            output_serializer = OrganizationDetailApi.OutputSerializer(organization_instance)
+            organization_instance = Organization.objects.prefetch_related(
+                "organization_profile__address",
+                "domains",
+            ).get(
+                id=organization_id,
+            )
+
+            organization_data = organization_detail(organization_instance=organization_instance)
+
+            output_serializer = OrganizationDetailApi.OutputSerializer(organization_data)
 
             response_data = {"organization": output_serializer.data}
 
@@ -139,12 +148,11 @@ class OrganizationUpdateApi(ApiAuthMixin, APIView):
                 id=organization_id,
             )
 
-            organization_instance = update_organization(
-                organization_instance=organization_instance,
-                **input_serializer.validated_data,
-            )
+            update_organization(organization_instance=organization_instance, **input_serializer.validated_data)
 
-            output_serializer = OrganizationDetailApi.OutputSerializer(organization_instance)
+            organization_data = organization_detail(organization_instance=organization_instance)
+
+            output_serializer = OrganizationDetailApi.OutputSerializer(organization_data)
 
             response_data = {"organization": output_serializer.data}
 
