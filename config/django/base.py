@@ -15,12 +15,9 @@ ALLOWED_HOSTS: list[str] = ["*"]
 SHARED_THIRD_PARTY_APPS: list[str] = [
     "corsheaders",
     "django_browser_reload",
-    "django_extensions",
     "django_filters",
     "django_tenants",
     "drf_spectacular",
-    "polymorphic",
-    "rest_framework",
     "tailwind",
     "tenant_users.permissions",
     "tenant_users.tenants",
@@ -48,6 +45,10 @@ SHARED_APPS = [
 
 TENANT_THIRD_PARTY_APPS: list[str] = [
     # "easyaudit",
+    "corsheaders",
+    "polymorphic",
+    "django_extensions",
+    "rest_framework",
     "guardian",
     "tenant_users.permissions",
 ]
@@ -137,11 +138,11 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django_tenants.postgresql_backend",
-        "NAME": "postgres",
-        "USER": "postgres",
-        "PASSWORD": "postgres",
-        "HOST": "localhost",
-        "PORT": 5432,
+        "NAME": env.str("DB_NAME"),
+        "USER": env.str("DB_USER"),
+        "PASSWORD": env.str("DB_PASSWORD"),
+        "HOST": env.str("DB_HOST"),
+        "PORT": env.str("DB_PORT"),
     },
 }
 
@@ -182,17 +183,15 @@ USE_TZ = True
 
 TAILWIND_APP_NAME = "theme"
 
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
+INTERNAL_IPS = ["localhost"]
 
 TENANT_MODEL = "organizations.Organization"
 
 TENANT_DOMAIN_MODEL = "organizations.Domain"
 
-TENANT_USERS_DOMAIN = "localhost"
+TENANT_USERS_DOMAIN = env.str("APP_DOMAIN")
 
-SESSION_COOKIE_DOMAIN = ".localhost"
+SESSION_COOKIE_DOMAIN = f".{env.str("APP_DOMAIN")}"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
