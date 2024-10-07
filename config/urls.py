@@ -4,11 +4,8 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from core.common.admin import dms_admin_site
-
 urlpatterns = [
     path("", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),
-    path("dms-admin/", dms_admin_site.urls),
     path("admin/", admin.site.urls),
     path("api/", include(("core.api.urls", "api"), namespace="api")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),

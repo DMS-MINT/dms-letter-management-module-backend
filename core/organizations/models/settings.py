@@ -15,6 +15,11 @@ class OrganizationSetting(BaseModel):
         verbose_name=_("Auto-generate Reference Numbers for Letters"),
         help_text=_("Enable to automatically generate reference numbers for letters. Disable for manual input."),
     )
+    auto_date_letters = models.BooleanField(
+        default=True,
+        verbose_name=_("Auto-generate Reference Numbers for Letters"),
+        help_text=_("Enable to automatically generate reference numbers for letters. Disable for manual input."),
+    )
 
     class Meta:
         verbose_name: str = "Organization Setting"

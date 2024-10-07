@@ -16,7 +16,7 @@ class UserProfile(BaseModel):
     middle_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Middle Name (Amharic)"))
     last_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Last Name (Amharic)"))
 
-    job_title = models.ForeignKey("departments.JobTitle", on_delete=models.CASCADE)
+    job_title = models.ForeignKey("job_titles.JobTitle", on_delete=models.CASCADE)
     department = models.ForeignKey("departments.Department", on_delete=models.CASCADE)
     phone_number = models.PositiveBigIntegerField(_("phone number"), unique=True)
 

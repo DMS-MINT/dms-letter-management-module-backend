@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Department, JobTitle
+from .models import Department
 
 
 @admin.register(Department)
@@ -14,9 +14,3 @@ class DepartmentAdmin(admin.ModelAdmin):
         "updated_at",
     )
     ordering = ["department_name_en"]
-
-
-@admin.register(JobTitle)
-class JobTitleAdmin(admin.ModelAdmin):
-    list_display = ("title_en", "title_am", "created_at", "updated_at")
-    ordering = ["title_en"]

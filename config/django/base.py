@@ -61,6 +61,7 @@ TENANT_LOCAL_APPS: list[str] = [
     "core.departments.apps.DepartmentsConfig",
     "core.emails.apps.EmailsConfig",
     "core.enterprises.apps.EnterprisesConfig",
+    "core.job_titles.apps.JobTitlesConfig",
     "core.letters.apps.LettersConfig",
     "core.notifications.apps.NotificationsConfig",
     "core.participants.apps.ParticipantsConfig",
@@ -191,7 +192,7 @@ TENANT_DOMAIN_MODEL = "organizations.Domain"
 
 TENANT_USERS_DOMAIN = env.str("APP_DOMAIN")
 
-SESSION_COOKIE_DOMAIN = f".{env.str("APP_DOMAIN")}"
+SESSION_COOKIE_DOMAIN = f".{env.str("APP_DOMAIN")}:8000"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/

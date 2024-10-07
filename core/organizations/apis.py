@@ -2,10 +2,10 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object, inline_serializer
 
 from .models import Organization
@@ -13,7 +13,9 @@ from .selectors import organization_detail
 from .services import create_organization, update_organization
 
 
-class OrganizationDetailApi(ApiAuthMixin, APIView):
+class OrganizationDetailApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
         name_en = serializers.CharField()
@@ -67,7 +69,9 @@ class OrganizationDetailApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class OrganizationCreateApi(ApiAuthMixin, APIView):
+class OrganizationCreateApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class InputSerializer(serializers.Serializer):
         name_en = serializers.CharField()
         name_am = serializers.CharField()
@@ -117,7 +121,9 @@ class OrganizationCreateApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class OrganizationUpdateApi(ApiAuthMixin, APIView):
+class OrganizationUpdateApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     class InputSerializer(serializers.Serializer):
         name_en = serializers.CharField(max_length=255)
         name_am = serializers.CharField(max_length=255)

@@ -1,14 +1,17 @@
 from venv import logger
 
 from django.contrib.auth import authenticate, login, logout
+from django_tenants.utils import (
+    get_public_schema_name,
+)
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.exceptions import APIError
-from core.api.mixins import ApiAuthMixin
 from core.authentication.services import (
     generate_reset_otp,
     reset_user_password,
@@ -16,6 +19,7 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
+from core.user_management.selectors import user_profile_details
 from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
 
@@ -62,39 +66,76 @@ class LoginApi(APIView):
     serializer_class = InputSerializer
 
     def post(self, request):
-        serializer = self.InputSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer = self.InputSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
 
-        user = authenticate(request, **serializer.validated_data)
+            user = authenticate(request, **serializer.validated_data)
 
-        if user is None:
-            raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
+            if user is None:
+                raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
 
-        login(request, user, backend="tenant_users.permissions.backend.UserBackend")
+            login(request, user, backend="tenant_users.permissions.backend.UserBackend")
 
-        session_key = request.session.session_key
+            session_key = request.session.session_key
 
-        response_data = {
-            "session": session_key,
-        }
+            organizations = user.tenants.prefetch_related("domains").all()
 
-        return Response(data=response_data)
+            organizations_data = []
+            for organization_instance in organizations:
+                if organization_instance.schema_name != get_public_schema_name():
+                    domains = [
+                        {
+                            "id": domain.id,
+                            "domain": domain.domain,
+                            "is_primary": domain.is_primary,
+                        }
+                        for domain in organization_instance.domains.all()
+                    ]
+
+                    organization_data = {
+                        "id": organization_instance.id,
+                        "name_en": organization_instance.name_en,
+                        "name_am": organization_instance.name_am,
+                        "domains": domains,
+                    }
+
+                    organizations_data.append(organization_data)
+
+            response_data = {
+                "session": session_key,
+                "organizations": organizations_data,
+            }
+
+            return Response(data=response_data)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
 
 
-class LogoutApi(ApiAuthMixin, APIView):
+class LogoutApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         logout(request)
 
         return Response(data={"message": "The user has been logged out successfully."})
 
 
-class MeApi(ApiAuthMixin, APIView):
+class MeApi(APIView):
     serializer_class = CurrentUserSerializer
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            user_instance = get_object(User, id=request.user.id)
-            output_serializer = CurrentUserSerializer(user_instance)
+            user_instance = User.objects.prefetch_related("user_profile").get(id=request.user.id)
+
+            user_profile = user_profile_details(user_instance=user_instance)
+
+            output_serializer = CurrentUserSerializer(user_profile)
 
             response_data = {"my_profile": output_serializer.data}
 
@@ -107,7 +148,9 @@ class MeApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class RequestQRCodeApi(ApiAuthMixin, APIView):
+class RequestQRCodeApi(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         current_user = request.user
 
@@ -125,7 +168,9 @@ class RequestQRCodeApi(ApiAuthMixin, APIView):
             raise ValidationError(e)
 
 
-class ValidateOneTimePassword(ApiAuthMixin, APIView):
+class ValidateOneTimePassword(APIView):
+    permission_classes = [IsAuthenticated]
+
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
 

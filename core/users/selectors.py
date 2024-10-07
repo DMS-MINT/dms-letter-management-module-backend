@@ -1,19 +1,13 @@
-from django.db.models import Q
+from tenant_users.tenants.utils import get_current_tenant
 
+from .filters import BaseUserFilter
 from .models import User
 
 
 def user_get_users(current_user=User, filters=None):
-    is_staff = filters.get("is_staff")
+    filters = filters or {}
+    current_tenant_id = get_current_tenant().id
 
-    if not is_staff:
-        users = User.objects.filter(
-            Q(is_admin=False) & Q(is_superuser=False) & ~Q(id=current_user.id) & ~Q(is_staff=True),
-        )
-        return list(users)
+    qs = User.objects.prefetch_related("user_profile").filter(tenants__id=current_tenant_id).all()
 
-    users = User.objects.filter(
-        Q(is_admin=False) & Q(is_superuser=False) & ~Q(id=current_user.id) & Q(is_staff=is_staff),
-    )
-
-    return list(users)
+    return BaseUserFilter(filters, qs).qs
