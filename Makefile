@@ -17,6 +17,12 @@ collectstatic:
 	@echo "Collecting static files..."
 	@python manage.py collectstatic --noinput
 
+# Flush the database (removes all data and resets it)
+.PHONY: flush
+flush: 
+	@echo "Flushing the database..."
+	@python manage.py flush
+
 # Generate API schema
 .PHONY: generate-schema
 generate-schema:
@@ -54,12 +60,18 @@ migrations:
 	@echo "Creating migration files..."
 	@python manage.py makemigrations
 
-# Apply migrations
-.PHONY: migrate
-migrate:
-	@echo "Applying migrations..."
-	@python manage.py migrate
+# Apply tenant-specific migrations
+.PHONY: migrate_tenant
+migrate_tenant:
+	@echo "Applying tenant-specific migrations..."
+	@python manage.py migrate_schemas
 
+# Apply shared migrations
+.PHONY: migrate_shared
+migrate_shared:
+	@echo "Applying shared migrations..."
+	@python manage.py migrate_schemas --shared
+	
 # Run the development server
 .PHONY: run-server
 run-server:
