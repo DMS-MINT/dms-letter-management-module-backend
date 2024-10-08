@@ -3,8 +3,6 @@ Django==5.0.6
 django-environ==0.11.2
 psycopg2-binary==2.9.9
 djangorestframework==3.14.0
-django-tenants==3.7.0
-django-tenant-users==2.0.0
 
 # Celery and Related Extensions
 celery==5.4.0

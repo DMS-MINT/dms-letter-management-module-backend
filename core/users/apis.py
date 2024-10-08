@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.api.mixins import ApiAuthMixin, HasTenantAccess
+from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 from core.user_management.selectors import user_profile_details
 from core.users.models import User
@@ -15,9 +14,7 @@ from .serializers import UserDetailSerializer, UserListSerializer
 from .services import user_create, user_update
 
 
-class UserListApi(APIView):
-    permission_classes = [IsAuthenticated]
-
+class UserListApi(ApiAuthMixin, APIView):
     class FilterSerializer(serializers.Serializer):
         filter = serializers.ChoiceField(
             choices=[
@@ -58,8 +55,7 @@ class UserListApi(APIView):
             raise ValidationError(e)
 
 
-class UserDetailAPI(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
+class UserDetailAPI(ApiAuthMixin, APIView):
     serializer_class = UserDetailSerializer
 
     def get(self, request, user_id):
@@ -81,9 +77,7 @@ class UserDetailAPI(APIView):
             raise ValidationError(e)
 
 
-class UserCreateApi(APIView):
-    permission_classes = [IsAuthenticated]
-
+class UserCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         email = serializers.EmailField()
         password = serializers.CharField()
@@ -125,9 +119,7 @@ class UserCreateApi(APIView):
             raise ValidationError(e)
 
 
-class UserUpdateApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class UserUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         email = serializers.EmailField(required=False)
 

@@ -1,17 +1,14 @@
 from venv import logger
 
 from django.contrib.auth import authenticate, login, logout
-from django_tenants.utils import (
-    get_public_schema_name,
-)
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import AuthenticationFailed, ValidationError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.exceptions import APIError
+from core.api.mixins import ApiAuthMixin
 from core.authentication.services import (
     generate_reset_otp,
     reset_user_password,
@@ -75,36 +72,12 @@ class LoginApi(APIView):
             if user is None:
                 raise AuthenticationFailed("Invalid login credentials. Please try again or contact support.")
 
-            login(request, user, backend="tenant_users.permissions.backend.UserBackend")
+            login(request, user)
 
             session_key = request.session.session_key
 
-            organizations = user.tenants.prefetch_related("domains").all()
-
-            organizations_data = []
-            for organization_instance in organizations:
-                if organization_instance.schema_name != get_public_schema_name():
-                    domains = [
-                        {
-                            "id": domain.id,
-                            "domain": domain.domain,
-                            "is_primary": domain.is_primary,
-                        }
-                        for domain in organization_instance.domains.all()
-                    ]
-
-                    organization_data = {
-                        "id": organization_instance.id,
-                        "name_en": organization_instance.name_en,
-                        "name_am": organization_instance.name_am,
-                        "domains": domains,
-                    }
-
-                    organizations_data.append(organization_data)
-
             response_data = {
                 "session": session_key,
-                "organizations": organizations_data,
             }
 
             return Response(data=response_data)
@@ -116,18 +89,15 @@ class LoginApi(APIView):
             raise ValidationError(e)
 
 
-class LogoutApi(APIView):
-    permission_classes = [IsAuthenticated]
-
+class LogoutApi(ApiAuthMixin, APIView):
     def get(self, request):
         logout(request)
 
         return Response(data={"message": "The user has been logged out successfully."})
 
 
-class MeApi(APIView):
+class MeApi(ApiAuthMixin, APIView):
     serializer_class = CurrentUserSerializer
-    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
@@ -148,9 +118,7 @@ class MeApi(APIView):
             raise ValidationError(e)
 
 
-class RequestQRCodeApi(APIView):
-    permission_classes = [IsAuthenticated]
-
+class RequestQRCodeApi(ApiAuthMixin, APIView):
     def post(self, request):
         current_user = request.user
 
@@ -168,9 +136,7 @@ class RequestQRCodeApi(APIView):
             raise ValidationError(e)
 
 
-class ValidateOneTimePassword(APIView):
-    permission_classes = [IsAuthenticated]
-
+class ValidateOneTimePassword(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
 

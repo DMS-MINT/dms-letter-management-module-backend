@@ -2,20 +2,17 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.api.mixins import HasTenantAccess
+from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 
 from .models import JobTitle
 from .services import job_title_create, job_title_update
 
 
-class JobTitleListApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class JobTitleListApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
         title_en = serializers.CharField(max_length=255)
@@ -40,9 +37,7 @@ class JobTitleListApi(APIView):
             raise ValueError(e)
 
 
-class JobTitleDetailApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class JobTitleDetailApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
         title_en = serializers.CharField(max_length=255)
@@ -69,9 +64,7 @@ class JobTitleDetailApi(APIView):
             raise ValueError(e)
 
 
-class JobTitleCreateApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class JobTitleCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         title_en = serializers.CharField(max_length=255)
         title_am = serializers.CharField(max_length=255)
@@ -101,9 +94,7 @@ class JobTitleCreateApi(APIView):
             raise ValueError(e)
 
 
-class JobTitleUpdateApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class JobTitleUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         title_en = serializers.CharField(max_length=255)
         title_am = serializers.CharField(max_length=255)
@@ -138,9 +129,7 @@ class JobTitleUpdateApi(APIView):
             raise ValueError(e)
 
 
-class JobTitleDeleteApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class JobTitleDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, job_title_id):
         job_title_instance = get_object(JobTitle, id=job_title_id)
 

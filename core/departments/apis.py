@@ -2,20 +2,17 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.api.mixins import HasTenantAccess
+from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 
 from .models import Department
 from .services import department_create, department_update
 
 
-class DepartmentListApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class DepartmentListApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
         department_name_en = serializers.CharField(max_length=255)
@@ -42,9 +39,7 @@ class DepartmentListApi(APIView):
             raise ValueError(e)
 
 
-class DepartmentDetailApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class DepartmentDetailApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
         department_name_en = serializers.CharField(max_length=255)
@@ -76,9 +71,7 @@ class DepartmentDetailApi(APIView):
             raise ValueError(e)
 
 
-class DepartmentCreateApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class DepartmentCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         department_name_en = serializers.CharField(max_length=255)
         department_name_am = serializers.CharField(max_length=255)
@@ -113,9 +106,7 @@ class DepartmentCreateApi(APIView):
             raise ValueError(e)
 
 
-class DepartmentUpdateApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class DepartmentUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         department_name_en = serializers.CharField(max_length=255)
         department_name_am = serializers.CharField(max_length=255)
@@ -154,9 +145,7 @@ class DepartmentUpdateApi(APIView):
             raise ValueError(e)
 
 
-class DepartmentDeleteApi(APIView):
-    permission_classes = [IsAuthenticated, HasTenantAccess]
-
+class DepartmentDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, department_id):
         department_instance = get_object(Department, id=department_id)
 

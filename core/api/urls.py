@@ -10,7 +10,6 @@ urlpatterns: list[URLResolver] = [
     path("job_titles/", include(("core.job_titles.urls", "job_titles"), namespace="job_titles")),
     path("letters/", include(("core.letters.urls", "letters"), namespace="letters")),
     path("notifications/", include(("core.notifications.urls", "notifications"), namespace="notifications")),
-    path("organizations/", include(("core.organizations.urls", "organizations"), namespace="organizations")),
     path("participants/", include(("core.participants.urls", "participants"), namespace="participants")),
     path("users/", include(("core.users.urls", "users"), namespace="users")),
     path("signatures/", include(("core.signatures.urls", "signatures"), namespace="signatures")),

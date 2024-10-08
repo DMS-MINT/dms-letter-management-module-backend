@@ -1,8 +1,6 @@
 from typing import Optional
 
 from django.db import transaction
-from django_tenants.utils import get_public_schema_name, schema_context
-from tenant_users.tenants.utils import get_current_tenant
 
 from core.user_management.models import UserProfile
 
@@ -25,14 +23,11 @@ def user_create(
     is_staff: bool = False,
     is_superuser: bool = False,
 ) -> User:
-    current_org = get_current_tenant()
-
-    with schema_context(get_public_schema_name()):
-        user_instance = User.objects.create_user(
-            email=email,
-            password=password,
-            is_active=True,
-        )
+    user_instance = User.objects.create_user(
+        email=email,
+        password=password,
+        is_active=True,
+    )
 
     UserProfile.objects.create(
         user=user_instance,
@@ -46,8 +41,6 @@ def user_create(
         department_id=department,
         phone_number=phone_number,
     )
-
-    current_org.add_user(user_instance, is_superuser=is_superuser, is_staff=is_staff)
 
     return user_instance
 

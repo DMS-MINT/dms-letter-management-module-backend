@@ -3,11 +3,8 @@ from typing import Sequence, Type
 
 from django.conf import settings
 from django.contrib import auth
-from django.http import HttpRequest
-from django.views import View
 from rest_framework.authentication import BaseAuthentication, SessionAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
-from tenant_users.tenants.utils import get_current_tenant
 
 
 def get_auth_header(headers):
@@ -68,10 +65,3 @@ class ApiAuthMixin:
         SessionAsHeaderAuthentication,
     ]
     permission_classes: Sequence[Type[BasePermission]] = [IsAuthenticated]
-
-
-class HasTenantAccess(BasePermission):
-    def has_permission(self, request: HttpRequest, view: View) -> bool:
-        tenant = get_current_tenant()
-
-        return tenant.user_set.filter(id=request.user.id).exists()
