@@ -7,5 +7,5 @@ from .models import User
 
 @receiver(pre_save, sender=User)
 def set_otp_secret(instance, **kwargs):
-    if instance.otp_secret:
+    if not instance.otp_secret:
         instance.otp_secret = pyotp.random_base32()
