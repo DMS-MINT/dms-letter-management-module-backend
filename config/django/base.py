@@ -12,6 +12,9 @@ DEBUG = env.bool("DJANGO_DEBUG", default=True)  # type: ignore
 
 ALLOWED_HOSTS: list[str] = ["*"]
 
+# Shared Third-Party Applications
+# These are third-party apps that are used across all tenants
+
 SHARED_THIRD_PARTY_APPS: list[str] = [
     "corsheaders",
     "django_browser_reload",
@@ -24,12 +27,18 @@ SHARED_THIRD_PARTY_APPS: list[str] = [
     "theme",
 ]
 
+# Shared Local Applications
+# These are apps that are part of the core system and shared by all tenants
+
 SHARED_LOCAL_APPS: list[str] = [
     "core.authentication.apps.AuthenticationConfig",
     "core.organizations.apps.OrganizationsConfig",
     "core.common.apps.CommonConfig",
     "core.users.apps.UsersConfig",
 ]
+
+# Shared Apps (Django + Shared Third-Party and Local Apps)
+# A combination of core Django apps, shared third-party apps, and shared local apps
 
 SHARED_APPS = [
     "django.contrib.admin",
@@ -43,6 +52,9 @@ SHARED_APPS = [
     *SHARED_LOCAL_APPS,
 ]
 
+# Tenant-Specific Third-Party Applications
+# These apps are specific to each tenant
+
 TENANT_THIRD_PARTY_APPS: list[str] = [
     # "easyaudit",
     "corsheaders",
@@ -52,6 +64,10 @@ TENANT_THIRD_PARTY_APPS: list[str] = [
     "guardian",
     "tenant_users.permissions",
 ]
+
+# Tenant-Specific Local Applications
+# These are tenant-specific local apps providing functionality to each tenant
+
 TENANT_LOCAL_APPS: list[str] = [
     "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
@@ -71,6 +87,9 @@ TENANT_LOCAL_APPS: list[str] = [
     "core.workflows.apps.WorkflowsConfig",
 ]
 
+# Tenant Apps (Django + Tenant-Specific Apps)
+# A combination of core Django apps, tenant-specific third-party, and local apps
+
 TENANT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -83,9 +102,12 @@ TENANT_APPS = [
     *TENANT_LOCAL_APPS,
 ]
 
+# Installed Applications
+# This is the final list of installed apps combining both shared and tenant apps,
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
 
+# Middleware Configuration
 
 MIDDLEWARE: list[str] = [
     "django_tenants.middleware.main.TenantMainMiddleware",
@@ -105,8 +127,6 @@ MIDDLEWARE: list[str] = [
 
 ROOT_URLCONF = "config.urls"
 
-TENANT_USERS_ACCESS_ERROR_MESSAGE = "Custom access denied message."
-
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -123,8 +143,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "config.wsgi.application"
+# WSGI and ASGI Configuration
 
+WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
 CHANNEL_LAYERS = {
@@ -149,6 +170,8 @@ DATABASES = {
 
 DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -169,9 +192,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "users.User"
 
+AUTHENTICATION_BACKENDS = (
+    "tenant_users.permissions.backend.UserBackend",
+    "guardian.backends.ObjectPermissionBackend",
+)
+
+ANONYMOUS_USER_NAME = None
+GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
+
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "UTC"
@@ -182,21 +212,12 @@ USE_L10N = True
 
 USE_TZ = True
 
-TAILWIND_APP_NAME = "theme"
+INTERNAL_IPS = [env.str("INTERNAL_IPS", default="http://localhost:8000")]
 
-INTERNAL_IPS = ["localhost"]
-
-TENANT_MODEL = "organizations.Organization"
-
-TENANT_DOMAIN_MODEL = "organizations.Domain"
-
-TENANT_USERS_DOMAIN = env.str("APP_DOMAIN")
-
-SESSION_COOKIE_DOMAIN = f".{env.str("APP_DOMAIN")}:8000"
+APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")  # type: ignore
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
-
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATIC_URL = "/static/"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -204,6 +225,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "core", "static"),
 ]
 
+TAILWIND_APP_NAME = "theme"
+
+# Settings for configuring the Django REST Framework.
+# https://www.django-rest-framework.org/api-guide/settings/#settings
 REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "core.api.exception_handler.drf_exception_handler",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
@@ -214,18 +239,14 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-APP_DOMAIN = env("APP_DOMAIN", default="http://localhost:8000")  # type: ignore
+# https://drf-spectacular.readthedocs.io/en/latest/settings.html#example-swaggerui-settings
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Document Management System API",
+    "DESCRIPTION": "Documentation for the Document Management System APIs.",
+    "VERSION": "2.0.0",
+}
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-AUTHENTICATION_BACKENDS = (
-    "tenant_users.permissions.backend.UserBackend",
-    "guardian.backends.ObjectPermissionBackend",
-)
-
-ANONYMOUS_USER_NAME = None
-GUARDIAN_GET_CONTENT_TYPE = "polymorphic.contrib.guardian.get_polymorphic_base_content_type"
-
+from config.settings.tenant import *  # noqa
 from config.settings.celery import *  # noqa
 from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
@@ -236,10 +257,5 @@ from config.settings.sessions import *  # noqa
 from config.settings.debug_toolbar.settings import *  # noqa
 from config.settings.debug_toolbar.setup import DebugToolbarSetup  # noqa
 
-INSTALLED_APPS, MIDDLEWARE = DebugToolbarSetup.do_settings(INSTALLED_APPS, MIDDLEWARE)
 
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Letter Management Module API",
-    "DESCRIPTION": "This API provides endpoints for managing letters within the system. It includes operations for creating, retrieving, updating, and deleting letters, as well as additional features such as search and categorization.",  # noqa: E501
-    "VERSION": "1.0.0",
-}
+INSTALLED_APPS, MIDDLEWARE = DebugToolbarSetup.do_settings(INSTALLED_APPS, MIDDLEWARE)

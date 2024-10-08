@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 env = environ.Env()
 
-BASE_URL = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 APPS_DIR: str = os.path.join(BASE_DIR, "core")
 
