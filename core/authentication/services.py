@@ -29,7 +29,7 @@ def create_superuser(
     email: str,
     password: str,
 ):
-    return User.objects.create_superuser(password, email)
+    return User.objects.create_superuser(email, password)
 
 
 def setup_2fa(current_user: User):

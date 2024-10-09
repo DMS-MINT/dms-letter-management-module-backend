@@ -31,10 +31,10 @@ class SignUpApi(APIView):
     serializer_class = InputSerializer
 
     def post(self, request):
-        input_serializer = self.serializer_class(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
         try:
+            input_serializer = self.serializer_class(data=request.data)
+            input_serializer.is_valid(raise_exception=True)
+
             user_instance = create_superuser(**input_serializer.validated_data)
 
             response_data = {
@@ -78,6 +78,7 @@ class LoginApi(APIView):
 
             response_data = {
                 "session": session_key,
+                "organization": [],
             }
 
             return Response(data=response_data)
@@ -101,7 +102,7 @@ class MeApi(ApiAuthMixin, APIView):
 
     def get(self, request):
         try:
-            user_instance = User.objects.prefetch_related("user_profile").get(id=request.user.id)
+            user_instance = User.objects.get(id=request.user.id)
 
             user_profile = user_profile_details(user_instance=user_instance)
 
