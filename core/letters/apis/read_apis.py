@@ -16,14 +16,14 @@ from core.permissions.mixins import ApiPermMixin
 
 
 class LetterPdfView(APIView):
-    def get(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def get(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         try:
             pdf_content = letter_pdf(letter_instance=letter_instance)
 
             response = HttpResponse(pdf_content, content_type="application/pdf")
-            response["Content-Disposition"] = f'inline; filename="letter_{letter_instance.reference_number}.pdf"'
+            response["Content-Disposition"] = f'inline; filename="letter_{letter_instance.id}.pdf"'
 
             return response
 
@@ -79,9 +79,10 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = LetterDetailPolymorphicSerializer
 
-    def get(self, request, reference_number) -> Response:
+    def get(self, request, id) -> Response:
+        print(f"Received ID: {id}")
         current_user = request.user
-        letter_instance = get_object(Letter, reference_number=reference_number)
+        letter_instance = get_object(Letter, id=id)
 
         if isinstance(letter_instance, Incoming):
             if request.user.is_staff:

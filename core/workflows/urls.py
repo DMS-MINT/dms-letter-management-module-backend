@@ -12,11 +12,11 @@ from .apis import (
 )
 
 workflow_url_patterns: list[URLPattern] = [
-    path("<slug:reference_number>/share/", LetterShareApi.as_view(), name="letter-share"),
-    path("<slug:reference_number>/submit/", LetterSubmitApi.as_view(), name="letter-submit"),
-    path("<slug:reference_number>/retract/", LetterRetractApi.as_view(), name="letter-retract"),
-    path("<slug:reference_number>/publish/", LetterPublishApi.as_view(), name="letter-publish"),
-    path("<slug:reference_number>/reject/", LetterRejectApi.as_view(), name="letter-reject"),
-    path("<slug:reference_number>/close/", LetterCloseApi.as_view(), name="letter-close"),
-    path("<slug:reference_number>/reopen/", LetterReopenApi.as_view(), name="letter-reopen"),
+    path("<uuid:id>/share/", LetterShareApi.as_view(), name="letter-share"),
+    path("<uuid:id>/submit/", LetterSubmitApi.as_view(), name="letter-submit"),
+    path("<uuid:id>/retract/", LetterRetractApi.as_view(), name="letter-retract"),
+    path("<uuid:id>/publish/", LetterPublishApi.as_view(), name="letter-publish"),
+    path("<uuid:id>/reject/", LetterRejectApi.as_view(), name="letter-reject"),
+    path("<uuid:id>/close/", LetterCloseApi.as_view(), name="letter-close"),
+    path("<uuid:id>/reopen/", LetterReopenApi.as_view(), name="letter-reopen"),
 ]

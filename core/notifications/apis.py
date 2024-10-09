@@ -142,7 +142,6 @@ class SendReminderApi(ApiAuthMixin, APIView):
             #     "notification_type":""
             # }
 
-
             if "email" in input_serializer.validated_data.get("channels", []):
                 recipients = input_serializer.validated_data.get("to", [])
                 notification_message = input_serializer.validated_data.get("message")

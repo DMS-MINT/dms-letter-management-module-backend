@@ -21,9 +21,9 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = LetterDetailPolymorphicSerializer
 
-    def put(self, request, reference_number) -> Response:
+    def put(self, request, id) -> Response:
         try:
-            letter_instance = get_object(Letter, reference_number=reference_number)
+            letter_instance = get_object(Letter, id=id)
             self.check_object_permissions(request, letter_instance)
 
             letter_instance = letter_move_to_trash(letter_instance=letter_instance)
@@ -35,7 +35,7 @@ class LetterTrashApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -59,9 +59,9 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = LetterDetailPolymorphicSerializer
 
-    def put(self, request, reference_number) -> Response:
+    def put(self, request, id) -> Response:
         try:
-            letter_instance = get_object(Letter, reference_number=reference_number)
+            letter_instance = get_object(Letter, id=id)
             self.check_object_permissions(request, letter_instance)
 
             letter_instance = letter_restore_from_trash(letter_instance=letter_instance)
@@ -73,7 +73,7 @@ class LetterRestoreApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -100,9 +100,9 @@ class LetterDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = InputSerializer
 
-    def put(self, request, reference_number) -> Response:
+    def put(self, request, id) -> Response:
         try:
-            letter_instance = get_object(Letter, reference_number=reference_number)
+            letter_instance = get_object(Letter, id=id)
             self.check_object_permissions(request, letter_instance)
 
             input_serializer = self.InputSerializer(data=request.data)

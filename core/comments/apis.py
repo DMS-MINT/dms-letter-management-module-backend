@@ -24,8 +24,8 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = InputSerializer
 
-    def post(self, request, reference_number):
-        letter_instance = get_object_or_404(Letter, reference_number=reference_number)
+    def post(self, request, id):
+        letter_instance = get_object_or_404(Letter, id=id)
         self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data)
@@ -48,7 +48,7 @@ class CommentCreateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": response_data,
@@ -99,7 +99,7 @@ class CommentUpdateApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{letter_instance.reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": response_data,
@@ -132,7 +132,7 @@ class CommentDeleteApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{letter_instance.reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {

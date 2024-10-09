@@ -5,35 +5,25 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
-from core.common.utils import inline_serializer
 
-from .models import Enterprise
+from .models import Department
 
-
-class EnterpriseListApi(ApiAuthMixin, APIView):
+class DepartmentListApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
-        name_en = serializers.CharField()
-        name_am = serializers.CharField()
-        email = serializers.EmailField()
-        phone_number = serializers.IntegerField()
-        address = inline_serializer(
-            fields={
-                "city_en": serializers.CharField(),
-                "city_am": serializers.CharField(),
-            },
-        )
-        postal_code = serializers.IntegerField()
-        logo = serializers.ImageField()
+        abbreviation_am = serializers.CharField()
+        abbreviation_en = serializers.CharField()
+        department_name_en= serializers.CharField()
+        department_name_am= serializers.CharField()
 
     serializer_class = OutputSerializer
 
     def get(self, request) -> Response:
-        contacts = Enterprise.objects.all()
+        contacts = Department.objects.all()
         try:
             output_serializer = self.OutputSerializer(contacts, many=True)
 
-            response_data = {"enterprises": output_serializer.data}
+            response_data = {"departments": output_serializer.data}
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 

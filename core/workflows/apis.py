@@ -42,8 +42,8 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     serializer_class = InputSerializer
 
-    def post(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def post(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         self.check_object_permissions(request, letter_instance)
 
@@ -68,7 +68,7 @@ class LetterShareApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -97,8 +97,8 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         signature_method = serializers.ChoiceField(required=False, choices=["Default", "Canvas"])
         otp = serializers.CharField()
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id = id)
         self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data)
@@ -114,15 +114,17 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 letter_instance=letter_instance,
                 signature_method="Default",
             )
+            
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
+            print(f"Received Per: {permissions}")
 
             response_data = {"message": "Letter has been submitted to the record office."}
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -152,8 +154,8 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         self.check_object_permissions(request, letter_instance)
 
@@ -173,7 +175,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -203,18 +205,21 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
+        reference_number = serializers.CharField()
+        published_at = serializers.DateTimeField()
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
-
-        input_serializer = self.InputSerializer(data=request.data)
-        input_serializer.is_valid(raise_exception=True)
-
-        otp = input_serializer.validated_data.get("otp")
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         try:
+            input_serializer = self.InputSerializer(data=request.data)
+            input_serializer.is_valid(raise_exception=True)
+            print(input_serializer.validated_data)
+
+            otp = input_serializer.validated_data.pop("otp")
+
             verify_otp(current_user=request.user, otp=otp)
-            letter_publish(current_user=request.user, letter_instance=letter_instance)
+            letter_publish(current_user=request.user, letter_instance=letter_instance,**input_serializer.validated_data,)
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
@@ -225,7 +230,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -238,12 +243,15 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except APIError as e:
+            print(f"APIError : {e}")
             raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
+            print(f"ValueErro: {e}")
             raise ValidationError(e)
 
         except Exception as e:
+            print(f"Exception: {e}")
             raise ValidationError(e)
 
 
@@ -255,8 +263,8 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
         message = serializers.CharField()
         otp = serializers.CharField()
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         input_serializer = self.InputSerializer(data=request.data)
         input_serializer.is_valid(raise_exception=True)
@@ -282,7 +290,7 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -307,8 +315,8 @@ class LetterRejectApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_close_letter"]
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         self.check_object_permissions(request, letter_instance)
 
@@ -324,7 +332,7 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {
@@ -349,8 +357,8 @@ class LetterCloseApi(ApiAuthMixin, ApiPermMixin, APIView):
 class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
     required_object_perms = ["can_view_letter", "can_reopen_letter"]
 
-    def put(self, request, reference_number) -> Response:
-        letter_instance = get_object(Letter, reference_number=reference_number)
+    def put(self, request, id) -> Response:
+        letter_instance = get_object(Letter, id=id)
 
         self.check_object_permissions(request, letter_instance)
 
@@ -366,7 +374,7 @@ class LetterReopenApi(ApiAuthMixin, ApiPermMixin, APIView):
 
             channel_layer = get_channel_layer()
             async_to_sync(channel_layer.group_send)(
-                f"letter_{reference_number}",
+                f"letter_{letter_instance.id}",
                 {
                     "type": "letter_update",
                     "message": {

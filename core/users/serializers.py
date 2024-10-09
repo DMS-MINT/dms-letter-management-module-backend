@@ -13,6 +13,13 @@ class UserListSerializer(serializers.Serializer):
             "title_am": serializers.CharField(),
         },
     )
+    department = inline_serializer(
+        fields={
+            "id": serializers.UUIDField(),
+            "abbreviation_en" : serializers.CharField(),
+            "abbreviation_am" : serializers.CharField()
+        },
+    )
 
 
 class UserDetailSerializer(serializers.Serializer):
