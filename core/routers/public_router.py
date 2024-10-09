@@ -30,6 +30,8 @@ class PublicRouter:
         if (
             obj1._meta.app_label in self.shared_django_apps_labels
             or obj2._meta.app_label in self.shared_django_apps_labels
+            or obj1._meta.app_label in self.shared_local_apps_labels
+            or obj2._meta.app_label in self.shared_local_apps_labels
         ):
             return True
         return False
