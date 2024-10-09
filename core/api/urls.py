@@ -13,4 +13,5 @@ urlpatterns: list[URLResolver] = [
     path("participants/", include(("core.participants.urls", "participants"), namespace="participants")),
     path("users/", include(("core.users.urls", "users"), namespace="users")),
     path("signatures/", include(("core.signatures.urls", "signatures"), namespace="signatures")),
+    path("tenants/", include(("core.tenants.urls", "tenants"), namespace="tenants")),
 ]
