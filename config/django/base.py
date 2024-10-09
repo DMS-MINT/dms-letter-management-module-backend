@@ -12,67 +12,13 @@ DEBUG = env.bool("DJANGO_DEBUG", default=True)  # type: ignore
 
 ALLOWED_HOSTS: list[str] = ["*"]
 
-# Shared Third-Party Applications
-# These are third-party apps that are used across all tenants
-
-SHARED_THIRD_PARTY_APPS: list[str] = [
-    "corsheaders",
-    "django_browser_reload",
-    "django_filters",
-    "django_tenants",
-    "drf_spectacular",
-    "tailwind",
-    "tenant_users.permissions",
-    "tenant_users.tenants",
-    "theme",
-]
-
-# Shared Local Applications
-# These are apps that are part of the core system and shared by all tenants
-
-SHARED_LOCAL_APPS: list[str] = [
-    "core.authentication.apps.AuthenticationConfig",
-    "core.organizations.apps.OrganizationsConfig",
-    "core.common.apps.CommonConfig",
-    "core.users.apps.UsersConfig",
-]
-
-# Shared Apps (Django + Shared Third-Party and Local Apps)
-# A combination of core Django apps, shared third-party apps, and shared local apps
-
-SHARED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
-    "django.contrib.staticfiles",
-    *SHARED_THIRD_PARTY_APPS,
-    *SHARED_LOCAL_APPS,
-]
-
-# Tenant-Specific Third-Party Applications
-# These apps are specific to each tenant
-
+# Tenant-specific Django applications and third-party/local apps
 TENANT_THIRD_PARTY_APPS: list[str] = [
-    # "easyaudit",
-    "corsheaders",
-    "polymorphic",
-    "django_extensions",
-    "rest_framework",
     "guardian",
-    "tenant_users.permissions",
 ]
-
-# Tenant-Specific Local Applications
-# These are tenant-specific local apps providing functionality to each tenant
-
 TENANT_LOCAL_APPS: list[str] = [
-    "core.api.apps.ApiConfig",
     "core.attachments.apps.AttachmentsConfig",
     "core.comments.apps.CommentsConfig",
-    "core.common.apps.CommonConfig",
     "core.contacts.apps.ContactsConfig",
     "core.departments.apps.DepartmentsConfig",
     "core.emails.apps.EmailsConfig",
@@ -86,21 +32,42 @@ TENANT_LOCAL_APPS: list[str] = [
     "core.user_management.apps.UserManagementConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
+TENANT_APPS: list[str] = [
+    *TENANT_THIRD_PARTY_APPS,
+    *TENANT_LOCAL_APPS,
+]
 
-# Tenant Apps (Django + Tenant-Specific Apps)
-# A combination of core Django apps, tenant-specific third-party, and local apps
-
-TENANT_APPS = [
+# Shared Django applications and third-party/local apps used across the project
+SHARED_DJANGO_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "whitenoise.runserver_nostatic",
-    "django.contrib.staticfiles",
-    *TENANT_THIRD_PARTY_APPS,
-    *TENANT_LOCAL_APPS,
 ]
+SHARED_THIRD_PARTY_APPS: list[str] = [
+    "corsheaders",
+    "django_extensions",
+    "drf_spectacular",
+    "polymorphic",
+    "rest_framework",
+    "tailwind",
+    "theme",
+]
+SHARED_LOCAL_APPS: list[str] = [
+    "core.api.apps.ApiConfig",
+    "core.authentication.apps.AuthenticationConfig",
+    "core.common.apps.CommonConfig",
+    "core.tenants.apps.TenantsConfig",
+    "core.users.apps.UsersConfig",
+]
+SHARED_APPS: list[str] = [
+    *SHARED_DJANGO_APPS,
+    *SHARED_THIRD_PARTY_APPS,
+    *SHARED_LOCAL_APPS,
+]
+
 
 # Installed Applications
 # This is the final list of installed apps combining both shared and tenant apps,
@@ -110,7 +77,6 @@ INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in S
 # Middleware Configuration
 
 MIDDLEWARE: list[str] = [
-    "django_tenants.middleware.main.TenantMainMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -118,7 +84,6 @@ MIDDLEWARE: list[str] = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "tenant_users.tenants.middleware.TenantAccessMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
@@ -158,17 +123,23 @@ CHANNEL_LAYERS = {
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django_tenants.postgresql_backend",
-        "NAME": env.str("DB_NAME"),
-        "USER": env.str("DB_USER"),
-        "PASSWORD": env.str("DB_PASSWORD"),
-        "HOST": env.str("DB_HOST"),
-        "PORT": env.str("DB_PORT"),
+    "public": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "public_db.sqlite3",
+    },
+    "tenant": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "tenant_db.sqlite3",
     },
 }
 
-DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
+# Set the default database alias
+DATABASES["default"] = DATABASES["public"]
+
+DATABASE_ROUTERS = [
+    "core.routers.public_router.PublicRouter",
+    "core.routers.tenant_router.TenantRouter",
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -193,7 +164,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "users.User"
 
 AUTHENTICATION_BACKENDS = (
-    "tenant_users.permissions.backend.UserBackend",
+    "django.contrib.auth.backends.ModelBackend",
     "guardian.backends.ObjectPermissionBackend",
 )
 
@@ -246,7 +217,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "2.0.0",
 }
 
-from config.settings.tenant import *  # noqa
 from config.settings.celery import *  # noqa
 from config.settings.logging import *  # noqa
 from config.settings.cors import *  # noqa
