@@ -34,7 +34,7 @@ class PublicRouter:
             or obj2._meta.app_label in self.shared_local_apps_labels
         ):
             return True
-        return False
+        return None
 
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """Allow migrations for shared apps in the public db."""
