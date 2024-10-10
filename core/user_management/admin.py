@@ -1,13 +1,20 @@
 from django.contrib import admin
 
-from .models import UserPreference, UserProfile, UserSetting
+from .models import Member, UserPermissions, UserPreference, UserProfile, UserSetting
+
+
+@admin.register(Member)
+class MemberAdmin(admin.ModelAdmin):
+    list_display = [
+        "user_id",
+    ]
 
 
 # Admin Configuration for the UserProfile Model
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = [
-        "user",
+        "member",
         "full_name_en",
         "job_title",
         "department",
@@ -61,14 +68,13 @@ class UserProfileAdmin(admin.ModelAdmin):
 # Admin Configuration for the UserSetting Model
 @admin.register(UserSetting)
 class UserSettingAdmin(admin.ModelAdmin):
-    list_display = ["user", "is_2fa_enabled"]
-    search_fields = ["user__email"]
+    list_display = ["member", "is_2fa_enabled"]
     fieldsets = (
         (
             "Settings",
             {
                 "fields": (
-                    "user",
+                    "member",
                     "is_2fa_enabled",
                 ),
             },
@@ -80,15 +86,31 @@ class UserSettingAdmin(admin.ModelAdmin):
 # Admin Configuration for the UserPreference Model
 @admin.register(UserPreference)
 class UserPreferenceAdmin(admin.ModelAdmin):
-    list_display = [
-        "user",
-    ]
-    search_fields = ["user__email"]
+    list_display = ["member"]
     fieldsets = (
         (
             "Settings",
             {
-                "fields": ("user",),
+                "fields": ("member",),
+            },
+        ),
+    )
+    readonly_fields = []
+
+
+# Admin Configuration for the UserPermissions Model
+@admin.register(UserPermissions)
+class UserPermissionsAdmin(admin.ModelAdmin):
+    list_display = ["member"]
+    fieldsets = (
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_admin",
+                    "is_staff",
+                    "is_superuser",
+                ),
             },
         ),
     )
