@@ -21,9 +21,9 @@ class TenantSetting(BaseModel):
         help_text=_("Enable to automatically generate reference numbers for letters. Disable for manual input."),
     )
 
+    def __str__(self) -> str:
+        return self.tenant
+
     class Meta:
         verbose_name: str = "Tenant Setting"
         verbose_name_plural: str = "Tenant Settings"
-
-    def __str__(self) -> str:
-        return self.tenant

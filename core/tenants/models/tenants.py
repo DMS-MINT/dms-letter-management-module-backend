@@ -11,7 +11,7 @@ class Tenant(BaseModel):
     name_en = models.CharField(max_length=255, verbose_name=_("Tenant Name (English)"))
     name_am = models.CharField(max_length=255, verbose_name=_("Tenant Name (Amharic)"))
 
-    database_name = models.CharField(max_length=255, unique=True, verbose_name=_("Database Name"))
+    database_name = models.CharField(max_length=64, unique=True, verbose_name=_("Database Name"))
 
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="tenant", on_delete=models.CASCADE)
 
