@@ -16,11 +16,12 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
+from core.tenants.selectors import list_user_tenants
 from core.user_management.selectors import user_profile_details
 from core.users.models import User
 from core.users.serializers import CurrentUserSerializer
 
-from .services import create_superuser
+from .services import create_user
 
 
 class SignUpApi(APIView):
@@ -35,7 +36,7 @@ class SignUpApi(APIView):
             input_serializer = self.serializer_class(data=request.data)
             input_serializer.is_valid(raise_exception=True)
 
-            user_instance = create_superuser(**input_serializer.validated_data)
+            user_instance = create_user(**input_serializer.validated_data, is_staff=True)
 
             response_data = {
                 "message": "Your account has been successfully created.",
@@ -76,9 +77,12 @@ class LoginApi(APIView):
 
             session_key = request.session.session_key
 
+            tenants = user.tenants.all()
+            user_tenants = list_user_tenants(user_id=user.id, tenants=tenants)
+
             response_data = {
                 "session": session_key,
-                "organization": [],
+                "tenants": user_tenants,
             }
 
             return Response(data=response_data)
