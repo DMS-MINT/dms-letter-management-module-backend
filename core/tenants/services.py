@@ -10,10 +10,6 @@ from core.users.models import User
 from .models import Domain, Tenant, TenantProfile
 
 
-def add_user():
-    pass
-
-
 def tenant_create(
     tenant_slug: str,
     current_user: User,
@@ -62,9 +58,6 @@ def tenant_create(
     # Create a domain associated with the organization and mark as primary
     Domain.objects.create(domain=tenant_primary_domain, tenant=tenant_instance, is_primary=True)
     Domain.objects.create(domain=tenant_admin_domain, tenant=tenant_instance, is_primary=False)
-
-    # Add the user to the organization with provided roles
-    # tenant_instance.add_user(current_user, is_superuser=is_superuser, is_staff=is_staff)
 
     address_instance, _ = Address.objects.get_or_create(
         city_en=address.get("city_en"),
