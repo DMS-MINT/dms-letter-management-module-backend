@@ -86,6 +86,7 @@ MIDDLEWARE: list[str] = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.tenants.middleware.TenantMiddleware",
     # "easyaudit.middleware.easyaudit.EasyAuditMiddleware",
     # "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
