@@ -1,10 +1,8 @@
-import threading
-
-from django.db import connections
+import contextvars
 
 from .utils import tenant_db_from_request
 
-THREAD_LOCAL = threading.local()
+current_db_var = contextvars.ContextVar("current_db")
 
 
 class TenantMiddleware:
@@ -13,14 +11,16 @@ class TenantMiddleware:
 
     def __call__(self, request):
         db = tenant_db_from_request(request)
-        setattr(THREAD_LOCAL, "DB", db)
-        response = self.get_response(request)
-        return response
+        mock = "tenant"
+        # After you implemented the database generator replace the 'mock' with 'db'
+        set_db_for_router(mock)
+
+        return self.get_response(request)
 
 
 def get_current_db_name():
-    return getattr(THREAD_LOCAL, "DB", None)
+    return current_db_var.get(None)
 
 
 def set_db_for_router(db):
-    setattr(THREAD_LOCAL, "DB", db)
+    current_db_var.set(db)
