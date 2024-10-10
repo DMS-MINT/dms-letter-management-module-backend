@@ -48,6 +48,14 @@ class User(BaseModel, AbstractUser, PermissionsMixin):
 
     otp_secret = models.TextField(editable=False, null=True, blank=True)
 
+    tenants = models.ManyToManyField(
+        "tenants.Tenant",
+        blank=True,
+        help_text=_("The tenants this user belongs to."),
+        verbose_name=_("tenants"),
+        related_name="user_set",
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)

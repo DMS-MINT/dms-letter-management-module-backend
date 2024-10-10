@@ -20,15 +20,21 @@ class UserAdmin(admin.ModelAdmin):
         (
             "Authentication Info",
             {
-                "fields": ("email", "password"),
+                "fields": ("email",),
             },
         ),
-        # (
-        #     "Permissions",
-        #     {
-        #         "fields": ("is_active", "is_staff", "is_admin", "is_superuser"),
-        #     },
-        # ),
+        (
+            "Tenants",
+            {
+                "fields": ("tenants",),
+            },
+        ),
+        (
+            "Global Permissions",
+            {
+                "fields": ("is_active", "is_staff", "is_admin", "is_superuser"),
+            },
+        ),
         (
             "Important Dates",
             {
@@ -36,7 +42,7 @@ class UserAdmin(admin.ModelAdmin):
             },
         ),
     )
-    readonly_fields = ["created_at", "updated_at"]
+    readonly_fields = ["email", "created_at", "updated_at", "is_admin", "is_staff", "is_superuser"]
 
     def save_model(self, request, obj, form, change):
         if change:
