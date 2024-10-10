@@ -12,10 +12,13 @@ class TenantAdmin(admin.ModelAdmin):
         (
             "Tenant Details",
             {
-                "fields": ("name_en", "name_am"),
+                "fields": ("name_en", "name_am", "database_name", "owner"),
             },
         ),
     )
+
+    # Adding readonly_fields for fields that shouldn't be edited once set
+    readonly_fields = ["database_name", "owner"]
 
     show_in_index = True
 
@@ -41,7 +44,7 @@ class TenantProfileAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "tenant",
-                    "description",
+                    "bio",
                     "contact_phone",
                     "contact_email",
                     "address",
@@ -52,6 +55,7 @@ class TenantProfileAdmin(admin.ModelAdmin):
         ),
     )
 
+    # Mark the logo as readonly if we want to prevent accidental changes
     readonly_fields = ["logo"]
 
     show_in_index = True
@@ -59,7 +63,8 @@ class TenantProfileAdmin(admin.ModelAdmin):
 
 @admin.register(TenantSetting)
 class TenantSettingAdmin(admin.ModelAdmin):
-    list_display = ["tenant", "auto_ref_number_letters"]
+    list_display = ["tenant", "auto_ref_number_letters", "auto_date_letters"]
+
     fieldsets = (
         (
             "Settings",
@@ -67,18 +72,19 @@ class TenantSettingAdmin(admin.ModelAdmin):
                 "fields": (
                     "tenant",
                     "auto_ref_number_letters",
+                    "auto_date_letters",
                 ),
             },
         ),
     )
 
+    show_in_index = True
+
 
 @admin.register(Domain)
 class DomainAdmin(admin.ModelAdmin):
-    list_display = ["domain", "tenant"]
-    search_fields = [
-        "domain",
-    ]
+    list_display = ["domain", "tenant", "is_primary"]
+    search_fields = ["domain"]
 
     fieldsets = (
         (
