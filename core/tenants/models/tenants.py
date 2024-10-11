@@ -19,7 +19,7 @@ class Tenant(BaseModel):
         return f"{self.name_en} ({self.name_am})"
 
     class Meta:
-        unique_together = ("name_en", "owner")
+        unique_together = ("name_en", "name_am", "owner")
         verbose_name = _("Tenant")
         verbose_name_plural = _("Tenants")
 

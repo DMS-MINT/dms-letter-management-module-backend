@@ -9,7 +9,7 @@ def tenant_directory_path(instance, filename):
 
 
 class TenantProfile(BaseModel):
-    tenant = models.ForeignKey(
+    tenant = models.OneToOneField(
         "tenants.Tenant",
         on_delete=models.CASCADE,
         related_name="tenant_profile",

@@ -5,7 +5,7 @@ from core.common.models import BaseModel
 
 
 class TenantSetting(BaseModel):
-    tenant = models.ForeignKey(
+    tenant = models.OneToOneField(
         "tenants.Tenant",
         on_delete=models.CASCADE,
         related_name="tenant_settings",
@@ -22,7 +22,7 @@ class TenantSetting(BaseModel):
     )
 
     def __str__(self) -> str:
-        return self.tenant
+        return f"{self.tenant}"
 
     class Meta:
         verbose_name: str = "Tenant Setting"
