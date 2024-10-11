@@ -10,51 +10,28 @@ from core.common.utils import inline_serializer
 
 from .models import Tenant
 from .selectors import tenant_detail
+from .serializers import TenantProfileSerializer, TenantSerializer, TenantSettingSerializer
 from .services import tenant_create
 
 
 class TenantDetailApi(ApiAuthMixin, APIView):
-    class OutputSerializer(serializers.Serializer):
-        id = serializers.UUIDField()
-        name_en = serializers.CharField()
-        name_am = serializers.CharField()
-        domains = inline_serializer(
-            many=True,
-            fields={
-                "id": serializers.UUIDField(),
-                "domain": serializers.CharField(),
-                "is_primary": serializers.BooleanField(),
-            },
-        )
-        bio = serializers.CharField(default=None)
-        contact_phone = serializers.IntegerField(default=None)
-        contact_email = serializers.EmailField(default=None)
-        address = inline_serializer(
-            default=None,
-            fields={
-                "city_en": serializers.CharField(),
-                "city_am": serializers.CharField(),
-            },
-        )
-        postal_code = serializers.IntegerField(default=None)
-        logo = serializers.ImageField(default=None)
-        created_at = serializers.DateTimeField()
-        updated_at = serializers.DateTimeField()
+    class OutputSerializer(TenantSerializer):
+        tenant_profile = TenantProfileSerializer()
+        tenant_settings = TenantSettingSerializer()
 
     serializer_class = OutputSerializer
 
-    def get(self, requests, tenant_id):
+    def get(self, request, tenant_id):
         try:
             tenant_instance = Tenant.objects.prefetch_related(
                 "tenant_profile__address",
+                "tenant_settings",
                 "domains",
             ).get(
                 id=tenant_id,
             )
 
-            tenant_data = tenant_detail(tenant_instance=tenant_instance)
-
-            output_serializer = self.serializer_class(tenant_data)
+            output_serializer = self.OutputSerializer(tenant_instance)
 
             response_data = {"tenant": output_serializer.data}
 
@@ -91,21 +68,20 @@ class TenantCreateApi(ApiAuthMixin, APIView):
             input_serializer = self.serializer_class(data=request.data)
             input_serializer.is_valid(raise_exception=True)
 
-            organization_id = tenant_create(
+            tenant_id = tenant_create(
                 current_user=request.user,
                 **input_serializer.validated_data,
             )
 
             tenant_instance = Tenant.objects.prefetch_related(
                 "tenant_profile__address",
+                "tenant_settings",
                 "domains",
             ).get(
-                id=organization_id,
+                id=tenant_id,
             )
 
-            tenant_data = tenant_detail(tenant_instance=tenant_instance)
-
-            output_serializer = TenantDetailApi.serializer_class(tenant_data)
+            output_serializer = TenantDetailApi.OutputSerializer(tenant_instance)
 
             response_data = {"tenant": output_serializer.data}
 
