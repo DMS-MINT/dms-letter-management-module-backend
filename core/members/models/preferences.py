@@ -1,11 +1,10 @@
 from django.db import models
-from django.utils.translation import gettext_lazy as _
 
 from core.common.models import BaseModel
 
 
 class MemberPreference(BaseModel):
-    member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_preference")
+    member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_preferences")
 
     class Meta:
         verbose_name: str = "Member Preference"
