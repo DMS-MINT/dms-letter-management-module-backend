@@ -9,41 +9,15 @@ from core.users.models import User
 from .models import Member, MemberPermissions, MemberPreference, MemberProfile, MemberSetting
 
 
-def set_or_update_user_permissions(
-    *,
-    user_id: str,
-    is_admin: bool = None,
-    is_staff: bool = None,
-    is_superuser: bool = None,
-):
-    member_instance, _ = Member.objects.get_or_create(user_id=user_id)
-
-    user_permissions, _ = MemberPermissions.objects.get_or_create(member=member_instance)
-
-    user_permissions.is_admin = is_admin
-    user_permissions.is_staff = is_staff
-    user_permissions.is_superuser = is_superuser
-    user_permissions.save()
-
-    return user_permissions
-
-
-def add_user(
-    *,
-    current_user: User,
-    tenant_instance: Tenant,
-    is_admin: bool = None,
-    is_staff: bool = None,
-    is_superuser: bool = None,
-):
+@transaction.atomic
+def set_owner(*, current_user: User, tenant_instance: Tenant):
     current_user.tenants.add(tenant_instance)
 
-    set_or_update_user_permissions(
-        user_id=current_user.id,
-        is_admin=is_admin,
-        is_staff=is_staff,
-        is_superuser=is_superuser,
-    )
+    member_instance = Member.objects.create(user_id=current_user.id)
+    MemberProfile.objects.create(member=member_instance)
+    MemberSetting.objects.create(member=member_instance)
+    MemberPermissions.objects.create(member=member_instance, is_admin=True, is_staff=True)
+    MemberPreference.objects.create(member=member_instance)
 
 
 @transaction.atomic
@@ -89,13 +63,7 @@ def user_create(
 
     tenant_instance = get_object(Tenant, slug="mint")
 
-    add_user(
-        current_user=user_instance,
-        tenant_instance=tenant_instance,
-        is_admin=is_admin,
-        is_staff=is_staff,
-        is_superuser=False,
-    )
+    user_instance.tenants.add(tenant_instance)
 
     MemberPermissions.objects.get_or_create(
         member=member_instance,
