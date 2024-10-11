@@ -7,6 +7,7 @@ class Member(BaseModel):
     user_id = models.UUIDField(unique=True)
 
     class Meta:
+        unique_together = ("user_id",)
         verbose_name = "Member"
         verbose_name_plural = "Members"
 

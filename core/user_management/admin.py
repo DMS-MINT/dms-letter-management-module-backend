@@ -65,39 +65,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
 
 
-# Admin Configuration for the UserSetting Model
-@admin.register(UserSetting)
-class UserSettingAdmin(admin.ModelAdmin):
-    list_display = ["member", "is_2fa_enabled"]
-    fieldsets = (
-        (
-            "Settings",
-            {
-                "fields": (
-                    "member",
-                    "is_2fa_enabled",
-                ),
-            },
-        ),
-    )
-    readonly_fields = ["is_2fa_enabled"]
-
-
-# Admin Configuration for the UserPreference Model
-@admin.register(UserPreference)
-class UserPreferenceAdmin(admin.ModelAdmin):
-    list_display = ["member"]
-    fieldsets = (
-        (
-            "Settings",
-            {
-                "fields": ("member",),
-            },
-        ),
-    )
-    readonly_fields = []
-
-
 # Admin Configuration for the UserPermissions Model
 @admin.register(UserPermissions)
 class UserPermissionsAdmin(admin.ModelAdmin):
@@ -111,6 +78,40 @@ class UserPermissionsAdmin(admin.ModelAdmin):
                     "is_staff",
                     "is_superuser",
                 ),
+            },
+        ),
+    )
+    readonly_fields = []
+
+
+# Admin Configuration for the UserSetting Model
+@admin.register(UserSetting)
+class UserSettingAdmin(admin.ModelAdmin):
+    list_display = ["member", "is_2fa_enabled"]
+    fieldsets = (
+        (
+            "Settings",
+            {
+                "fields": (
+                    "member",
+                    "is_2fa_enabled",
+                    "is_verified",
+                ),
+            },
+        ),
+    )
+    readonly_fields = ["is_2fa_enabled", "is_verified"]
+
+
+# Admin Configuration for the UserPreference Model
+@admin.register(UserPreference)
+class UserPreferenceAdmin(admin.ModelAdmin):
+    list_display = ["member"]
+    fieldsets = (
+        (
+            "Settings",
+            {
+                "fields": ("member",),
             },
         ),
     )

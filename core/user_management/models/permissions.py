@@ -4,13 +4,12 @@ from core.common.models import BaseModel
 
 
 class UserPermissions(BaseModel):
-    member = models.ForeignKey("user_management.Member", on_delete=models.CASCADE, related_name="member_permissions")
+    member = models.OneToOneField("user_management.Member", on_delete=models.CASCADE, related_name="member_permissions")
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ("member",)
         verbose_name = "User Permission"
         verbose_name_plural = "User Permissions"
 

@@ -5,10 +5,9 @@ from core.common.models import BaseModel
 
 
 class UserPreference(BaseModel):
-    member = models.ForeignKey("user_management.Member", on_delete=models.CASCADE, related_name="member_preference")
+    member = models.OneToOneField("user_management.Member", on_delete=models.CASCADE, related_name="member_preference")
 
     class Meta:
-        unique_together = ("member",)
         verbose_name: str = "User Preference"
         verbose_name_plural: str = "User Preferences"
 

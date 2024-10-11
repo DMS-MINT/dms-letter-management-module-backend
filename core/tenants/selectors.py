@@ -10,7 +10,7 @@ def list_user_tenants(*, user_id: str, tenants):
 
 
 def tenant_detail(*, user_id: str, tenant_instance: Tenant):
-    tenant_profile = tenant_instance.tenant_profile.first()
+    tenant_profile = tenant_instance.tenant_profile
 
     db = tenant_instance.database_name
 
