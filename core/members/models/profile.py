@@ -15,9 +15,9 @@ class MemberProfile(BaseModel):
     middle_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Middle Name (Amharic)"))
     last_name_am = models.CharField(max_length=35, blank=True, verbose_name=_("Last Name (Amharic)"))
 
-    job_title = models.ForeignKey("job_titles.JobTitle", on_delete=models.CASCADE)
-    department = models.ForeignKey("departments.Department", on_delete=models.CASCADE)
-    phone_number = models.PositiveBigIntegerField(_("phone number"), unique=True)
+    job_title = models.ForeignKey("job_titles.JobTitle", on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey("departments.Department", on_delete=models.CASCADE, null=True, blank=True)
+    phone_number = models.PositiveBigIntegerField(unique=True, null=True, blank=True, verbose_name=_("phone number"))
 
     class Meta:
         verbose_name: str = "Member Profile"
