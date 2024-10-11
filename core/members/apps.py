@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class UserManagementConfig(AppConfig):
+class MemberConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "core.user_management"
+    name = "core.members"

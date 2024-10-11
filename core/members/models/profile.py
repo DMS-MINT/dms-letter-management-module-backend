@@ -5,7 +5,7 @@ from core.common.models import BaseModel
 
 
 class UserProfile(BaseModel):
-    member = models.OneToOneField("user_management.Member", on_delete=models.CASCADE, related_name="member_profile")
+    member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_profile")
 
     first_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("First Name (English)"))
     middle_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("Middle Name (English)"))
@@ -20,8 +20,8 @@ class UserProfile(BaseModel):
     phone_number = models.PositiveBigIntegerField(_("phone number"), unique=True)
 
     class Meta:
-        verbose_name: str = "User Profile"
-        verbose_name_plural: str = "User Profiles"
+        verbose_name: str = "Member Profile"
+        verbose_name_plural: str = "Member Profiles"
 
     def __str__(self) -> str:
         return f"{self.full_name_en} - {self.job_title}"

@@ -5,11 +5,11 @@ from core.common.models import BaseModel
 
 
 class UserPreference(BaseModel):
-    member = models.OneToOneField("user_management.Member", on_delete=models.CASCADE, related_name="member_preference")
+    member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_preference")
 
     class Meta:
-        verbose_name: str = "User Preference"
-        verbose_name_plural: str = "User Preferences"
+        verbose_name: str = "Member Preference"
+        verbose_name_plural: str = "Member Preferences"
 
     def __str__(self) -> str:
         return self.member

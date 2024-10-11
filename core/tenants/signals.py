@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from core.user_management.services import add_user
+from core.members.services import add_user
 from core.users.models import User
 
 from .middleware import set_db_for_router
