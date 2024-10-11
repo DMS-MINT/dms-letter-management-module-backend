@@ -1,5 +1,5 @@
 from .member import Member as Member
-from .permissions import UserPermissions as UserPermissions
-from .preferences import UserPreference as UserPreference
-from .profile import UserProfile as UserProfile
-from .settings import UserSetting as UserSetting
+from .permissions import MemberPermissions as MemberPermissions
+from .preferences import MemberPreference as MemberPreference
+from .profile import MemberProfile as MemberProfile
+from .settings import MemberSetting as MemberSetting

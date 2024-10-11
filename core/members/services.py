@@ -6,7 +6,7 @@ from core.common.utils import get_object
 from core.tenants.models import Tenant
 from core.users.models import User
 
-from .models import Member, UserPermissions, UserPreference, UserProfile, UserSetting
+from .models import Member, MemberPermissions, MemberPreference, MemberProfile, MemberSetting
 
 
 def set_or_update_user_permissions(
@@ -18,7 +18,7 @@ def set_or_update_user_permissions(
 ):
     member_instance, _ = Member.objects.get_or_create(user_id=user_id)
 
-    user_permissions, _ = UserPermissions.objects.get_or_create(member=member_instance)
+    user_permissions, _ = MemberPermissions.objects.get_or_create(member=member_instance)
 
     user_permissions.is_admin = is_admin
     user_permissions.is_staff = is_staff
@@ -72,7 +72,7 @@ def user_create(
 
     member_instance, _ = Member.objects.get_or_create(user_id=user_instance.id)
 
-    UserProfile.objects.get_or_create(
+    MemberProfile.objects.get_or_create(
         member=member_instance,
         defaults={
             "first_name_en": first_name_en,
@@ -97,7 +97,7 @@ def user_create(
         is_superuser=False,
     )
 
-    UserPermissions.objects.get_or_create(
+    MemberPermissions.objects.get_or_create(
         member=member_instance,
         defaults={
             "is_admin": is_admin,
@@ -105,9 +105,9 @@ def user_create(
         },
     )
 
-    UserSetting.objects.get_or_create(member=member_instance)
+    MemberSetting.objects.get_or_create(member=member_instance)
 
-    UserPreference.objects.get_or_create(member=member_instance)
+    MemberPreference.objects.get_or_create(member=member_instance)
 
     return member_instance
 
@@ -144,7 +144,7 @@ def member_update(
     user_profile = user_instance.user_profile.first()
 
     if user_profile is None:
-        user_profile = UserProfile.objects.create(
+        user_profile = MemberProfile.objects.create(
             user=user_instance,
             first_name_en=first_name_en,
             middle_name_en=middle_name_en,

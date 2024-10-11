@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from core.common.models import BaseModel
 
 
-class UserPreference(BaseModel):
+class MemberPreference(BaseModel):
     member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_preference")
 
     class Meta:

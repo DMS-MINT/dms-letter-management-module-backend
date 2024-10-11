@@ -3,7 +3,7 @@ from django.db import models
 from core.common.models import BaseModel
 
 
-class UserPermissions(BaseModel):
+class MemberPermissions(BaseModel):
     member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_permissions")
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

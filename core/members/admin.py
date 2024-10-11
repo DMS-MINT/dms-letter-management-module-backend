@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Member, UserPermissions, UserPreference, UserProfile, UserSetting
+from .models import Member, MemberPermissions, MemberPreference, MemberProfile, MemberSetting
 
 
 @admin.register(Member)
@@ -10,8 +10,8 @@ class MemberAdmin(admin.ModelAdmin):
     ]
 
 
-# Admin Configuration for the UserProfile Model
-@admin.register(UserProfile)
+# Admin Configuration for the MemberProfile Model
+@admin.register(MemberProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = [
         "member",
@@ -65,8 +65,8 @@ class UserProfileAdmin(admin.ModelAdmin):
     )
 
 
-# Admin Configuration for the UserPermissions Model
-@admin.register(UserPermissions)
+# Admin Configuration for the MemberPermissions Model
+@admin.register(MemberPermissions)
 class UserPermissionsAdmin(admin.ModelAdmin):
     list_display = ["member"]
     fieldsets = (
@@ -84,8 +84,8 @@ class UserPermissionsAdmin(admin.ModelAdmin):
     readonly_fields = []
 
 
-# Admin Configuration for the UserSetting Model
-@admin.register(UserSetting)
+# Admin Configuration for the MemberSetting Model
+@admin.register(MemberSetting)
 class UserSettingAdmin(admin.ModelAdmin):
     list_display = ["member", "is_2fa_enabled"]
     fieldsets = (
@@ -103,8 +103,8 @@ class UserSettingAdmin(admin.ModelAdmin):
     readonly_fields = ["is_2fa_enabled", "is_verified"]
 
 
-# Admin Configuration for the UserPreference Model
-@admin.register(UserPreference)
+# Admin Configuration for the MemberPreference Model
+@admin.register(MemberPreference)
 class UserPreferenceAdmin(admin.ModelAdmin):
     list_display = ["member"]
     fieldsets = (

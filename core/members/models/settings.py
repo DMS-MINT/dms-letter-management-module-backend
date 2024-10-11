@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from core.common.models import BaseModel
 
 
-class UserSetting(BaseModel):
+class MemberSetting(BaseModel):
     member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_settings")
     is_2fa_enabled = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)

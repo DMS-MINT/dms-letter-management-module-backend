@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from core.common.models import BaseModel
 
 
-class UserProfile(BaseModel):
+class MemberProfile(BaseModel):
     member = models.OneToOneField("members.Member", on_delete=models.CASCADE, related_name="member_profile")
 
     first_name_en = models.CharField(max_length=35, blank=True, verbose_name=_("First Name (English)"))
