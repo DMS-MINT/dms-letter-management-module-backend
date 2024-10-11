@@ -1,15 +1,17 @@
 import time
 
 from django.conf import settings
+from django.db import transaction
 from rest_framework import status as http_status
 
 from core.api.exceptions import APIError
 from core.common.models import Address
 from core.users.models import User
 
-from .models import Domain, Tenant, TenantProfile
+from .models import Domain, Tenant, TenantProfile, TenantSetting
 
 
+@transaction.atomic
 def tenant_create(
     tenant_slug: str,
     current_user: User,
@@ -72,6 +74,10 @@ def tenant_create(
         contact_email=contact_email,
         postal_code=postal_code,
         logo=logo,
+    )
+
+    TenantSetting.objects.create(
+        tenant=tenant_instance,
     )
 
     return tenant_instance.id
