@@ -29,7 +29,7 @@ TENANT_LOCAL_APPS: list[str] = [
     "core.participants.apps.ParticipantsConfig",
     "core.permissions.apps.PermissionsConfig",
     "core.signatures.apps.SignaturesConfig",
-    "core.user_management.apps.UserManagementConfig",
+    "core.members.apps.MemberConfig",
     "core.workflows.apps.WorkflowsConfig",
 ]
 TENANT_APPS: list[str] = [

@@ -5,7 +5,6 @@ from django.db import transaction
 
 from core.attachments.services import letter_attachment_create
 from core.letters.models import Incoming, Internal, Letter, Outgoing
-from core.letters.tasks import generate_pdf_task
 from core.participants.services import participants_create
 from core.users.models import User
 from core.workflows.services import letter_publish

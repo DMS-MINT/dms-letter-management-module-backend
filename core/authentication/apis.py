@@ -16,9 +16,9 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
+from core.members.selectors import member_profile_details
+from core.members.serializers import MemberDetailSerializer, MemberPreferencesSerializer
 from core.tenants.serializers import TenantSerializer, TenantSettingSerializer
-from core.user_management.selectors import member_profile_details
-from core.user_management.serializers import MemberDetailSerializer, MemberPreferencesSerializer
 from core.users.models import User
 
 from .services import create_user

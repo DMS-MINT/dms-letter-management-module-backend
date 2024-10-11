@@ -2,8 +2,8 @@ from rest_framework import serializers
 from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.common.utils import inline_serializer
+from core.members.serializers import MemberListSerializer
 from core.participants.serializers import ParticipantInputSerializer, ParticipantOutputSerializer
-from core.user_management.serializers import MemberListSerializer
 
 from .models import Incoming, Internal, Outgoing
 

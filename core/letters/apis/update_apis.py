@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from core.api.mixins import ApiAuthMixin
 from core.common.utils import get_object
 from core.letters.models import Letter
-from core.letters.serializers import LetterCreateSerializer, LetterDetailPolymorphicSerializer
+from core.letters.serializers import LetterDetailPolymorphicSerializer
 from core.letters.services.update_services import letter_update
 from core.letters.utils import parse_form_data
 from core.participants.serializers import ParticipantInputSerializer

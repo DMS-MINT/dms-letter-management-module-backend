@@ -4,8 +4,8 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 from core.common.utils import inline_serializer
 from core.contacts.models import Contact
 from core.enterprises.models import Enterprise
+from core.members.serializers import MemberListSerializer
 from core.participants.models import BaseParticipant
-from core.user_management.serializers import MemberListSerializer
 from core.users.models import User
 
 from .models import EnterpriseParticipant, ExternalUserParticipant, InternalUserParticipant

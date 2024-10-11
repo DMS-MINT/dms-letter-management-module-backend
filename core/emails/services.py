@@ -1,10 +1,12 @@
 import random
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.db.models.query import QuerySet
-from django.utils import timezone
+
 from core.api.exceptions import ApplicationError
+
 from .models import Email
 
 
@@ -12,7 +14,8 @@ from .models import Email
 def email_failed(email: Email) -> Email:
     if email.status != Email.Status.SENDING:
         raise ApplicationError(
-            "INVALID_EMAIL_STATUS", f"Cannot fail non-sending emails. Current status is {email.status}"
+            "INVALID_EMAIL_STATUS",
+            f"Cannot fail non-sending emails. Current status is {email.status}",
         )
 
     # Update the email status to FAILED
