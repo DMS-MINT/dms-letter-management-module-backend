@@ -16,7 +16,7 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
-from core.members.selectors import member_profile_details
+from core.members.models import Member
 from core.members.serializers import MemberDetailSerializer, MemberPreferencesSerializer
 from core.tenants.serializers import TenantSerializer, TenantSettingSerializer
 from core.users.models import User
@@ -112,13 +112,18 @@ class MeApi(ApiAuthMixin, APIView):
 
     def get(self, request):
         try:
-            user_instance = User.objects.get(id=request.user.id)
+            member_instance = Member.objects.prefetch_related(
+                "member_profile",
+                "member_permissions",
+                "member_settings",
+                "member_preferences",
+            ).get(
+                user_id=request.user.id,
+            )
 
-            user_profile = member_profile_details(user_instance=user_instance)
+            output_serializer = self.OutputSerializer(member_instance)
 
-            output_serializer = self.OutputSerializer(user_profile)
-
-            response_data = {"my_profile": output_serializer.data}
+            response_data = {"member": output_serializer.data}
 
             return Response(data=response_data)
 

@@ -68,7 +68,12 @@ class UserProfileAdmin(admin.ModelAdmin):
 # Admin Configuration for the MemberPermissions Model
 @admin.register(MemberPermissions)
 class UserPermissionsAdmin(admin.ModelAdmin):
-    list_display = ["member"]
+    list_display = [
+        "member",
+        "is_admin",
+        "is_staff",
+        "is_superuser",
+    ]
     fieldsets = (
         (
             "Permissions",
@@ -87,7 +92,7 @@ class UserPermissionsAdmin(admin.ModelAdmin):
 # Admin Configuration for the MemberSetting Model
 @admin.register(MemberSetting)
 class UserSettingAdmin(admin.ModelAdmin):
-    list_display = ["member", "is_2fa_enabled"]
+    list_display = ["member", "is_2fa_enabled", "is_verified"]
     fieldsets = (
         (
             "Settings",
