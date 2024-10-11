@@ -1,8 +1,6 @@
-from django.contrib import admin, messages
-from django.core.exceptions import ValidationError
+from django.contrib import admin
 
 from .models import User
-from .services import user_create
 
 
 # Admin Configuration for the User Model
@@ -43,12 +41,3 @@ class UserAdmin(admin.ModelAdmin):
         ),
     )
     readonly_fields = ["email", "created_at", "updated_at", "is_admin", "is_staff", "is_superuser"]
-
-    def save_model(self, request, obj, form, change):
-        if change:
-            super().save_model(request, obj, form, change)
-        else:
-            try:
-                user_create(**form.cleaned_data)
-            except ValidationError as exc:
-                self.message_user(request, str(exc), messages.ERROR)

@@ -5,8 +5,8 @@ from core.common.utils import inline_serializer
 from core.contacts.models import Contact
 from core.enterprises.models import Enterprise
 from core.participants.models import BaseParticipant
+from core.user_management.serializers import MemberListSerializer
 from core.users.models import User
-from core.users.serializers import UserListSerializer
 
 from .models import EnterpriseParticipant, ExternalUserParticipant, InternalUserParticipant
 
@@ -69,7 +69,7 @@ class BaseParticipantOutputSerializer(serializers.Serializer):
 
 
 class InternalParticipantOutputSerializer(BaseParticipantOutputSerializer):
-    user = UserListSerializer()
+    user = MemberListSerializer()
 
 
 class EnterpriseParticipantOutputSerializer(BaseParticipantOutputSerializer):

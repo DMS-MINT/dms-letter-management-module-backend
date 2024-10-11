@@ -3,7 +3,7 @@ from rest_polymorphic.serializers import PolymorphicSerializer
 
 from core.common.utils import inline_serializer
 from core.participants.serializers import ParticipantInputSerializer, ParticipantOutputSerializer
-from core.users.serializers import UserListSerializer
+from core.user_management.serializers import MemberListSerializer
 
 from .models import Incoming, Internal, Outgoing
 
@@ -12,7 +12,7 @@ class LetterListSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     reference_number = serializers.SlugField()
     reference_number_am = serializers.SlugField()
-    owner = UserListSerializer()
+    owner = MemberListSerializer()
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     participants = ParticipantOutputSerializer(many=True)
@@ -37,7 +37,7 @@ class LetterDetailSerializer(serializers.Serializer):
     current_state = serializers.CharField(source="get_current_state_display")
     subject = serializers.CharField()
     body = serializers.CharField()
-    owner = UserListSerializer()
+    owner = MemberListSerializer()
     language = serializers.CharField(source="get_language_display")
     pdf_version = serializers.URLField()
     participants = ParticipantOutputSerializer(many=True)
@@ -46,7 +46,7 @@ class LetterDetailSerializer(serializers.Serializer):
         fields={
             "id": serializers.UUIDField(),
             "message": serializers.CharField(),
-            "author": UserListSerializer(),
+            "author": MemberListSerializer(),
             "created_at": serializers.DateTimeField(),
         },
     )
@@ -58,7 +58,7 @@ class LetterDetailSerializer(serializers.Serializer):
             "file_name": serializers.CharField(),
             "file_type": serializers.CharField(),
             "file_size": serializers.CharField(),
-            "uploaded_by": UserListSerializer(),
+            "uploaded_by": MemberListSerializer(),
             "description": serializers.CharField(),
             "created_at": serializers.DateTimeField(),
         },

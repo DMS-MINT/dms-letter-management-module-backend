@@ -16,10 +16,10 @@ from core.authentication.services import (
     verify_otp,
 )
 from core.common.utils import get_object
-from core.tenants.selectors import list_user_tenants
-from core.user_management.selectors import user_profile_details
+from core.tenants.serializers import TenantSerializer, TenantSettingSerializer
+from core.user_management.selectors import member_profile_details
+from core.user_management.serializers import MemberDetailSerializer, MemberPreferencesSerializer
 from core.users.models import User
-from core.users.serializers import CurrentUserSerializer
 
 from .services import create_user
 
@@ -36,7 +36,7 @@ class SignUpApi(APIView):
             input_serializer = self.serializer_class(data=request.data)
             input_serializer.is_valid(raise_exception=True)
 
-            user_instance = create_user(**input_serializer.validated_data, is_staff=True)
+            user_instance = create_user(**input_serializer.validated_data)
 
             response_data = {
                 "message": "Your account has been successfully created.",
@@ -61,6 +61,9 @@ class LoginApi(APIView):
         email = serializers.EmailField()
         password = serializers.CharField()
 
+    class OutputSerializer(TenantSerializer):
+        tenant_settings = TenantSettingSerializer()
+
     serializer_class = InputSerializer
 
     def post(self, request):
@@ -77,15 +80,15 @@ class LoginApi(APIView):
 
             session_key = request.session.session_key
 
-            tenants = user.tenants.all()
-            user_tenants = list_user_tenants(user_id=user.id, tenants=tenants)
+            tenants = user.tenants.prefetch_related("tenant_profile__address", "tenant_settings", "domains").all()
+            output_serializer = self.OutputSerializer(tenants, many=True)
 
             response_data = {
                 "session": session_key,
-                "tenants": user_tenants,
+                "tenants": output_serializer.data,
             }
 
-            return Response(data=response_data)
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except ValueError as e:
             raise ValidationError(e)
@@ -102,15 +105,18 @@ class LogoutApi(ApiAuthMixin, APIView):
 
 
 class MeApi(ApiAuthMixin, APIView):
-    serializer_class = CurrentUserSerializer
+    class OutputSerializer(MemberDetailSerializer):
+        member_preferences = MemberPreferencesSerializer()
+
+    serializer_class = OutputSerializer
 
     def get(self, request):
         try:
             user_instance = User.objects.get(id=request.user.id)
 
-            user_profile = user_profile_details(user_instance=user_instance)
+            user_profile = member_profile_details(user_instance=user_instance)
 
-            output_serializer = CurrentUserSerializer(user_profile)
+            output_serializer = self.OutputSerializer(user_profile)
 
             response_data = {"my_profile": output_serializer.data}
 
