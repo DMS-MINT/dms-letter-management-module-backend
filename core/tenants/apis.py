@@ -1,7 +1,7 @@
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework import status as http_status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,9 +9,8 @@ from core.api.mixins import ApiAuthMixin
 from core.common.utils import inline_serializer
 
 from .models import Tenant
-from .selectors import tenant_detail
 from .serializers import TenantProfileSerializer, TenantSerializer, TenantSettingSerializer
-from .services import tenant_create
+from .services import set_or_update_tenant_settings, tenant_create, tenant_profile_update
 
 
 class TenantDetailApi(ApiAuthMixin, APIView):
@@ -86,6 +85,67 @@ class TenantCreateApi(ApiAuthMixin, APIView):
             response_data = {"tenant": output_serializer.data}
 
             return Response(data=response_data, status=http_status.HTTP_200_OK)
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class TenantUpdateProfileApi(ApiAuthMixin, APIView):
+    class InputSerializer(TenantProfileSerializer):
+        pass
+
+    serializer_class = InputSerializer
+
+    def put(self, request, tenant_id) -> Response:
+        try:
+            tenant_instance = Tenant.objects.prefetch_related("tenant_profile__address", "domains").get(id=tenant_id)
+
+            input_serializer = self.InputSerializer(data=request.data, partial=True)
+            input_serializer.is_valid(raise_exception=True)
+
+            tenant_profile_update(tenant_instance=tenant_instance, **input_serializer.validated_data)
+
+            response_data = {"message": "Tenant profile have been successfully updated."}
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except Tenant.DoesNotExist as e:
+            raise NotFound(e)
+
+        except ValueError as e:
+            raise ValidationError(e)
+
+        except Exception as e:
+            raise ValidationError(e)
+
+
+class TenantUpdateSettingsApi(ApiAuthMixin, APIView):
+    class InputSerializer(TenantSettingSerializer):
+        pass
+
+    serializer_class = InputSerializer
+
+    def put(self, request, tenant_id) -> Response:
+        try:
+            tenant_instance = Tenant.objects.prefetch_related("tenant_settings", "domains").get(id=tenant_id)
+
+            input_serializer = self.InputSerializer(data=request.data, partial=True)
+            input_serializer.is_valid(raise_exception=True)
+
+            set_or_update_tenant_settings(
+                tenant_instance=tenant_instance,
+                **input_serializer.validated_data,
+            )
+
+            response_data = {"message": "Tenant settings have been successfully updated."}
+
+            return Response(data=response_data, status=http_status.HTTP_200_OK)
+
+        except Tenant.DoesNotExist as e:
+            raise NotFound(e)
+
         except ValueError as e:
             raise ValidationError(e)
 

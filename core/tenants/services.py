@@ -18,8 +18,6 @@ def tenant_create(
     *,
     name_en: str,
     name_am: str,
-    is_staff: bool = False,
-    is_superuser: bool = True,
     bio: str = None,
     contact_phone: int = None,
     contact_email: str = None,
@@ -81,3 +79,69 @@ def tenant_create(
     )
 
     return tenant_instance.id
+
+
+@transaction.atomic
+def tenant_profile_update(
+    *,
+    tenant_instance: Tenant,
+    name_en: str = None,
+    name_am: str = None,
+    bio: str = None,
+    contact_phone: int = None,
+    contact_email: str = None,
+    postal_code: int = None,
+    address: dict = None,
+    logo=None,
+):
+    if name_en is not None:
+        tenant_instance.name_en = name_en
+
+    if name_am is not None:
+        tenant_instance.name_am = name_am
+
+    if bio is not None:
+        tenant_instance.tenant_profile.bio = bio
+
+    if contact_phone is not None:
+        tenant_instance.tenant_profile.contact_phone = contact_phone
+
+    if contact_email is not None:
+        tenant_instance.tenant_profile.contact_email = contact_email
+
+    if postal_code is not None:
+        tenant_instance.tenant_profile.postal_code = postal_code
+
+    if address is not None:
+        tenant_instance.tenant_profile.address.city_en = address.get(
+            "city_en",
+            tenant_instance.tenant_profile.address.city_en,
+        )
+        tenant_instance.tenant_profile.address.city_am = address.get(
+            "city_am",
+            tenant_instance.tenant_profile.address.city_am,
+        )
+
+    if logo is not None:
+        tenant_instance.tenant_profile.logo = logo
+
+    tenant_instance.tenant_profile.save()
+    tenant_instance.save()
+
+    return tenant_instance
+
+
+@transaction.atomic
+def set_or_update_tenant_settings(
+    *,
+    tenant_instance: Tenant,
+    auto_ref_number_letters: bool = None,
+    auto_date_letters: bool = None,
+):
+    if auto_ref_number_letters is not None:
+        tenant_instance.tenant_settings.auto_ref_number_letters = auto_ref_number_letters
+
+    if auto_date_letters is not None:
+        tenant_instance.tenant_settings.auto_date_letters = auto_date_letters
+
+    tenant_instance.tenant_settings.save()
