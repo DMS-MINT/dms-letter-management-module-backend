@@ -1,9 +1,10 @@
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
+from django.utils.crypto import get_random_string
 
 from core.emails.services import email_send_type
+
 from .models import User
-from django.utils.crypto import get_random_string
 
 
 @receiver(pre_save, sender=User)

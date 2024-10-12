@@ -1,14 +1,14 @@
 import base64
 from io import BytesIO
 from venv import logger
-from core.emails.services import email_send_type
+
 import pyotp
 import qrcode
 from django.contrib.auth.hashers import make_password
 from rest_framework import status as http_status
 
 from core.api.exceptions import APIError
-from core.emails.tasks import email_send
+from core.emails.services import email_send_type
 from core.users.models import User
 
 

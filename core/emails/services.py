@@ -3,10 +3,11 @@ import random
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
-from django.db.models.query import QuerySet
+from django.template.loader import render_to_string
+from django.utils import timezone
 
 from core.api.exceptions import ApplicationError
-from django.template.loader import render_to_string
+
 from .models import Email
 
 
@@ -77,7 +78,12 @@ def email_send_type(to: str, subject: str, template_name: str, context: dict) ->
         msg.send()
 
         email_instance = Email(
-            status=Email.Status.SENT, to=to, subject=subject, html=html, plain_text=plain_text, sent_at=timezone.now()
+            status=Email.Status.SENT,
+            to=to,
+            subject=subject,
+            html=html,
+            plain_text=plain_text,
+            sent_at=timezone.now(),
         )
         email_instance.save()
 

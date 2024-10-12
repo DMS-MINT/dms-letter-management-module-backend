@@ -10,7 +10,7 @@ class TenantMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        db = tenant_db_from_request(request)
+        _db = tenant_db_from_request(request)
         mock = "tenant"
         # After you implemented the database generator replace the 'mock' with 'db'
         set_db_for_router(mock)

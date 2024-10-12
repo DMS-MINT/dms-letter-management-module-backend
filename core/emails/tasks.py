@@ -1,5 +1,6 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
+
 from core.emails.services import email_send_type
 
 from .models import Email

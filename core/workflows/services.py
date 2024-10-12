@@ -62,7 +62,7 @@ def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_publish(current_user: User, letter_instance: Letter,reference_number:str, published_at:str) -> Letter:
+def letter_publish(current_user: User, letter_instance: Letter, reference_number: str, published_at: str) -> Letter:
     current_state = Letter.States.SUBMITTED.value
     next_state = Letter.States.PUBLISHED.value
 

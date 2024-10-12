@@ -6,9 +6,6 @@ from rest_framework.exceptions import ValidationError
 
 def parse_form_data(request):
     letter_data_str = request.data.get("letter", "{}")
-    otp = request.data.get("otp", "")
-    # print(otp)
-    # print(request.data.item())
 
     try:
         letter_data = json.loads(letter_data_str)

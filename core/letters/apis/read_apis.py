@@ -80,7 +80,6 @@ class LetterDetailApi(ApiAuthMixin, ApiPermMixin, APIView):
     serializer_class = LetterDetailPolymorphicSerializer
 
     def get(self, request, id) -> Response:
-        print(f"Received ID: {id}")
         current_user = request.user
         letter_instance = get_object(Letter, id=id)
 

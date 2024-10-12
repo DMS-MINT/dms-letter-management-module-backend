@@ -98,7 +98,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         otp = serializers.CharField()
 
     def put(self, request, id) -> Response:
-        letter_instance = get_object(Letter, id = id)
+        letter_instance = get_object(Letter, id=id)
         self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data)
@@ -114,11 +114,9 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 letter_instance=letter_instance,
                 signature_method="Default",
             )
-            
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
-            print(f"Received Per: {permissions}")
 
             response_data = {"message": "Letter has been submitted to the record office."}
 
@@ -214,12 +212,15 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             input_serializer = self.InputSerializer(data=request.data)
             input_serializer.is_valid(raise_exception=True)
-            print(input_serializer.validated_data)
 
             otp = input_serializer.validated_data.pop("otp")
 
             verify_otp(current_user=request.user, otp=otp)
-            letter_publish(current_user=request.user, letter_instance=letter_instance,**input_serializer.validated_data,)
+            letter_publish(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                **input_serializer.validated_data,
+            )
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
@@ -243,15 +244,12 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except APIError as e:
-            print(f"APIError : {e}")
             raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
-            print(f"ValueErro: {e}")
             raise ValidationError(e)
 
         except Exception as e:
-            print(f"Exception: {e}")
             raise ValidationError(e)
 
 

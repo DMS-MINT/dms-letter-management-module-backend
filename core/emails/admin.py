@@ -2,6 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import Email
+
 # from .services import email_send_all
 
 
@@ -19,7 +20,3 @@ class EmailAdmin(admin.ModelAdmin):
         """
         queryset = super().get_queryset(request)
         return queryset.defer("html", "plain_text")
-
-    @admin.action(description="Send selected emails.")
-    def send_email(self, request, queryset):
-        email_send_all(queryset)

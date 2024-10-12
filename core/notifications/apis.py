@@ -146,23 +146,21 @@ class SendReminderApi(ApiAuthMixin, APIView):
                 recipients = input_serializer.validated_data.get("to", [])
                 notification_message = input_serializer.validated_data.get("message")
 
-                user_email=[]               
+                user_email = []
                 for uuid in recipients:
                     user = get_object_or_404(User, id=uuid)
                     user_email.append(user.email)
-                    
+
                 for email in user_email:
                     email_send_type(
-                        to=email,                             
-                        subject=subject,                     
-                        template_name="notification",        
+                        to=email,
+                        subject=subject,
+                        template_name="notification",
                         context={
-                            "notification_message":notification_message,
-                            "first_name": user.first_name_en
-                            }     
-                )
-                
-
+                            "notification_message": notification_message,
+                            "first_name": user.first_name_en,
+                        },
+                    )
 
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 

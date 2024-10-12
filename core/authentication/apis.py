@@ -14,6 +14,7 @@ from core.authentication.services import (
     reset_user_password,
     setup_2fa,
     verify_otp,
+    verify_otp_reset,
 )
 from core.common.utils import get_object
 from core.members.models import Member
