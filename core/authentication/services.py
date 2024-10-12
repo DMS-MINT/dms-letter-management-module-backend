@@ -1,6 +1,7 @@
 import base64
 from io import BytesIO
-
+from venv import logger
+from core.emails.services import email_send_type
 import pyotp
 import qrcode
 from django.contrib.auth.hashers import make_password
@@ -50,20 +51,36 @@ def setup_2fa(current_user: User):
     return base64.b64encode(buffer.getvalue()).decode()
 
 
+def verify_otp(current_user: User, otp: str):
+    totp = pyotp.TOTP(current_user.otp_secret)
+
+    if not totp.verify(otp, valid_window=1):
+        raise APIError(
+            error_code="INVALID_OTP",
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            message="Invalid OTP provided. Please check the OTP and try again.",
+            extra={"otp_error": "The provided OTP is incorrect."},
+        )
+
+    return True
+
+
 def generate_reset_otp(user):
-    totp = pyotp.TOTP(user.otp_secret)
+    totp = pyotp.TOTP(user.otp_secret, interval=900)
     otp = totp.now()
 
     try:
         user.email
-        email_send(user.email, otp)
+        name = user.first_name_en + " " + user.middle_name_en
+        email_send_type(user.email, "OTP Verification", "otp", context={"otp_code": otp, "recipient_name": name})
+        logger.info("OTP sent successfully to %s", user.email)
 
     except Exception as e:
         raise e
 
 
-def verify_otp(current_user: User, otp: str):
-    totp = pyotp.TOTP(current_user.otp_secret)
+def verify_otp_reset(current_user: User, otp: str):
+    totp = pyotp.TOTP(current_user.otp_secret, interval=900)
 
     if not totp.verify(otp, valid_window=1):
         raise APIError(

@@ -62,7 +62,7 @@ def letter_retract(current_user: User, letter_instance: Letter) -> Letter:
 
 
 @transaction.atomic
-def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
+def letter_publish(current_user: User, letter_instance: Letter,reference_number:str, published_at:str) -> Letter:
     current_state = Letter.States.SUBMITTED.value
     next_state = Letter.States.PUBLISHED.value
 
@@ -80,7 +80,9 @@ def letter_publish(current_user: User, letter_instance: Letter) -> Letter:
 
     letter_instance.clean()
     letter_instance.current_state = next_state
-    letter_instance.published_at = timezone.now()
+    letter_instance.reference_number = reference_number
+    letter_instance.reference_number_am = reference_number
+    letter_instance.published_at = published_at
     letter_instance.save()
 
     admin_participant = {

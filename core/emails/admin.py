@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import Email
-from .services import email_send_all
+# from .services import email_send_all
 
 
 @admin.register(Email)

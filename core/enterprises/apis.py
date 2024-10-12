@@ -42,3 +42,4 @@ class EnterpriseListApi(ApiAuthMixin, APIView):
 
         except Exception as e:
             raise ValidationError(e)
+

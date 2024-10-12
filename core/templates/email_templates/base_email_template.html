@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Email Notification{% endblock %}</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 2;
+        }
+        .headerdms{
+            background: linear-gradient(to right, #5546db 0%, #2563eb 50%, #1749d4 100%); 
+            border-radius: 8px; 
+            align-items: center;
+            text-align: center;
+            padding: 20px; 
+            text-align: center; 
+            margin: 20px 30px;
+
+        }
+        .dms{
+            color: #fff; font-size: 2em; margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            border-bottom: 1px solid #eee;
+        }
+        .footer {
+            margin-top: 20px;
+            border-top: 1px solid #e4e4e4;
+            padding-top: 10px;
+            text-align: center;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="headerdms">
+            <h2 class="dms">Document Management System</h2>
+        </div>
+        {% block header %}{% endblock %}
+        
+        {% block body %}{% endblock %}
+        
+        {% block footer %}
+        <footer class="footer">
+            <p>This email can't receive replies.</p>
+            <p>For more information about DMS and your account, visit <strong>DMS Support</strong></p>
+        </footer>
+        {% endblock %}
+    </div>
+</body>
+</html>

@@ -234,7 +234,7 @@ class VerifyOtpAPI(APIView):
         user = get_object(User, email=email)
 
         # Verify the OTP
-        verify_otp(user, otp)
+        verify_otp_reset(user, otp)
 
         return Response({"message": "OTP verified successfully."}, status=http_status.HTTP_200_OK)
 
