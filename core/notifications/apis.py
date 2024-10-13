@@ -161,8 +161,24 @@ class SendReminderApi(ApiAuthMixin, APIView):
                             "first_name": user.first_name_en
                             }     
                 )
-                
+                    
+                if "sms" in input_serializer.validated_data.get("channels", []):
+                    recipients = input_serializer.validated_data.get("to", [])
 
+                    user_phone_number=[]               
+                    for uuid in recipients:
+                        user = get_object_or_404(User, id=uuid)
+                        user_phone_number.append(user.phone_number)
+
+                    for phone_number in user_phone_number:
+                        sms_url = f"http://172.31.102.3:i-=]\
+                            8080/sendsms?phonenumber={phone_number}&message={subject}"
+                        response = request.get(sms_url)
+                        if response.status_code == 200:
+                            print("Single SMS sent successfully!")
+                        else:
+                            print("Failed to send SMS:", response.text)
+                
 
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 

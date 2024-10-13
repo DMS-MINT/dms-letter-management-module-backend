@@ -13,8 +13,8 @@ class DepartmentListApi(ApiAuthMixin, APIView):
         id = serializers.UUIDField()
         abbreviation_am = serializers.CharField()
         abbreviation_en = serializers.CharField()
-        department_name_en= serializers.CharField()
-        department_name_am= serializers.CharField()
+        department_name_en = serializers.CharField()
+        department_name_am = serializers.CharField()
 
     serializer_class = OutputSerializer
 
