@@ -12,7 +12,7 @@ from core.api.mixins import ApiAuthMixin
 from core.authentication.services import verify_otp
 from core.comments.services import comment_create
 from core.common.utils import get_object
-from core.letters.models import Letter
+from core.letters.models import Incoming, Letter
 from core.letters.serializers import LetterDetailPolymorphicSerializer
 from core.letters.tasks import generate_pdf_task
 from core.participants.serializers import ParticipantInputSerializer
@@ -98,7 +98,7 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
         otp = serializers.CharField()
 
     def put(self, request, id) -> Response:
-        letter_instance = get_object(Letter, id = id)
+        letter_instance = get_object(Letter, id=id)
         self.check_object_permissions(request, letter_instance)
 
         input_serializer = self.InputSerializer(data=request.data)
@@ -114,11 +114,9 @@ class LetterSubmitApi(ApiAuthMixin, ApiPermMixin, APIView):
                 letter_instance=letter_instance,
                 signature_method="Default",
             )
-            
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
-            print(f"Received Per: {permissions}")
 
             response_data = {"message": "Letter has been submitted to the record office."}
 
@@ -164,6 +162,7 @@ class LetterRetractApi(ApiAuthMixin, ApiPermMixin, APIView):
 
         try:
             verify_otp(current_user=request.user, **input_serializer.validated_data)
+
             letter_instance = letter_retract(current_user=request.user, letter_instance=letter_instance)
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
@@ -214,17 +213,24 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
         try:
             input_serializer = self.InputSerializer(data=request.data)
             input_serializer.is_valid(raise_exception=True)
-            print(input_serializer.validated_data)
 
             otp = input_serializer.validated_data.pop("otp")
 
             verify_otp(current_user=request.user, otp=otp)
-            letter_publish(current_user=request.user, letter_instance=letter_instance,**input_serializer.validated_data,)
+
+            letter_publish(
+                current_user=request.user,
+                letter_instance=letter_instance,
+                **input_serializer.validated_data,
+            )
 
             output_serializer = LetterDetailPolymorphicSerializer(letter_instance)
             permissions = self.get_object_permissions_details(letter_instance, current_user=request.user)
 
-            handle_publish_letter_notification(current_user=request.user, letter_instance=letter_instance)
+            generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
+
+            if not isinstance(letter_instance, Incoming):
+                handle_publish_letter_notification(current_user=request.user, letter_instance=letter_instance)
 
             response_data = {"message": "Letter has been published."}
 
@@ -243,15 +249,12 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
             return Response(data=response_data, status=http_status.HTTP_200_OK)
 
         except APIError as e:
-            print(f"APIError : {e}")
             raise APIError(e.error_code, e.status_code, e.message, e.extra)
 
         except ValueError as e:
-            print(f"ValueErro: {e}")
             raise ValidationError(e)
 
         except Exception as e:
-            print(f"Exception: {e}")
             raise ValidationError(e)
 
 

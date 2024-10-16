@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.letters.models import Internal, Outgoing
+from core.letters.models import Internal, Outgoing, Incoming
 from core.permissions.service import assign_permissions, remove_permissions
 
 
@@ -31,10 +31,17 @@ class BaseParticipant(PolymorphicModel, BaseModel):
         return True if self.last_read_at else False
 
     def clean(self):
-        author_count = BaseParticipant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+        if isinstance(self.letter, Incoming):
+            author_count = BaseParticipant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
 
-        if author_count != 1:
-            raise ValidationError(_("The letter must have exactly one designated author."))
+            if author_count < 1:
+                raise ValidationError(_("The letter must have at least one designated author."))
+
+        if not isinstance(self.letter, Incoming):
+            author_count = BaseParticipant.objects.filter(letter=self.letter, role=self.Roles.AUTHOR).count()
+
+            if author_count != 1:
+                raise ValidationError(_("The letter must have exactly one designated author."))
 
         primary_recipient_count = BaseParticipant.objects.filter(
             letter=self.letter,

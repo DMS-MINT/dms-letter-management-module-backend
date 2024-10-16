@@ -74,7 +74,7 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         combined_filter = current_state_filter & participant_filter
 
-        return queryset.filter(combined_filter)
+        return queryset.filter(combined_filter).distinct()
 
     def filter_outbox(self, queryset):
         current_state_filter = Q(
@@ -97,7 +97,7 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         combined_filter = current_state_filter & participant_filter
 
-        return queryset.filter(combined_filter)
+        return queryset.filter(combined_filter).distinct()
 
     def filter_draft(self, queryset):
         current_state_filter = Q(
@@ -110,6 +110,7 @@ class BaseLetterFilter(django_filters.FilterSet):
         internal_user_ct = ContentType.objects.get_for_model(InternalUserParticipant)
 
         participant_filter = Q(
+            current_state_filter,
             participants__polymorphic_ctype=internal_user_ct,
             participants__internaluserparticipant__user_id=self.current_user.id,
             participants__role__in=[
@@ -118,9 +119,14 @@ class BaseLetterFilter(django_filters.FilterSet):
             ],
         )
 
-        combined_filter = current_state_filter & participant_filter
+        owner_filter = Q(
+            current_state_filter,
+            owner=self.current_user.id,
+        )
 
-        return queryset.filter(combined_filter)
+        combined_filter = current_state_filter & (participant_filter | owner_filter)
+
+        return queryset.filter(combined_filter).distinct()
 
     def filter_trash(self, queryset):
         current_state_filter = Q(current_state__in=[Letter.States.TRASHED])
@@ -135,7 +141,7 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         combined_filter = current_state_filter & participant_filter
 
-        return queryset.filter(combined_filter)
+        return queryset.filter(combined_filter).distinct()
 
     def filter_pending(self, queryset):
         current_state_filter = Q(
@@ -158,7 +164,7 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         combined_filter = current_state_filter & participant_filter
 
-        return queryset.filter(combined_filter).exclude(owner=self.current_user)
+        return queryset.filter(combined_filter).exclude(owner=self.current_user).distinct()
 
     def filter_published(self, queryset):
         current_state_filter = Q(
@@ -167,4 +173,4 @@ class BaseLetterFilter(django_filters.FilterSet):
 
         combined_filter = current_state_filter
 
-        return queryset.filter(combined_filter)
+        return queryset.filter(combined_filter).distinct()

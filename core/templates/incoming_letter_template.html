@@ -20,7 +20,50 @@
 
 {% block separator %} {% endblock %}
 
-{% block letter_metadata %} {% endblock %}
+{% block letter_metadata %}
+  <section class="letter-metadata">
+    <div class="metadata-item">
+      <p class="metadata-label">
+        <span>ቁጥር</span>
+        <span>Ref.No.</span> 
+      </p> 
+      <div class="metadata-value-container">
+        <span class="metadata-value">
+            {% if letter.language == "EN" %}
+                {% if letter.reference_number %}
+                    {{ letter.reference_number }}
+                {% else %}
+                    N/A
+                {% endif %}
+            {% elif letter.language == "AM" %}
+                {% if letter.reference_number_am %}
+                    {{ letter.reference_number_am }}
+                {% else %}
+                    N/A
+                {% endif %}
+            {% endif %}
+        </span>
+        <hr class="metadata-divider" />
+      </div>
+    </div>
+    <div class="metadata-item">
+      <p class="metadata-label">
+        <span>ቀን</span>
+        <span>Date</span> 
+      </p>
+      <div class="metadata-value-container">
+        <span class="metadata-value">
+          {% if letter.published_at %}
+              {{ letter.published_at }}
+          {% else %}
+              N/A
+          {% endif %}
+        </span>
+        <hr class="metadata-divider" />
+      </div>
+    </div>
+  </section>
+{% endblock %}
 
 {% block authors %}
   <section class="author-participant-section">
