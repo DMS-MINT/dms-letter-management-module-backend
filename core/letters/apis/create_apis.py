@@ -127,7 +127,7 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
         letter = LetterCreateSerializer()
         otp = serializers.CharField()
         reference_number = serializers.CharField()
-        published_at = serializers.DateTimeField()
+        published_at = serializers.CharField()
 
     serializer_class = InputSerializer
 

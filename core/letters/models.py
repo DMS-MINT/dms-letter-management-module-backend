@@ -33,7 +33,7 @@ class Letter(PolymorphicModel, BaseModel):
     language = models.CharField(max_length=2, choices=Languages.choices, default=Languages.AMHARIC)
 
     submitted_at = models.DateTimeField(blank=True, null=True, editable=False)
-    published_at = models.DateTimeField(blank=True, null=True, editable=False)
+    published_at = models.CharField(blank=True, null=True, editable=False)
 
     hidden = models.BooleanField(default=False)
 

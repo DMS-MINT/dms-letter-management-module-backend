@@ -18,7 +18,7 @@ class LetterListSerializer(serializers.Serializer):
     participants = ParticipantOutputSerializer(many=True)
     has_read: serializers.SerializerMethodField()
     submitted_at = serializers.DateTimeField()
-    published_at = serializers.DateTimeField()
+    published_at = serializers.CharField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 
@@ -64,7 +64,7 @@ class LetterDetailSerializer(serializers.Serializer):
         },
     )
     submitted_at = serializers.DateTimeField()
-    published_at = serializers.DateTimeField()
+    published_at = serializers.CharField()
     created_at = serializers.DateTimeField()
     updated_at = serializers.DateTimeField()
 

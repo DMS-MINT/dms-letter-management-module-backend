@@ -205,7 +205,7 @@ class LetterPublishApi(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         otp = serializers.CharField()
         reference_number = serializers.CharField()
-        published_at = serializers.DateTimeField()
+        published_at = serializers.CharField()
 
     def put(self, request, id) -> Response:
         letter_instance = get_object(Letter, id=id)
