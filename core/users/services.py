@@ -1,9 +1,7 @@
 from typing import Optional
 
 from core.departments.models import Department, JobTitle
-from django.utils.crypto import get_random_string
 
-from core.emails.services import email_send_type
 from .models import User
 
 
@@ -26,7 +24,7 @@ def user_create(
 ) -> User:
     department_instance = Department.objects.get(department_name_en=department)
     job_title_instance = JobTitle.objects.get(title_en=job_title)
-        
+
     return (
         User.objects.create_user(
             first_name_en=first_name_en,

@@ -8,6 +8,7 @@ from core.api.mixins import ApiAuthMixin
 
 from .models import Department
 
+
 class DepartmentListApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
         id = serializers.UUIDField()
@@ -32,4 +33,3 @@ class DepartmentListApi(ApiAuthMixin, APIView):
 
         except Exception as e:
             raise ValidationError(e)
-

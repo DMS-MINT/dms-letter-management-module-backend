@@ -9,6 +9,7 @@ class Email(BaseModel):
         SENDING = "SENDING", "Sending"
         SENT = "SENT", "Sent"
         FAILED = "FAILED", "Failed"
+
     class Type(models.TextChoices):
         OTP_VERIFICATION = "OTP_VERIFICATION", "OTP Verification"
         REGISTRATION = "REGISTRATION", "Registration"

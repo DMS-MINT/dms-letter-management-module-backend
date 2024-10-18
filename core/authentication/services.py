@@ -1,12 +1,14 @@
 import base64
 from io import BytesIO
 from venv import logger
-from core.emails.services import email_send_type
+
 import pyotp
 import qrcode
-from rest_framework import status as http_status
 from django.contrib.auth.hashers import make_password
+from rest_framework import status as http_status
+
 from core.api.exceptions import APIError
+from core.emails.services import email_send_type
 from core.users.models import User
 
 
@@ -26,7 +28,7 @@ def setup_2fa(current_user: User):
     qr.save(buffer)
 
     return base64.b64encode(buffer.getvalue()).decode()
-   
+
 
 def verify_otp(current_user: User, otp: str):
     totp = pyotp.TOTP(current_user.otp_secret)
@@ -44,8 +46,7 @@ def verify_otp(current_user: User, otp: str):
 
 def get_user_by_email(email: str):
     try:
-        user = User.objects.get(email = email)
-        return user
+        return User.objects.get(email=email)
     except User.DoesNotExist:
         return None
 
@@ -57,16 +58,16 @@ def generate_reset_otp(user):
     try:
         logger.info("OTP %s generated for user %s", otp, user.email)
         user.email
-        name= user.first_name_en + " " + user.middle_name_en
+        name = user.first_name_en + " " + user.middle_name_en
         email_send_type(
-            user.email, 
-            "OTP Verification", 
-            "otp", 
+            user.email,
+            "OTP Verification",
+            "otp",
             context={
-                'otp_code': otp,
-                'recipient_name' : name
-                }
-            )
+                "otp_code": otp,
+                "recipient_name": name,
+            },
+        )
         logger.info("OTP sent successfully to %s", user.email)
 
     except Exception as e:

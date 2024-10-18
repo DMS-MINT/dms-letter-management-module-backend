@@ -6,7 +6,7 @@
 
 {% block header %}<header class="internal_letter_header"></header>{% endblock %}
 
-{% block separator %} {% endblock %} 
+{% block separator %} {% endblock %}
 
 {% block letter_metadata %}
   <section class="letter-metadata">
@@ -14,22 +14,22 @@
       <p class="metadata-label">
         <span>ቁጥር</span>
         <span>Ref.No.</span>
-      </p> 
+      </p>
       <div class="metadata-value-container">
         <span class="metadata-value">
-            {% if letter.language == "EN" %}
-                {% if letter.reference_number %}
-                    {{ letter.reference_number }}
-                {% else %}
-                    N/A
-                {% endif %}
-            {% elif letter.language == "AM" %}
-                {% if letter.reference_number_am %}
-                    {{ letter.reference_number_am }}
-                {% else %}
-                    N/A
-                {% endif %}
+          {% if letter.language == "EN" %}
+            {% if letter.reference_number %}
+              {{ letter.reference_number }}
+            {% else %}
+              N/A
             {% endif %}
+          {% elif letter.language == "AM" %}
+            {% if letter.reference_number_am %}
+              {{ letter.reference_number_am }}
+            {% else %}
+              N/A
+            {% endif %}
+          {% endif %}
         </span>
         <hr class="metadata-divider" />
       </div>
@@ -42,9 +42,9 @@
       <div class="metadata-value-container">
         <span class="metadata-value">
           {% if letter.published_at %}
-              {{ letter.published_at }}
+            {{ letter.published_at }}
           {% else %}
-              N/A
+            N/A
           {% endif %}
         </span>
         <hr class="metadata-divider" />

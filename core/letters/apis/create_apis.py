@@ -143,7 +143,12 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
         if not otp:
             return Response({"detail": "OTP is required."}, status=http_status.HTTP_400_BAD_REQUEST)
 
-        input_data = {"letter": letter_data, "otp": otp,"reference_number":reference_number,"published_at":published_at}
+        input_data = {
+            "letter": letter_data,
+            "otp": otp,
+            "reference_number": reference_number,
+            "published_at": published_at,
+        }
 
         input_serializer = self.InputSerializer(data=input_data)
         input_serializer.is_valid(raise_exception=True)
@@ -167,7 +172,6 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
                 "letter": output_serializer.data,
                 "permissions": permissions,
             }
-            print(f"This is email id{letter_instance.id}")
             generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)

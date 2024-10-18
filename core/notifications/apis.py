@@ -146,26 +146,26 @@ class SendReminderApi(ApiAuthMixin, APIView):
                 recipients = input_serializer.validated_data.get("to", [])
                 notification_message = input_serializer.validated_data.get("message")
 
-                user_email=[]               
+                user_email = []
                 for uuid in recipients:
                     user = get_object_or_404(User, id=uuid)
                     user_email.append(user.email)
-                    
+
                 for email in user_email:
                     email_send_type(
-                        to=email,                             
-                        subject=subject,                     
-                        template_name="notification",        
+                        to=email,
+                        subject=subject,
+                        template_name="notification",
                         context={
-                            "notification_message":notification_message,
-                            "first_name": user.first_name_en
-                            }     
-                )
-                    
+                            "notification_message": notification_message,
+                            "first_name": user.first_name_en,
+                        },
+                    )
+
                 if "sms" in input_serializer.validated_data.get("channels", []):
                     recipients = input_serializer.validated_data.get("to", [])
 
-                    user_phone_number=[]               
+                    user_phone_number = []
                     for uuid in recipients:
                         user = get_object_or_404(User, id=uuid)
                         user_phone_number.append(user.phone_number)
@@ -173,12 +173,7 @@ class SendReminderApi(ApiAuthMixin, APIView):
                     for phone_number in user_phone_number:
                         sms_url = f"http://172.31.102.3:i-=]\
                             8080/sendsms?phonenumber={phone_number}&message={subject}"
-                        response = request.get(sms_url)
-                        if response.status_code == 200:
-                            print("Single SMS sent successfully!")
-                        else:
-                            print("Failed to send SMS:", response.text)
-                
+                        request.get(sms_url)
 
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 

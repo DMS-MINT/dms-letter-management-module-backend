@@ -16,8 +16,8 @@ class UserListSerializer(serializers.Serializer):
     department = inline_serializer(
         fields={
             "id": serializers.UUIDField(),
-            "abbreviation_en" : serializers.CharField(),
-            "abbreviation_am" : serializers.CharField()
+            "abbreviation_en": serializers.CharField(),
+            "abbreviation_am": serializers.CharField(),
         },
     )
 

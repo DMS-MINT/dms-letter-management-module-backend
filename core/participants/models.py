@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from polymorphic.models import PolymorphicModel
 
 from core.common.models import BaseModel
-from core.letters.models import Internal, Outgoing, Incoming
+from core.letters.models import Incoming, Internal, Outgoing
 from core.permissions.service import assign_permissions, remove_permissions
 
 

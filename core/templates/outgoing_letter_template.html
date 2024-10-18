@@ -33,22 +33,22 @@
       <p class="metadata-label">
         {% comment %} <span>ቁጥር</span>
         <span>Ref.No.</span> {% endcomment %}
-      </p> 
+      </p>
       <div class="metadata-value-container">
         <span class="metadata-value">
-            {% if letter.language == "EN" %}
-                {% if letter.reference_number %}
-                    {{ letter.reference_number }}
-                {% else %}
-                    N/A
-                {% endif %}
-            {% elif letter.language == "AM" %}
-                {% if letter.reference_number_am %}
-                    {{ letter.reference_number_am }}
-                {% else %}
-                    N/A
-                {% endif %}
+          {% if letter.language == "EN" %}
+            {% if letter.reference_number %}
+              {{ letter.reference_number }}
+            {% else %}
+              N/A
             {% endif %}
+          {% elif letter.language == "AM" %}
+            {% if letter.reference_number_am %}
+              {{ letter.reference_number_am }}
+            {% else %}
+              N/A
+            {% endif %}
+          {% endif %}
         </span>
         {% comment %} <hr class="metadata-divider" /> {% endcomment %}
       </div>
@@ -61,9 +61,9 @@
       <div class="metadata-value-container">
         <span class="metadata-value">
           {% if letter.published_at %}
-              {{ letter.published_at }}
+            {{ letter.published_at }}
           {% else %}
-              N/A
+            N/A
           {% endif %}
         </span>
         {% comment %} <hr class="metadata-divider" /> {% endcomment %}

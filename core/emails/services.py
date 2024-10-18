@@ -1,23 +1,29 @@
 import random
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
-from django.db.models.query import QuerySet
-from django.utils import timezone
-from core.api.exceptions import ApplicationError
 from django.template.loader import render_to_string
+from django.utils import timezone
+
+from core.api.exceptions import ApplicationError
+
 from .models import Email
 
 
 @transaction.atomic
 def email_failed(email: Email) -> Email:
     if email.status != Email.Status.SENDING:
-        raise ApplicationError("INVALID_EMAIL_STATUS", f"Cannot fail non-sending emails. Current status is {email.status}")
+        raise ApplicationError(
+            "INVALID_EMAIL_STATUS",
+            f"Cannot fail non-sending emails. Current status is {email.status}",
+        )
 
     # Update the email status to FAILED
     email.status = Email.Status.FAILED
     email.save()
     return email
+
 
 @transaction.atomic
 def email_send(to: str, subject: str) -> None:
@@ -43,7 +49,7 @@ def email_send(to: str, subject: str) -> None:
 
 
 # def email_send_all(emails: QuerySet[Email]):
-    
+
 #     from .tasks import email_send as email_send_task
 
 #     for email in emails:
@@ -63,8 +69,8 @@ def email_send_type(to: str, subject: str, template_name: str, context: dict) ->
 
     from_email = settings.EMAIL_HOST_USER
 
-    html = render_to_string(f'email_templates/{template_name}/email.html', context)
-    plain_text = render_to_string(f'email_templates/{template_name}/email_text.txt', context)
+    html = render_to_string(f"email_templates/{template_name}/email.html", context)
+    plain_text = render_to_string(f"email_templates/{template_name}/email_text.txt", context)
 
     try:
         msg = EmailMultiAlternatives(subject, plain_text, from_email, [to])
@@ -77,10 +83,10 @@ def email_send_type(to: str, subject: str, template_name: str, context: dict) ->
             subject=subject,
             html=html,
             plain_text=plain_text,
-            sent_at=timezone.now()
+            sent_at=timezone.now(),
         )
         email_instance.save()
-        
+
         return html
 
     except Exception as e:
