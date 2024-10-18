@@ -31,28 +31,42 @@
   <section class="letter-metadata">
     <div class="metadata-item">
       <p class="metadata-label">
-        <span>ቁጥር</span>
-        <span>Ref.No.</span>
+        {% comment %} <span>ቁጥር</span>
+        <span>Ref.No.</span> {% endcomment %}
       </p>
       <div class="metadata-value-container">
         <span class="metadata-value">
           {% if letter.language == "EN" %}
-            {{letter.reference_number}}
+            {% if letter.reference_number %}
+              {{ letter.reference_number }}
+            {% else %}
+              N/A
+            {% endif %}
           {% elif letter.language == "AM" %}
-            {{letter.reference_number_am}}
+            {% if letter.reference_number_am %}
+              {{ letter.reference_number_am }}
+            {% else %}
+              N/A
+            {% endif %}
           {% endif %}
         </span>
-        <hr class="metadata-divider" />
+        {% comment %} <hr class="metadata-divider" /> {% endcomment %}
       </div>
     </div>
     <div class="metadata-item">
       <p class="metadata-label">
-        <span>ቀን</span>
-        <span>Date</span>
+        {% comment %} <span>ቀን</span>
+        <span>Date</span> {% endcomment %}
       </p>
       <div class="metadata-value-container">
-        <span class="metadata-value"></span>
-        <hr class="metadata-divider" />
+        <span class="metadata-value">
+          {% if letter.published_at %}
+            {{ letter.published_at }}
+          {% else %}
+            N/A
+          {% endif %}
+        </span>
+        {% comment %} <hr class="metadata-divider" /> {% endcomment %}
       </div>
     </div>
   </section>

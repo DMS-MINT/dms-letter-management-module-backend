@@ -23,7 +23,7 @@ def assign_permissions(
 ):
     assign_perm("can_view_letter", participant_user, letter_instance)
 
-    match participant_role:
+    match int(participant_role):
         case Roles.AUTHOR.value:
             # Basic Permissions
             assign_perm("can_update_letter", participant_user, letter_instance)
@@ -40,17 +40,16 @@ def assign_permissions(
             assign_perm("can_trash_letter", participant_user, letter_instance)
             assign_perm("can_restore_letter", participant_user, letter_instance)
             assign_perm("can_permanently_delete_letter", participant_user, letter_instance)
+
         case Roles.PRIMARY_RECIPIENT.value:
             # Workflow Permissions
             assign_perm("can_share_letter", participant_user, letter_instance)
             assign_perm("can_close_letter", participant_user, letter_instance)
             assign_perm("can_reopen_letter", participant_user, letter_instance)
             # Interaction Permissions
-            assign_perm("can_comment_letter", participant_user, letter_instance)
-        case Roles.CC.value:
+        case Roles.COLLABORATOR.value:
             # Interaction Permissions
             assign_perm("can_comment_letter", participant_user, letter_instance)
-        case Roles.COLLABORATOR.value:
             if permissions is not None:
                 for permission in permissions:
                     assign_perm(f"{permission}", participant_user, letter_instance)
@@ -70,7 +69,7 @@ def remove_permissions(
     permissions: list[str] = None,
 ):
     remove_perm("can_view_letter", participant_user, letter_instance)
-    match participant_role:
+    match int(participant_role):
         case Roles.AUTHOR.value:
             # Basic Permissions
             remove_perm("can_update_letter", participant_user, letter_instance)

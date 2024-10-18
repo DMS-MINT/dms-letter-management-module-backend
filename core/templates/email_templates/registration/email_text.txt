@@ -1,0 +1,25 @@
+Subject: Welcome to DMS - Registration Confirmation
+
+Welcome to Document Management System!
+
+We're excited to have you on board!
+
+Hi {{ user.first_name }},
+
+Thank you for registering with us. We’re thrilled to support you on your document management journey!
+
+Here are your login details for your first-time login:
+
+Username: {{ user.username }}
+Password: {{ user.default_password }}
+
+Please make sure to change your password after logging in for the first time.
+
+If you have any questions or need assistance, feel free to reach out to our support team.
+
+Best regards,
+The DMS Support Team
+
+This email can't receive replies.
+For more information, visit {{ support_url }}.
+DMS Support

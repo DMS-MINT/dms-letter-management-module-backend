@@ -1,10 +1,3 @@
-import io
-
-import filetype
-from drf_extra_fields.fields import Base64FileField
-from rest_framework import serializers
-
-
 # class FileField(Base64FileField):
 #     ALLOWED_TYPES = ["pdf", "txt", "png", "jpg", "jpeg", "docx"]
 

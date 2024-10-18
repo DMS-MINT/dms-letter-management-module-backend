@@ -126,6 +126,8 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
     class InputSerializer(serializers.Serializer):
         letter = LetterCreateSerializer()
         otp = serializers.CharField()
+        reference_number = serializers.CharField()
+        published_at = serializers.CharField()
 
     serializer_class = InputSerializer
 
@@ -136,10 +138,17 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
             return Response({"detail": str(e)}, status=http_status.HTTP_400_BAD_REQUEST)
 
         otp = request.data.get("otp", "").strip('"')
+        reference_number = request.data.get("reference_number", "").strip('"')
+        published_at = request.data.get("published_at", "").strip('"')
         if not otp:
             return Response({"detail": "OTP is required."}, status=http_status.HTTP_400_BAD_REQUEST)
 
-        input_data = {"letter": letter_data, "otp": otp}
+        input_data = {
+            "letter": letter_data,
+            "otp": otp,
+            "reference_number": reference_number,
+            "published_at": published_at,
+        }
 
         input_serializer = self.InputSerializer(data=input_data)
         input_serializer.is_valid(raise_exception=True)
@@ -163,7 +172,6 @@ class LetterCreateAndPublish(ApiAuthMixin, ApiPermMixin, APIView):
                 "letter": output_serializer.data,
                 "permissions": permissions,
             }
-
             generate_pdf_task.delay_on_commit(letter_id=letter_instance.id)
 
             return Response(data=response_data, status=http_status.HTTP_201_CREATED)

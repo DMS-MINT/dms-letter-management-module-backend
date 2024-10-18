@@ -18,12 +18,12 @@ urlpatterns: list[URLPattern] = [
     path("bulk/trash/", LetterBulkTrashApi.as_view(), name="letter-bulk-trash"),
     path("bulk/restore/", LetterBulkRestoreApi.as_view(), name="letter-bulk-restore"),
     path("bulk/delete/", LetterBulkDeleteApi.as_view(), name="letter-bulk-delete"),
-    path("<slug:reference_number>/", LetterDetailApi.as_view(), name="letter-detail"),
-    path("<slug:reference_number>/pdf/", LetterPdfView.as_view(), name="letter-pdf"),
-    path("<slug:reference_number>/update/", LetterUpdateApi.as_view(), name="letter-update"),
-    path("<slug:reference_number>/trash/", LetterTrashApi.as_view(), name="letter-delete"),
-    path("<slug:reference_number>/restore/", LetterRestoreApi.as_view(), name="letter-restore"),
-    path("<slug:reference_number>/delete/", LetterDeleteApi.as_view(), name="letter-delete"),
+    path("<uuid:id>/", LetterDetailApi.as_view(), name="letter-detail"),
+    path("<uuid:id>/pdf/", LetterPdfView.as_view(), name="letter-pdf"),
+    path("<uuid:id>/update/", LetterUpdateApi.as_view(), name="letter-update"),
+    path("<uuid:id>/trash/", LetterTrashApi.as_view(), name="letter-delete"),
+    path("<uuid:id>/restore/", LetterRestoreApi.as_view(), name="letter-restore"),
+    path("<uuid:id>/delete/", LetterDeleteApi.as_view(), name="letter-delete"),
 ]
 
 urlpatterns.extend(workflow_url_patterns)

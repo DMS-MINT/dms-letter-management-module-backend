@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework import status as http_status
 from rest_framework.exceptions import ValidationError
@@ -6,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.api.mixins import ApiAuthMixin
+from core.emails.services import email_send_type
+from core.users.models import User
 
 from .models import Notification, NotificationRecipient, Tag
 from .serializers import NotificationSerializer
@@ -138,6 +141,39 @@ class SendReminderApi(ApiAuthMixin, APIView):
             # details = {
             #     "notification_type":""
             # }
+
+            if "email" in input_serializer.validated_data.get("channels", []):
+                recipients = input_serializer.validated_data.get("to", [])
+                notification_message = input_serializer.validated_data.get("message")
+
+                user_email = []
+                for uuid in recipients:
+                    user = get_object_or_404(User, id=uuid)
+                    user_email.append(user.email)
+
+                for email in user_email:
+                    email_send_type(
+                        to=email,
+                        subject=subject,
+                        template_name="notification",
+                        context={
+                            "notification_message": notification_message,
+                            "first_name": user.first_name_en,
+                        },
+                    )
+
+                if "sms" in input_serializer.validated_data.get("channels", []):
+                    recipients = input_serializer.validated_data.get("to", [])
+
+                    user_phone_number = []
+                    for uuid in recipients:
+                        user = get_object_or_404(User, id=uuid)
+                        user_phone_number.append(user.phone_number)
+
+                    for phone_number in user_phone_number:
+                        sms_url = f"http://172.31.102.3:i-=]\
+                            8080/sendsms?phonenumber={phone_number}&message={subject}"
+                        request.get(sms_url)
 
             notification_instance = notification_create(subject=subject, tags=tags, **input_serializer.validated_data)
 

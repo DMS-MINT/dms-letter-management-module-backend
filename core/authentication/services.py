@@ -1,13 +1,15 @@
 import base64
 from io import BytesIO
 from venv import logger
+
 import pyotp
 import qrcode
-from rest_framework import status as http_status
 from django.contrib.auth.hashers import make_password
+from rest_framework import status as http_status
+
 from core.api.exceptions import APIError
+from core.emails.services import email_send_type
 from core.users.models import User
-from core.emails.tasks import email_send
 
 
 def setup_2fa(current_user: User):
@@ -28,32 +30,53 @@ def setup_2fa(current_user: User):
     return base64.b64encode(buffer.getvalue()).decode()
 
 
+def verify_otp(current_user: User, otp: str):
+    totp = pyotp.TOTP(current_user.otp_secret)
+
+    if not totp.verify(otp, valid_window=1):
+        raise APIError(
+            error_code="INVALID_OTP",
+            status_code=http_status.HTTP_400_BAD_REQUEST,
+            message="Invalid OTP provided. Please check the OTP and try again.",
+            extra={"otp_error": "The provided OTP is incorrect."},
+        )
+
+    return True
+
+
 def get_user_by_email(email: str):
     try:
-        user = User.objects.get(email = email)
-        return user
+        return User.objects.get(email=email)
     except User.DoesNotExist:
         return None
 
 
 def generate_reset_otp(user):
-    otp_secret = pyotp.random_base32()
-    totp = pyotp.TOTP(user.otp_secret)
+    totp = pyotp.TOTP(user.otp_secret, interval=900)
     otp = totp.now()
 
     try:
         logger.info("OTP %s generated for user %s", otp, user.email)
         user.email
-        email_send(user.email,otp)
+        name = user.first_name_en + " " + user.middle_name_en
+        email_send_type(
+            user.email,
+            "OTP Verification",
+            "otp",
+            context={
+                "otp_code": otp,
+                "recipient_name": name,
+            },
+        )
         logger.info("OTP sent successfully to %s", user.email)
 
     except Exception as e:
         logger.error("Failed to send OTP to %s: %s", user.email, str(e))
         raise  # Re-raise the exception to be caught in the API view
-    
 
-def verify_otp(current_user: User, otp: str):
-    totp = pyotp.TOTP(current_user.otp_secret)
+
+def verify_otp_reset(current_user: User, otp: str):
+    totp = pyotp.TOTP(current_user.otp_secret, interval=900)
 
     if not totp.verify(otp, valid_window=1):
         raise APIError(
